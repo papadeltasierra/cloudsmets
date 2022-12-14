@@ -3,6 +3,11 @@
 ## Phase 0
 - Read the ZigBee2MQTT code and see if it could be reused and/or gives hints as
   to design
+  - Do not want any "MQTT to ZigBee" code
+  - Do need the "CLI" between ZigBee and MQTT
+  - Can we update ZigBee from the ESP32?
+  - Need to configure the cloud settings
+  - Need to configure the cloud MQTT topic(s)
 - See if can _tickle_ ths IHD to reveal any secrets
 
 ## Phase 1
