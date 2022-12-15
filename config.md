@@ -17,16 +17,20 @@ The following is an exmaple of the configuration layout but note the following:
 ||c||common|Common configuration
 |||p|period|Tiem between MQTT Publish requests in seconds
 ||a||azure|Azure specific configuration
+|||e|enabled
 |||h|IoT hub|
 |||n|device name|
 |||s|connection string|
 ||g||google|Google Cloud specific configuration
+|||e|enabled
 ||w||aws|Amazon Web Services specific configuration
+|||e|enabled
 |z|||zigbee|ZibBee configuration
 ||i||hid|...about your IHD
 |||g|GUID|Globally unique ID
 |||k|key|Encryption key
 |o|||ota|Other-the-air configuration
+||e||enabled
 ||s||server|Server from which to pull OTA updates
 ||k||signing keys|Public OTA image signing keys
 ||f||force|Force update to this version if not empty
@@ -44,13 +48,16 @@ The following is an exmaple of the configuration layout but note the following:
             "period": 300
         },
         "azure": {
+            "enabled": true,
             "IoT hub": "my-iothub",
             "device name": "cloudsmets",
             "connection string": "gfjgdhfjshjgfdngjfngkfdn"
         },
         "google": {
+            "enabled": false,
         },
         "aws": {
+            "enabled": false,
         }
     },
     "zigbee": {
@@ -60,6 +67,7 @@ The following is an exmaple of the configuration layout but note the following:
         }
     },
     "ota": {
+        "enabled": true,
         "server": "https://github/cloudsmets/images",
         "signing keys": [
             "01234567890ABCDEF",
