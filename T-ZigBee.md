@@ -4,6 +4,12 @@ Ref:
 - [ZigBee development board]
 - [ZigBee2MQTT for development board]
 
+## Overview
+- Not sure if the TLSR8258 can be switched into "sniffer" mode or not
+- For testing of "can we bind the IHD", the TLSR8258 code is almost certainly sufficient and we might be able to read the key for the device
+- ESP32-C3 code is only useful for the `zbhci` interface definition, which appears to support an OTA update but it is not clear
+- Write new ESP-C3 firmware to add OTA updates, cnofig stores, web service etc.
+
 ## zbhci Notes
 - `zbhci` is a protocol between the Espressif ESP32-C3 and the Telink TLSR8258 processors
 - communcation is via zbhci_Tx()
@@ -16,7 +22,7 @@ Ref:
     - There are lots of commands, but what do they do?
 - `hci_uart.h` seems to be used as the UART - this is written by T-ZigBee and not an Espressif module
 
-### hci_uart Notes
+## hci_uart Notes
 _Pretty standard ESP32 processing_
 - Has `init()`/`send()`/`recv()`/`deinit()` methods
 - Uses UART_NUM_1
@@ -24,6 +30,19 @@ _Pretty standard ESP32 processing_
 - The usual 115200,8,1,n and not flow control
     - using GPIOs 18 and 19
 - Using an ESP32 task to receive data and then send it as an event to the `zbhci` task.
+
+## hci_display Notes
+`hci_display` functions are just logging functions that log the responses and indications recieve over the `hci_uart` interface.  they should probably be `zbhci_display` methods since they all related to zbhci responses or indications.
+
+The process for receipt of a response or indication is:
+- received via `hci_uart`
+- unpacked and passed to the `zhbci_Cmdhandler()`, which really processes responses and indications not requests
+- individual unpack methods for each message type e.g. `zbhci_UnpackNetworkStateRspPayload()`
+    - data is unpacked into a _response payload_ e.g. `ts_MsgNetworkStateRspPayload`
+    - the payload is the data poassed along when the event is sent along using the `xQueueSend()` reuqest from `zbhci_task()`
+    - the queue to send to is an argument to `zbhci_Init()`
+    - the queue is set by the various (Arduino) examples
+    - the (Arduino) examples handle the responses and then do more stuff.
 
 ## zhbi Commands
 Message types are below.
