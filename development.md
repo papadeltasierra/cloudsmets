@@ -1,5 +1,9 @@
 # Development Notes
 
+## References
+- [ZigBee2MQTT]
+- [ZigBee2MQTT for development board]
+
 ## Phase 0
 - Read the ZigBee2MQTT code and see if it could be reused and/or gives hints as
   to design
@@ -30,7 +34,7 @@
   - Timestamp
   - Electrcity, list of tarrifs
   - Gas, list of tarrifs
-- ZigBee creating fake data using simple time driven script?  
+- ZigBee creating fake data using simple time driven script?
 
 ## Phase 4
 - Learning IHD security key
@@ -42,3 +46,6 @@
 - Filtering as much as possible in hardware
 - Decoding and passing the ESP32
 - EPS32 relays
+
+[ZigBee2MQTT]: https://www.zigbee2mqtt.io/
+[ZigBee2MQTT for development board]: https://github.com/Xinyuan-LilyGO/T-ZigBee
