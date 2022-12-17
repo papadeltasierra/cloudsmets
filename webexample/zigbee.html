@@ -2,7 +2,7 @@
 
 <head>
     <title>CloudSMETS - ZigBee</title>
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
@@ -11,8 +11,8 @@
         <table>
             <tr>
                 <td>
-                    <label for="ssid">GUID:</label><br />
-                    <input type="text" id="guid" name="guid"><br><br>
+                    <label for="guid">GUID:</label><br />
+                    <input type="text" id="guid" name="guid" pattern="[\da-fA-F]{2}(?:-[\da-fA-F]{2}){5}" title="format: xx-xx-xx-xx-xx-xx (hex digits)"><br><br>
                 </td>
             </tr>
             <tr>
@@ -26,7 +26,7 @@
     </form>
     <p>Click on the submit button to submit the form.</p>
     <br />
-    <form action="../index.html">
+    <form action="/index.html">
         <input type="submit" value="Home" />
     </form>
 </body>
