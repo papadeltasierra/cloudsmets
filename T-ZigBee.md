@@ -10,8 +10,22 @@ Ref:
 - ESP32-C3 code is only useful for the `zbhci` interface definition, which appears to support an OTA update but it is not clear
 - Write new ESP-C3 firmware to add OTA updates, cnofig stores, web service etc.
 
+#### ZigBee Notes
+- The [Hub] above the electriicity meter is a [ZigBee] [Coordinator] and is the node
+that stores network information, including security keys
+- The [IHD] is an [End Device] and can talk to a coordinator or router but not to other end devices
+- [Routers] just relay information between endpoints and coordinators.
+
+> So in theory we might have been able to place a [Router] between the [IHD] and [Hub], but the [IHD] is too close to the [Hub] to need/use a [Router] and the [Router] would almost certainly not be allowed to contact the [Hub] anyway as the _device list_ on the [Hub] is locked down.
+
+- ZigBee only specifies Intra-[PAN] (Personal Area Network) communications; In SMETS/Smart Metering terms, a [HAN] (Home Area Network) is a [PAN].
+- Multi-octet values are sent over the network using  _byte containing the lowest-numbers bits_ first ordering
+- A byte/octet is a binary string (values `{0,1}`) of length 8
+- Expect to see ZigBee Protocol Version `0x03` (ZigBee PRO)
+
+
 ## zbhci Notes
-- `zbhci` is a protocol between the Espressif ESP32-C3 and the Telink TLSR8258 processors
+- `zbhci` is a protocol between the Espressif ESP32-C3 and the Telink [TLSR8258] processors
 - communcation is via zbhci_Tx()
     - then uart_send()
 - zbhci commands use a CRC8 checksum calculated over the data being sent
@@ -45,22 +59,28 @@ The process for receipt of a response or indication is:
     - the (Arduino) examples handle the responses and then do more stuff.
 
 ## zhbi Commands
+It is assumed that zhbi is supporting the _ZigBee PRO_ form of [ZigBee].
 Message types are below.
 
-_These probably relate to ZigBee concepts so we need to read up on the ZigBee protocol._
+_These probably relate to ZigBee concepts so we need to read up on the [ZigBee] protocol._
+
+### Commisioning
+- `Formation` and `Steer` take no parameters
+- `TouchLink` and `FindBind` take an `enum` of `Initiator` or `Target`
+
 
 |Command|Method?|Purpose|
 |-|-|-|
-|ZBHCI_CMD_BDB_COMMISSION_FORMATION|Y
+|ZBHCI_CMD_BDB_COMMISSION_FORMATION|Y|This appears to be related to _binding_, namely how nodes find each other and "register" themselves with the coordinator.<br/>Actually that might be wrong; commisioning might be how the speicfic node is configured.  See section `2.5.4.5.6.1` of the ZigBee specifications.
 |ZBHCI_CMD_BDB_COMMISSION_STEER|Y|
 |ZBHCI_CMD_BDB_COMMISSION_TOUCHLINK|Y
 |ZBHCI_CMD_BDB_COMMISSION_FINDBIND|Y
-|ZBHCI_CMD_BDB_FACTORY_RESET|Y
-|ZBHCI_CMD_BDB_PRE_INSTALL_CODE|Y
-|ZBHCI_CMD_BDB_CHANNEL_SET|Y
-|ZBHCI_CMD_BDB_DONGLE_WORKING_MODE_SET|Y
-|ZBHCI_CMD_BDB_NODE_DELETE|Y
-|ZBHCI_CMD_BDB_TX_POWER_SET|Y
+|ZBHCI_CMD_BDB_FACTORY_RESET|Y|Wipes all [NV] configuration, may send a `leave` command and restores the TLSR8258 firmware to factory settings
+|ZBHCI_CMD_BDB_PRE_INSTALL_CODE|Y|Configures the device address and unique [link key] for this device.<br/>**We don't expect to use this command as we are going to try and act as a Sniffer.**
+|ZBHCI_CMD_BDB_CHANNEL_SET|Y|channels can only be `11` to `26` which says that the TLS8258 only operates in the 2450MHz frequency band.<br/>Selecting a band seems to be application level function so presumably the system has to "find" a free band.<br/>Our device has to search for the band that the [IHD] and [Hub] are using the communicate.
+|ZBHCI_CMD_BDB_DONGLE_WORKING_MODE_SET|Y|Takes _Get MAC address_ or _Normal_ mode as the sole parameter; may be _set MAC address_ or _generate random MAC address_ which the [TLS8258] supports.
+|ZBHCI_CMD_BDB_NODE_DELETE|Y|(Presumably) If working as a [Coordinator], forget all information about this [Node].  The [Node] is identified by its 64-bit device address
+|ZBHCI_CMD_BDB_TX_POWER_SET|Y|Set transmission power<br/>VANT and VBAT may be _regular Bluetooth_ and _ANT_ modes sinc ethis board can also support Bluetooth.
 |ZBHCI_CMD_ACKNOWLEDGE|
 |ZBHCI_CMD_BDB_COMMISSION_FORMATION_RSP|
 |ZBHCI_CMD_NETWORK_STATE_REQ|Y
@@ -176,6 +196,28 @@ _These probably relate to ZigBee concepts so we need to read up on the ZigBee pr
 |ZBHCI_CMD_NODE_LEAVE_IND|
 |ZBHCI_CMD_AF_DATA_SEND|
 
+???
 
+- <span id='PAN'/>**PAN**</span>: Personal Area Network
+- <span id='Coordinator'>**Coordinator**</span>: ZigBee node that manages the network and stores information such as security keys
+- <span id='EndDevice'>**End Device**</span>: ZigBee node that _does the work_ but which can only communicate with the [Coordinator] or a [Router]
+- <span id='Router'>**Router**</span>: ZigBee node used in some networks to relay information between [End Node]s and/or the [Coordinator]
+- <span id='Node'>**Node**</span>: A ZigBee [Coordinator], [Router], [End Point]
+- <span id='NV'>**NV**</span>: non-volatile; configuration information that survives a power-cycle, typically configuration such as node IDs, passwords etc
+- <span id='LinkKey'>**Link Key**</span>: A security key, half of a link key pair shared between this node another node that talks to.
+- <span id='HAN'>**HAN**</span>: Home Area Network (a PAN!)
+- <span id='Hub'>**Hub**</span>: The ZigBee bx, typically above your electricity meter; this performs the role of the ZigBee [Coordinator]- <span id='IHD'>**IHD**</span>: In Home Device: The display device (a ZigBeen [End Device]) that shows you, the customer, your current gas and electricity usage
+
+[TLS8258]: http://wiki.telink-semi.cn/doc/ds/PB_TLSR8258-E_Product%20Brief%20for%20Telink%20BLE%20IEEE802.15.4%20Multi-Standard%20Wireless%20SoC%20TLSR8258.pdf
+[TLS8258 ZigBee Development Manual]: http://wiki.telink-semi.cn/doc/an/AN_19052900-E_Telink%20Zigbee%20SDK%20Developer%20Manual.pdf
 [ZigBee development board]: https://www.cnx-software.com/2022/04/27/10-t-zigbee-board-combines-esp32-c3-and-tlsr8258-for-zigbee-3-0-wifi-and-ble-connectivity/
-[ZigBee2MQTT for development board]: https://github.com/Xinyuan-LilyGO/
+[ZigBee2MQTT for development board]: https://github.com/Xinyuan-LilyGO/T-ZigBee
+[ZigBee]: https://zigbeealliance.org/wp-content/uploads/2019/11/docs-05-3474-21-0csg-zigbee-specification.pdf
+[PAN]: #PAN
+[HAN]: #HAN
+[IHD]: #IHD
+[Coordinator]: #Coordinator
+[End Device]: #EndDevice
+[Router]: #Router
+[NV]: #NV
+[link key]: #LinkKey
