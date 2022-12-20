@@ -36,3 +36,18 @@
 - Same data indication being passed to the ESP32-C3
 - How do we decode it and pass along?  The ZigBee2MQTT code should explain all
 - Can we build a simple sniffer to do this, or perhaps get a board designed that does all we need?  Is there a market?
+
+## Telink SDK Notes
+- 'b85m' includs the TLSR8258
+- There is a `__PROJECT_TL_SNIFFER__` flag in the SDK
+- There is an `irq_sniffer_handler()` that becomes available for a _sniffer_ project
+- `irq_sniffer_handler()` is called from `irq_handler()` instead of the RX or TX handlers (which would have been called based on flags and what was happening)
+  - not clear what triggers the IRQ as it is called from cstartup_8285.S machine code
+  - so what sort of processor are we looking at here?  What is the core?
+  - See [Ghisdra TELink]: _The TC32 is essentially a clone of the 16-bit ARM9 Thumb instruction set._
+  - See the [Thumb 16-bit Instruction Set Quick Reference Card] however there are clearly some differents; perhaps te [Ghisdra TElink] project could clarify them if required
+- Not clear what the _sniffer_ IRQ is as opposed to say just the _rx_ IRQ.
+- `ZB_RADIO_TRX_CFG` enables both RX and TX IRQs
+
+[Ghisdra TELink]: https://github.com/rgov/Ghidra_TELink_TC32
+[Thumb 16-bit Instruction Set Quick Reference Card]: https://developer.arm.com/documentation/qrc0006/e
