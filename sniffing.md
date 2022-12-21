@@ -1,7 +1,7 @@
 # Sniffing ZigBee Notes
 
 ## Initial Testing
-initial sniffing is being performed using a [TI] (Texas instruments) [CC2531 USB stick], preloaded with the ZBOSS/Wireshark sniffer package.  instructions can be found in the [Sniff Zigbee traffic] section of the [Zigbee2MQTT] website.
+Initial sniffing is being performed using a [TI] (Texas instruments) [CC2531 USB stick], preloaded with the ZBOSS/Wireshark sniffer package.  instructions can be found in the [Sniff Zigbee traffic] section of the [Zigbee2MQTT] website.
 
 Data was successfully captured off channel 11.
 
