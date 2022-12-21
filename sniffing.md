@@ -56,4 +56,4 @@ ZigBee Network Layer Data, Dst: 0x55b1, Src: 0x60e4
 [Wireshark]: https://wireshark.org
 [Sniff Zigbee traffic]: https://www.zigbee2mqtt.io/advanced/zigbee/04_sniff_zigbee_traffic.html
 [Zigbee2MQTT]: https://www.zigbee2mqtt.io
-[Chemeleon Technology]: https://chameleontechnology.co.uk/
+[Chameleon Technology]: https://chameleontechnology.co.uk/
