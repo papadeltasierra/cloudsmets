@@ -1,0 +1,70 @@
+<html>
+
+<head>
+    <title>CloudSMETS - Debugging</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <h1>CloudSMETS - Debugging</h1>
+
+    <form action="/debug.html">
+        <table>
+            <tr>
+                <td>
+                    <label for="enabled">Debugging Enabled:</label><br />
+                    <input type="checkbox" id="enabled" name="enabled">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="esp32_c3">ESP32-C3:</label><br />
+                    <select name="esp32_c3" id="esp32_c3">
+                        <option value="0">Disabled</option>
+                        <option value="1">Error</option>
+                        <option value="2">Info</option>
+                        <option value="3">Debug</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="tlsr8258">TLSR8258:</label><br />
+                    <select name="tlsr8258" id="tlsr8258">
+                        <option value="0">Disabled</option>
+                        <option value="1">Error</option>
+                        <option value="2">Info</option>
+                        <option value="3">Debug</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="network">Network Debugging Enabled:</label><br />
+                    <input type="checkbox" id="network" name="network">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="ip_addr">IP address:</label><br />
+                    <input type="text" id="ip_addr" name="ip_addr" pattern="[0-9]{1,3}(?:\.[0-9]{1,3}){3}" title="format: dd.dd.dd.dd (0-254))">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="ip_port">IP port:</label><br />
+                    <input type="number" id="ip_port" name="ip_port" min="1", max="65534" title="valid ports are 1-65534">
+                </td>
+            </tr>
+        </table>
+        <input type="submit" value="Submit">
+    </form>
+
+    <p>Click on the submit button to submit the form.</p>
+    <br />
+    <form action="/index.html">
+        <input type="submit" value="Home" />
+    </form>
+</body>
+
+</html>
