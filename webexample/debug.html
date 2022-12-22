@@ -18,12 +18,25 @@
             </tr>
             <tr>
                 <td>
+                    <label for="baud">Baudrate:</label><br />
+                    <select name="baud" id="baud">
+                        <option value=460800>460800</option>
+                        <option value=230400>230400</option>
+                        <option value=115200>115200</option>
+                        <option value=576000>57600</option>
+                        <option value=19200>19200</option>
+                        <option value=9600>9600</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <label for="esp32_c3">ESP32-C3:</label><br />
                     <select name="esp32_c3" id="esp32_c3">
-                        <option value="0">Disabled</option>
-                        <option value="1">Error</option>
-                        <option value="2">Info</option>
-                        <option value="3">Debug</option>
+                        <option value=0>Disabled</option>
+                        <option value=1>Error</option>
+                        <option value=2>Info</option>
+                        <option value=3>Debug</option>
                     </select>
                 </td>
             </tr>
@@ -31,10 +44,10 @@
                 <td>
                     <label for="tlsr8258">TLSR8258:</label><br />
                     <select name="tlsr8258" id="tlsr8258">
-                        <option value="0">Disabled</option>
-                        <option value="1">Error</option>
-                        <option value="2">Info</option>
-                        <option value="3">Debug</option>
+                        <option value=0>Disabled</option>
+                        <option value=1>Error</option>
+                        <option value=2>Info</option>
+                        <option value=3>Debug</option>
                     </select>
                 </td>
             </tr>
