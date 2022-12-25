@@ -109,12 +109,14 @@ There seems to be three different _standard_ TLSR8258 boards; which do we match?
 |Red LED|PD4|PA3|PD0|PD5|PD4
 |Power LED|red|red|red|red
 |Prmit LED|green|green|green|green
-|UART TX|PB1|PD7|PB1|PB1|**See USB**
-|UART RX|PB7|PA0|PB0|PB0|**See USB**
+|UART TX|PB1|PD7|PB1|PB1|PB1
+|UART RX|PB7|PA0|PB0|PB0|PB7
 |Debug TX|PC4|PC6|PC7|PD0|PC4
-|USB UART TX|||||PB1
-|USB UART RX|||||PB7
 
+> Although the Lilygo board has a USB connector, the connections to the TLSR8258 are actually a plain UART and the T-U2T dongle does the UART/USB conversion.
+>
+> This also means that the ESP32-C3 has only one extra UART available over the one used for the _fake USB_ connection.
+>
 > The table above says that the development board is like the 32-pin dongle so we should use that as our target.  The board type defaults to `BOARD=BOARD_8258_DONGLE` for the TLSR8258 so no changes required there.
 
 #### Build Targets

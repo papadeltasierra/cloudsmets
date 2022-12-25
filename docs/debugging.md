@@ -26,6 +26,8 @@ The following debugging scheme is therefore defined:
 
 - Initial UART configuration is 115200,8,1,N.
 
+> This is wrong since the "USB" connection si actually just a simple UART with the T-U2T dongle doing the UART/USB conversion.  so the ESP32-C3 only has one additional UART available.
+
 ~~~mermaid
 ---
 title: Serial Based Debugging Output
