@@ -94,7 +94,63 @@ Contains **lots** of very useful hints as to what we might want to enable.
 |ZCL cluster support flags|We probably do not want any of this but we should check.
 |ZCL_OTA_SUPPORT|Might be interesting but does this imply OTa over Zigbee, which we definitely would not want.<br/>**Seems to mena OTA over Zigbee so not need to enable this.**
 
-That is probably it.
+**ZCL Options**
+
+See `zcl_config.h` where they are defined.
+
+Enabling an option adds attributes and other parsing function.  Each supported option is defined through a _profile_ defined in an additional Zigbee specification e.g. the [Smart energy] profile
+
+> It feels like perhaps _BASIC_ and _METERING_ are the two profiles that CloudSMETS needs to support.  Might also need _IDENTIFY_ or similar perhaps and maybe _TIME_ since the smart meter system seems to provide time information.
+
+|Option|Purpose|
+|-|-|
+|****** General *******
+|ZCL_BASIC|Basic
+|ZCL_POWER_CFG_SUPPORT|Power Cluster
+|ZCL_DEV_TEMPERATURE_CFG|Device temperature config
+|ZCL_IDENTIFY|Identify cluster
+|ZCL_GROUP_SUPPORT|Group cluster
+|ZCL_SCENE_SUPPORT|Scene cluster
+|ZCL_ON_OFF_SUPPORT|On/Off cluster
+|ZCL_ON_OFF_SWITCH_CFG_SUPPORT|On/Off config cluster
+|ZCL_LEVEL_CTRL_SUPPORT|Level control cluster
+|ZCL_ALARMS_SUPPORT|Alarm cluster
+|ZCL_TIME_SUPPORT|Time cluster
+|ZCL_RSSI_LOCATION_SUPPORT|RSSI location cluster
+|ZCL_DIAGNOSTICS_SUPPORT|Diagnostics
+|ZCL_POLL_CTRL_SUPPORT|Poll control
+|ZCL_GP_SUPPORT|Green power
+|ZCL_BINARY_INPUT_SUPPORT|Binary input
+|ZCL_BINARY_OUTPUT_SUPPORT|Binary output
+|ZCL_MULTISTATE_INPUT_SUPPORT|Multistate input
+|ZCL_MULTISTATE_OUTPUT_SUPPORT|Multistate output
+|***** Measurement and Sensing ******
+|ZCL_ILLUMINANCE_MEASUREMENT_SUPPORT|Illuminance Measurement
+|ZCL_ILLUMINANCE_LEVEL_SENSING_SUPPORT|Illuminance Level Sensing
+|ZCL_TEMPERATURE_MEASUREMENT_SUPPORT|Temperature Measurement
+|ZCL_OCCUPANCY_SENSING_SUPPORT|Occupancy Sensing
+|ZCL_ELECTRICAL_MEASUREMENT_SUPPORT|Electrical Measurement
+|****** Lighting ******|
+|ZCL_LIGHT_COLOR_CONTROL_SUPPORT|Color Control
+|ZCL_BALLAST_CFG|Ballast Configuration
+|****** HVAC ******
+|ZCL_THERMOSTAT_SUPPORT|THERMOSTAT
+|****** Closures ******
+|ZCL_DOOR_LOCK_SUPPORT|Door Lock
+|ZCL_WINDOW_COVERING_SUPPORT|Window Covering
+|****** Safe and Security ******
+|ZCL_IAS_ZONE_SUPPORT|IAS Zone
+|ZCL_IAS_ACE_SUPPORT|IAS ACE
+|ZCL_IAS_WD_SUPPORT|IAS WD
+|****** Smart energy ******
+|ZCL_METERING_SUPPORT|Metering support
+|****** OTA Upgrading ******
+|ZCL_OTA_SUPPORT|OTA Configuration
+|****** Commissioning ******
+|ZCL_COMMISSIONING|Commissioning
+|ZCL_ZLL_COMMISSIONING_SUPPORT|Touchlink Commissioning
+|****** WWAH *****
+|ZCL_WWAH_SUPPORT| Work with all hub
 
 #### Board Differences
 There seems to be three different _standard_ TLSR8258 boards; which do we match?
@@ -137,3 +193,6 @@ Do we want to use the LEDs in the manner defined above, namely:
 [Telink Zigbee SDK Developer Manual]: http://wiki.telink-semi.cn/doc/an/AN_19052900-E_Telink%20Zigbee%20SDK%20Developer%20Manual.pdf
 [USB communications device class]: https://en.wikipedia.org/wiki/
 [USB human interface device class]: https://en.wikipedia.org/wiki/USB_human_interface_device_class
+
+
+[Smart energy]: https://zigbeealliance.org/wp-content/uploads/2019/11/docs-07-5356-19-0zse-zigbee-smart-energy-profile-specification.pdf
