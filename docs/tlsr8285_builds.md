@@ -107,17 +107,21 @@ There seems to be three different _standard_ TLSR8258 boards; which do we match?
 |Button4||||PB5|
 |Green LED|PA0|PA2|PD4|PD3|PA0
 |Red LED|PD4|PA3|PD0|PD5|PD4
-|Power LED|red|red|red|red
-|Prmit LED|green|green|green|green
+|Power LED|red|red|red|red|red
+|Prmit LED|green|green|green|green|green
 |UART TX|PB1|PD7|PB1|PB1|PB1
 |UART RX|PB7|PA0|PB0|PB0|PB7
-|Debug TX|PC4|PC6|PC7|PD0|PC4
+|Debug TX (1)|PC4|PC6|PC7|PD0|PC4
+
+1. The _Debug TX_ seems to be a software emulated UART.  We probably don't want to use this because we have a second UART available that we can use instead so we want to use that instead.
 
 > Although the Lilygo board has a USB connector, the connections to the TLSR8258 are actually a plain UART and the T-U2T dongle does the UART/USB conversion.
 >
 > This also means that the ESP32-C3 has only one extra UART available over the one used for the _fake USB_ connection.
 >
 > The table above says that the development board is like the 32-pin dongle so we should use that as our target.  The board type defaults to `BOARD=BOARD_8258_DONGLE` for the TLSR8258 so no changes required there.
+>
+> The LilyGO board doesn't have buttons but the SampleGW doesn't use these anyway so we can continue to use the dongle.
 
 #### Build Targets
 Some variables are set via the 'Properties', 'C/C++ Build', 'Settings', 'Tool Settings' tab, 'TC32 Compiler', 'Symbols' dialog.  for example the `MCU_CORE_8258=1` value is set.
