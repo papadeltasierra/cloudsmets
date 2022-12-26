@@ -1,6 +1,7 @@
-# ZGC - Telink Python Tool
+# ZGC - Zigbee Gateway Controller
+Note that there is a compiled version of this tool however the Python based tool looks nicer and claims to be the _new_ version.
 
-> Google Translate actually does a good job of translating the Chinese comments!
+> Google Translate actually does a good job of translating the Chinese comments in the Python.
 
 ## What It does?
 Graphical control for the `ZBHCI` interface.
@@ -15,8 +16,58 @@ Graphical control for the `ZBHCI` interface.
 |pyserial|Serial port support|
 |pandas|Powerful data structures for data analysis, time series, and statistics|
 
-## Internals
+## Instructions
+1. The `Send` panel seems to be for sending hand-crafted Zigbee commands; if you press `Send` with nothing in the window, the tool crashes because if cannot parse the (absent) command.
+1. Some commands will probably cause Zigbee commands to be sent over the air but some access data on the TLSR8258
+1. To run a command...
+    1. Select the tab for the group of commands that you want to enter
+    1. Fill in the fields to the left of the command _button_
+    1. Press the command _button_
+        1. For example see the `onOff` tab where the command _button_ is the grey box far left marked `onOff`
+1. Addresses are entered into the DstAddr field
+    1. The IEEE address format is `0x1122334455667788`
+    1. The short address format is `0x1122`
+1. SrcEP/DstEP are entered into the appropriate fields
+    1. The SrcEP/DstEP format is `0x11`
+1. Empty address/EPs are represented by `0xcc..` in the resulting command
+1. Looks like the 8-bit CRC is always represented by `0xaa`
+1. Command exchanges are written to a CSV file located below a directory named `userdata\YY-MM-DD-HH-mm-SS`
 
+### Commands
+|Commands|Purpose|
+|-|-|
+|BDB|[Base Device Behavior] (sic)
+|nodesMGMT|
+|MGMT|
+|general|
+|group|
+|onOff|
+|level|
+|color|
+|identify|
+|scene|
+|OTA|
+|AF|
+|HCI OTA|
+|analyze|
+
+#### general
+Looks like a set of general commands.
+
+#### level
+Send level change requests.
+
+#### color (sic)
+Sends colour change instructions to one or more end devices.
+
+#### Identify
+Question:/ Are these Zigbee queries or queries to the coordinator (say) on the board to determime what devices are attached to us?
+
+#### HCI OTA
+- Looks like this can be used to upload a new image to the board
+- Not clear how we indicate the starting address; perhaps the image indicates this?
+
+## Internals
 ### zgc_tool.py
 - Top-level script
 - Imports (and other standard packages)
@@ -57,3 +108,5 @@ An icon for the tool that shows "ZGC"
 
 ### hcicommandparse.py
 - Parses command files, not sure where from though.
+
+[Base Device Behavior]: https://zigbeealliance.org/wp-content/uploads/2019/12/docs-13-0402-13-00zi-Base-Device-Behavior-Specification-2-1.pdf
