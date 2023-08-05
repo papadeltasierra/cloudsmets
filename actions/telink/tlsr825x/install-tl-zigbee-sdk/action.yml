@@ -42,12 +42,12 @@ runs:
     - name: Check SDK hash/version
       shell: pwsh
       run: |
-        $Hash=(Get-FileHash -Path "${env:TEMP}\${env:_zip}" -Algorithm sha256)
-        if (${Hash.hash} -ne "${env:_hash}")
+        $Hash=Get-FileHash -Path "${env:TEMP}\${env:_zip}" -Algorithm sha256
+        if ($Hash.hash.ToString() -ne $env:_hash)
         {
           Write-Warning "Zigbee SDK hash has changed implying Zigbee SDK update!"
           Write-Warning "Expected sha256: ${env:_hash}"
-          Write-Warning "Actual sha256:   $(Out-String -InputObject ${Hash.hash})"
+          Write-Warning "Actual sha256:   $(Out-String -InputObject $Hash.hash)"
         }
 
     - name: Unzip the SDK

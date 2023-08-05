@@ -44,8 +44,8 @@ runs:
     - name: Check IDE hash/version
       shell: pwsh
       run: |
-        $Hash=$(Get-FileHash -Path "${env:TEMP}\${env:_zip}" -Algorithm sha256)
-        if ($Hash.hash -ne "${env:_hash}")
+        $Hash=Get-FileHash -Path "${env:TEMP}\${env:_zip}" -Algorithm sha256
+        if ($Hash.hash.ToString() -ne $env:_hash)
         {
           Write-Warning "IDE hash has changed implying IDE update!"
           Write-Warning "Expected sha256: ${env:IDE_HASH}"

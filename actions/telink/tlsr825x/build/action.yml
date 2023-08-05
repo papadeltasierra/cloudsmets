@@ -36,12 +36,16 @@ runs:
         $extension_list = $env:_extensions.Split(",")
         $image_base="${{ inputs.zigbee_sdk }}\${env:_workspaces}\${{ inputs.project }}\${{ inputs.project }}"
         $image_list = @()
+
+        # Writing a multi-line string is "magic" in GitHub!
+        # Ref: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+        $EOF=[System.Guid]::NewGuid().ToString()
+        echo "_image_files<<${EOF}" >> ${env:GITHUB_ENV}
         foreach ($ext in $extension_list)
         {
-          $images_list += "${image_base}.${ext}"
+          echo "${image_base}.${ext}" >> ${env:GITHUB_ENV}
         }
-        $image_files = $images_list -Join "`r`n"
-        echo "_image_files=${image_files}" >> ${env:GITHUB_ENV}
+        echo "${EOF}" >> ${env:GITHUB_ENV}
 
     - name: Find eclipsec
       shell: pwsh
