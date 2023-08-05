@@ -16,7 +16,7 @@ env:
 jobs:
   TeLink-tlsr825x-build:
     runs-on: windows-latest
-    name: install the TLSR825x build environments.
+    name: Test install of the TLSR825x build environment and image build.
     steps:
       # We only need the actions currently since we are using the default builds etc.
       - uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
 
   espressif-ESP32-build:
     runs-on: ubuntu-latest
-    name: Testing Espressif Docker image usage
+    name: Testing Espressif Docker image generation.
     steps:
       # To use this repository's private action,
       # you must check out the repository
