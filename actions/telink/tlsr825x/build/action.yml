@@ -33,11 +33,15 @@ runs:
         echo "_extensions=$env:_extensions" >> ${env:GITHUB_ENV}
 
         # We need some intermediate variables to help upload artifacts.
-        $_extensions_regex=${env:_extensions}.Replace(",", "|")
-        $_images_regex="${{ inputs.zigbee_sdk }}\${env:_workspaces}\${{ inputs.project }}\${{ inputs.project }}"
-        $_images_regex=$_images_regex.Replace("\", "/")
-        $_images_regex="${_images_regex}\.[${_extensions_regex}]"
-        echo "_images_regex=$_images_regex" >> ${env:GITHUB_ENV}
+        $extension_list = $env:_extensions.Split(",")
+        $image_base="${{ inputs.zigbee_sdk }}\${env:_workspaces}\${{ inputs.project }}\${{ inputs.project }}"
+        $image_list = @()
+        foreach ($ext in $extension_list)
+        {
+          $images_list += "${image_base}.${ext}"
+        }
+        $image_files = $images_list -Join "`r`n"
+        echo "_image_files=${image_files}" >> ${env:GITHUB_ENV}
 
     - name: Find eclipsec
       shell: pwsh
@@ -148,6 +152,5 @@ runs:
     - uses: actions/upload-artifact@v3
       with:
         name: tlsr825x-firmware
-        # Note we have a carefully crafted REGEX because "\" characters confuse the REGEX.
-        path: "${{ env._images_regex }}"
+        path: ${{ env._image_files }}
         retention-days: 1
