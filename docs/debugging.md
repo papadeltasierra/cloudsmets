@@ -44,7 +44,7 @@ flowchart LR
 
 > A sample Python script should be created as part of this project or maybe a simple C program.
 
-## Configuaration
+## Configuration
 The website will permit configuration of:
 - Debugging globally enabled/disabled
 - ESP32-C3 debugging level set to Error/Info/Debug

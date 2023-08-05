@@ -8,6 +8,9 @@
   TLSR8258 TX/RX to ESP32 RX/TXD1
 - Switching the DIP switches connects the _USB-C_ to either TLSR8258 RX/TX or the ESP32's RT/TX(0).
 
-> You pretty much have to have the T-U2T connector to program this board, which is something that is not clear from the docs!
+> Be very careful - if you somehow lose the bootloader, then we have to program the board using the [SWire] interface and that requires some extra hardware!
+>
+> You pretty much have to have the [T-U2T] connector to program this board (but via the bootloader!), which is something that is not clear from the docs.
 
   [T-U2T]: https://www.lilygo.cc/products/t-u2t
+  [SWire]: https://rbaron.net/blog/2021/07/06/Reverse-engineering-the-M6-smart-fitness-band.html

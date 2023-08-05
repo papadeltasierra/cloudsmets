@@ -21,7 +21,7 @@
 > Done
 - How will we debug this?
 - What ESP32-C3 components do we need?
-- What TLSR8252 components do we need?
+- What TLSR8258 components do we need?
 - What can we achieve?
 - What web pages do we need?
 - What else can we do?
