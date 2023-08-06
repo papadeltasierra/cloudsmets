@@ -7,26 +7,26 @@
 # - `$1`; the nameof the application to be built.
 
 # Call getopt to validate the provided input.
-options=$(getopt --options 'p:' --longoptions 'project:' -- "$@")
-[ $? -eq 0 ] || {
+if options=$(getopt --options 'p:' --longoptions 'project:' -- "$@")
+then
     echo "Invalid arguments."
-    echo "usage: "-p/--project <project directory>"
+    echo "usage: -p/--project <project directory>"
     exit 1
-}
+fi
 
 PROJECT=""
 eval set -- "$options"
-while true; do
+while true
+do
     case "$1" in
-    -p)
-    -project)
-        shift
-        PROJECT=$1
-        ;;
-    --)
-        shift
-        break
-        ;;
+        -p|--project)
+            shift
+            PROJECT=$1
+            ;;
+        --)
+            shift
+            break
+            ;;
     esac
     shift
 done
@@ -41,7 +41,7 @@ echo "Setting ESP-IDF environment variables..."
 # finishes.
 
 echo "Changing project directory '${PROJECT}'..."
-pushd ${PROJECT} || exit 1
+pushd "${PROJECT}" || exit 1
 
 echo "Setting target to be ESP32...."
 idf.py set-target esp32

@@ -30,7 +30,7 @@ COPY entrypoint.sh /entrypoint.sh
 # - unzip; so we can unzip it!
 RUN \
     echo "Installing toolchain prerequisites..." \
-    && apt --yes update \
+    && apt --yes --quiet update \
     && apt --yes --quiet --quiet install \
         wget flex bison gperf python3 python3-pip \
         python3-venv cmake ninja-build ccache \
