@@ -7,10 +7,7 @@
 # - `$1`; the nameof the application to be built.
 
 # Call getopt to validate the provided input.
-echo "Options? $0"
-echo "Options? $1"
-echo "Options? $2"
-if options=$(getopt --options 'p:' --longoptions 'project:' -- "$@")
+if ! options=$(getopt --options 'p:' --longoptions 'project:' -- "$@")
 then
     echo "Invalid arguments."
     echo "usage: -p/--project <project directory>"
