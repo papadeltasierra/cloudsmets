@@ -19,6 +19,11 @@ ENV DIRNAME=/opt/espressif-idf
 ENV FILEPREFIX=esp-idf-release
 ENV URLPREFIX=https://github.com/espressif/esp-idf/archive/refs/heads/release
 
+# !!PDS: Move later when happy.
+# GitHub runs command in a Docker container via the entrypoint.
+COPY actions/espressif/esp32/build/entrypoint.sh /entrypoint.sh
+
+
 # Also adding:
 # - curl; so we can download the ZIPfile.
 # - unzip; so we can unzip it!
@@ -69,3 +74,6 @@ RUN \
     && ./install.sh esp32 \
     && cd "${PUSHD}" \
     && echo "Done."
+
+
+ENTRYPOINT ["/entrypoint.sh"]

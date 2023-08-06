@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/CMakeFiles/bootloader
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/CMakeFiles/bootloader.rule
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/CMakeFiles/bootloader-complete.rule
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/home/pds/esp/esp-idf/examples/get-started/hello_world/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule

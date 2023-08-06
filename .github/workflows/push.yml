@@ -14,22 +14,23 @@ env:
   SDK_HASH: "AD3C28FC2A50E9D550B933335FD96CE2A58EECDD602DEB451FCC54087947E01C"
 
 jobs:
-  TeLink-tlsr825x-build:
-    runs-on: windows-latest
-    name: Test install of the TLSR825x build environment and image build.
-    steps:
-      # We only need the actions currently since we are using the default builds etc.
-      - uses: actions/checkout@v3
-        with:
-          sparse-checkout: |
-            .github
-            actions
-      - id: install-ide
-        uses: ./actions/telink/tlsr825x/install-ide
-      - id: install-zigbee-sdk
-        uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
-      - id: build-tlsr825x-image
-        uses: ./actions/telink/tlsr825x/build
+  # !!PDS: Disabled whilst testing espressif builds.
+  # TeLink-tlsr825x-build:
+  #   runs-on: windows-latest
+  #   name: Test install of the TLSR825x build environment and image build.
+  #   steps:
+  #     # We only need the actions currently since we are using the default builds etc.
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         sparse-checkout: |
+  #           .github
+  #           actions
+  #     - id: install-ide
+  #       uses: ./actions/telink/tlsr825x/install-ide
+  #     - id: install-zigbee-sdk
+  #       uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
+  #     - id: build-tlsr825x-image
+  #       uses: ./actions/telink/tlsr825x/build
 
   espressif-ESP32-build:
     runs-on: ubuntu-latest
@@ -46,4 +47,13 @@ jobs:
 
       - id: build-esp32-image
         uses: ./actions/espressif/esp32/build
+        with:
+          project: esp32/cloudsmets
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: espressif-firmware
+          path: esp32/cloudsmets/build
+          retention-days: 1
+
 

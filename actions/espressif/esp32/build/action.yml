@@ -9,6 +9,9 @@ inputs:
   hash:
     description: integrity hash (sha256) of the ESP-IDF download.
     default: "2d1fe74b50f8e351ebf307490e71e14a3753463b4bb060e26567c0849a586a10"
+  project:
+    description: relative directory path (relative to Git root) to the project to be build
+    required: true
 
 runs:
   using: 'docker'
@@ -16,3 +19,6 @@ runs:
   env:
     release: ${{ inputs.release }}
     hash: ${{ inputs.hash }}
+  args:
+    - "--project"
+    - ${{ inputs.project }}

@@ -1,0 +1,89 @@
+-- Found Git: /usr/bin/git (found version "2.25.1") 
+-- Initialising new submodule components/bootloader/subproject/components/micro-ecc/micro-ecc...
+Submodule path 'components/bootloader/subproject/components/micro-ecc/micro-ecc': checked out 'd037ec89546fad14b5c4d5456c2e23a71e554966'
+-- Initialising new submodule components/bt/controller/lib_esp32...
+Submodule path 'components/bt/controller/lib_esp32': checked out 'c98341759b2c152c58878db6daf22d153a75fda4'
+-- Initialising new submodule components/bt/controller/lib_esp32c2/esp32c2-bt-lib...
+Submodule path 'components/bt/controller/lib_esp32c2/esp32c2-bt-lib': checked out 'bdab852aa2adf459d643731b513a4431003943b6'
+-- Initialising new submodule components/bt/controller/lib_esp32c3_family...
+Submodule path 'components/bt/controller/lib_esp32c3_family': checked out 'd1c2082e5633a89c6fd6051c7761c1e697cb7a2e'
+-- Initialising new submodule components/bt/controller/lib_esp32h2/esp32h2-bt-lib...
+Submodule path 'components/bt/controller/lib_esp32h2/esp32h2-bt-lib': checked out '8bf4c4c2cb1f964122977c9995863f325346411d'
+-- Initialising new submodule components/bt/host/nimble/nimble...
+Submodule path 'components/bt/host/nimble/nimble': checked out 'c1cb851c8562d0f1a4d105614c336341e2a535b2'
+-- Initialising new submodule components/cmock/CMock...
+Submodule path 'components/cmock/CMock': checked out 'eeecc49ce8af123cf8ad40efdb9673e37b56230f'
+Submodule path 'components/cmock/CMock/vendor/c_exception': checked out '71b47be7c950f1bf5f7e5303779fa99a16224bb6'
+Submodule path 'components/cmock/CMock/vendor/unity': checked out 'cf949f45ca6d172a177b00da21310607b97bc7a7'
+-- Initialising new submodule components/esp_phy/lib...
+Submodule path 'components/esp_phy/lib': checked out '8d3ce02436066e33e8964d34981a97fe64edae2e'
+-- Initialising new submodule components/esp_wifi/lib...
+Submodule path 'components/esp_wifi/lib': checked out '3a69afcd419114281a027d8792e2bfa03044fedd'
+-- Initialising new submodule components/ieee802154/lib...
+Submodule path 'components/ieee802154/lib': checked out 'd9838acadd72e5021cee5f79a897e195076d3645'
+-- Initialising new submodule components/json/cJSON...
+Submodule path 'components/json/cJSON': checked out 'd348621ca93571343a56862df7de4ff3bc9b5667'
+-- Initialising new submodule components/lwip/lwip...
+Submodule path 'components/lwip/lwip': checked out '3f5a04bc63c8c1b1509bfe06cf941a51c9e80d4a'
+-- Initialising new submodule components/mbedtls/mbedtls...
+Submodule path 'components/mbedtls/mbedtls': checked out '9bb5effc3298265f829878825d9bd38478e67514'
+-- Initialising new submodule components/mqtt/esp-mqtt...
+Submodule path 'components/mqtt/esp-mqtt': checked out 'ae53d799da294f03ef65c33e88fa33648e638134'
+-- Initialising new submodule components/openthread/lib...
+Submodule path 'components/openthread/lib': checked out 'af1ac2b3770335db96702bcb06ca793a1425dc86'
+-- Initialising new submodule components/openthread/openthread...
+Submodule path 'components/openthread/openthread': checked out 'c055c10a9a1362a96687614d4478dd2773e6ddc0'
+-- Initialising new submodule components/protobuf-c/protobuf-c...
+Submodule path 'components/protobuf-c/protobuf-c': checked out 'f224ab2eeb648a818eb20687d7150a285442c907'
+-- Initialising new submodule components/spiffs/spiffs...
+Submodule path 'components/spiffs/spiffs': checked out '0dbb3f71c5f6fae3747a9d935372773762baf852'
+-- Initialising new submodule components/tinyusb/tinyusb...
+Submodule path 'components/tinyusb/tinyusb': checked out 'c1986586098643edfa6b75a776299c576ad0ce8b'
+-- Initialising new submodule components/unity/unity...
+Submodule path 'components/unity/unity': checked out '7d2bf62b7e6afaf38153041a9d53c21aeeca9a25'
+-- Initialising new submodule examples/peripherals/secure_element/atecc608_ecdsa/components/esp-cryptoauthlib...
+Submodule path 'examples/peripherals/secure_element/atecc608_ecdsa/components/esp-cryptoauthlib': checked out '985ea960f83f67f66881e2dae57097e2a07b92a0'
+-- The C compiler identification is GNU 11.2.0
+-- The CXX compiler identification is GNU 11.2.0
+-- The ASM compiler identification is GNU
+-- Found assembler: /home/pds/.espressif/tools/xtensa-esp32-elf/esp-2022r1-RC1-11.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc
+-- Check for working C compiler: /home/pds/.espressif/tools/xtensa-esp32-elf/esp-2022r1-RC1-11.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc
+-- Check for working C compiler: /home/pds/.espressif/tools/xtensa-esp32-elf/esp-2022r1-RC1-11.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /home/pds/.espressif/tools/xtensa-esp32-elf/esp-2022r1-RC1-11.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++
+-- Check for working CXX compiler: /home/pds/.espressif/tools/xtensa-esp32-elf/esp-2022r1-RC1-11.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Building ESP-IDF components for target esp32
+-- Project sdkconfig file /home/pds/esp/esp-idf/examples/get-started/hello_world/sdkconfig
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of time_t
+-- Check size of time_t - done
+-- Found Python3: /home/pds/.espressif/python_env/idf5.0_py3.8_env/bin/python (found version "3.8.10") found components: Interpreter 
+-- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS
+-- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS - Success
+-- App "hello_world" version: v5.0-beta1-206-gccdeb43cc7
+-- Adding linker script /home/pds/esp/esp-idf/examples/get-started/hello_world/build/esp-idf/esp_system/ld/memory.ld
+-- Adding linker script /home/pds/esp/esp-idf/components/esp_system/ld/esp32/sections.ld.in
+-- Adding linker script /home/pds/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.ld
+-- Adding linker script /home/pds/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.api.ld
+-- Adding linker script /home/pds/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.libgcc.ld
+-- Adding linker script /home/pds/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.newlib-data.ld
+-- Adding linker script /home/pds/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.syscalls.ld
+-- Adding linker script /home/pds/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.newlib-funcs.ld
+-- Adding linker script /home/pds/esp/esp-idf/components/soc/esp32/ld/esp32.peripherals.ld
+-- Components: app_trace app_update bootloader bootloader_support bt cmock console cxx driver efuse esp-tls esp_adc esp_common esp_eth esp_event esp_gdbstub esp_hid esp_http_client esp_http_server esp_https_ota esp_https_server esp_hw_support esp_lcd esp_local_ctrl esp_netif esp_phy esp_pm esp_psram esp_ringbuf esp_rom esp_serial_slave_link esp_system esp_timer esp_wifi espcoredump esptool_py fatfs freertos hal heap http_parser idf_test ieee802154 json log lwip main mbedtls mqtt newlib nvs_flash openthread partition_table perfmon protobuf-c protocomm pthread sdmmc soc spi_flash spiffs tcp_transport tinyusb ulp unity usb vfs wear_levelling wifi_provisioning wpa_supplicant xtensa
+-- Component paths: /home/pds/esp/esp-idf/components/app_trace /home/pds/esp/esp-idf/components/app_update /home/pds/esp/esp-idf/components/bootloader /home/pds/esp/esp-idf/components/bootloader_support /home/pds/esp/esp-idf/components/bt /home/pds/esp/esp-idf/components/cmock /home/pds/esp/esp-idf/components/console /home/pds/esp/esp-idf/components/cxx /home/pds/esp/esp-idf/components/driver /home/pds/esp/esp-idf/components/efuse /home/pds/esp/esp-idf/components/esp-tls /home/pds/esp/esp-idf/components/esp_adc /home/pds/esp/esp-idf/components/esp_common /home/pds/esp/esp-idf/components/esp_eth /home/pds/esp/esp-idf/components/esp_event /home/pds/esp/esp-idf/components/esp_gdbstub /home/pds/esp/esp-idf/components/esp_hid /home/pds/esp/esp-idf/components/esp_http_client /home/pds/esp/esp-idf/components/esp_http_server /home/pds/esp/esp-idf/components/esp_https_ota /home/pds/esp/esp-idf/components/esp_https_server /home/pds/esp/esp-idf/components/esp_hw_support /home/pds/esp/esp-idf/components/esp_lcd /home/pds/esp/esp-idf/components/esp_local_ctrl /home/pds/esp/esp-idf/components/esp_netif /home/pds/esp/esp-idf/components/esp_phy /home/pds/esp/esp-idf/components/esp_pm /home/pds/esp/esp-idf/components/esp_psram /home/pds/esp/esp-idf/components/esp_ringbuf /home/pds/esp/esp-idf/components/esp_rom /home/pds/esp/esp-idf/components/esp_serial_slave_link /home/pds/esp/esp-idf/components/esp_system /home/pds/esp/esp-idf/components/esp_timer /home/pds/esp/esp-idf/components/esp_wifi /home/pds/esp/esp-idf/components/espcoredump /home/pds/esp/esp-idf/components/esptool_py /home/pds/esp/esp-idf/components/fatfs /home/pds/esp/esp-idf/components/freertos /home/pds/esp/esp-idf/components/hal /home/pds/esp/esp-idf/components/heap /home/pds/esp/esp-idf/components/http_parser /home/pds/esp/esp-idf/components/idf_test /home/pds/esp/esp-idf/components/ieee802154 /home/pds/esp/esp-idf/components/json /home/pds/esp/esp-idf/components/log /home/pds/esp/esp-idf/components/lwip /home/pds/esp/esp-idf/examples/get-started/hello_world/main /home/pds/esp/esp-idf/components/mbedtls /home/pds/esp/esp-idf/components/mqtt /home/pds/esp/esp-idf/components/newlib /home/pds/esp/esp-idf/components/nvs_flash /home/pds/esp/esp-idf/components/openthread /home/pds/esp/esp-idf/components/partition_table /home/pds/esp/esp-idf/components/perfmon /home/pds/esp/esp-idf/components/protobuf-c /home/pds/esp/esp-idf/components/protocomm /home/pds/esp/esp-idf/components/pthread /home/pds/esp/esp-idf/components/sdmmc /home/pds/esp/esp-idf/components/soc /home/pds/esp/esp-idf/components/spi_flash /home/pds/esp/esp-idf/components/spiffs /home/pds/esp/esp-idf/components/tcp_transport /home/pds/esp/esp-idf/components/tinyusb /home/pds/esp/esp-idf/components/ulp /home/pds/esp/esp-idf/components/unity /home/pds/esp/esp-idf/components/usb /home/pds/esp/esp-idf/components/vfs /home/pds/esp/esp-idf/components/wear_levelling /home/pds/esp/esp-idf/components/wifi_provisioning /home/pds/esp/esp-idf/components/wpa_supplicant /home/pds/esp/esp-idf/components/xtensa
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/pds/esp/esp-idf/examples/get-started/hello_world/build
