@@ -6,12 +6,8 @@
 # Expect the following variables.
 # - `$1`; the nameof the application to be built.
 
-getopt -options 'o:' --longoptions 'project:'
-
-
-
 # Call getopt to validate the provided input.
-options=$(getopt -o 'p:' --longoptions 'project:' -- "$@")
+options=$(getopt --options 'p:' --longoptions 'project:' -- "$@")
 [ $? -eq 0 ] || {
     echo "Invalid arguments."
     echo "usage: "-p/--project <project directory>"
