@@ -27,16 +27,15 @@ COPY entrypoint.sh /entrypoint.sh
 # Also adding:
 # - curl; so we can download the ZIPfile.
 # - unzip; so we can unzip it!
-# Note that '--option=Dpkg::Use-Pty=0' is required to make dpkg (used by apt)
-# respect the --quiet requests!
+# Have to pipe to /dev/null because apt-get will not go '-quiet'!
 RUN \
     echo "Installing toolchain prerequisites..." \
-    && apt --yes --quiet update \
-    && apt --yes --quiet=2 install --option=Dpkg::Use-Pty=0  \
+    && apt --yes update > /dev/null \
+    && apt --yes install \
         wget flex bison gperf python3 python3-pip \
         python3-venv cmake ninja-build ccache \
         libffi-dev libssl-dev dfu-util libusb-1.0-0 \
-        curl unzip
+        curl unzip > /dev/null
 
 # Note the need for the semi-colons in the 'if' test below.
 # Also note that we cannot pass ESPTEMP between steps so we have to merge them
