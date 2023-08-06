@@ -1,0 +1,160 @@
+# Action to build a Telink Zigbee project.
+name: 'Build a Telink tlsr825x project'
+description: 'Install the Telink IDE, Zigbee SDK and the build a tlsr825x project'
+
+# env: Not valid in an Action; see the first step below.
+
+inputs:
+  ide:
+    description: Location of the Telink IDE
+    default: c:\telink\ide
+  zigbee_sdk:
+    description: Location of the Telink Zigbee SDK
+    default: c:\telink\zigbee_sdk
+  project:
+    description: tlsr825x project to build
+    default: sampleGW_8258
+  board:
+    description: tlsr825x board to target
+    default: unused
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set environment variables
+      shell: pwsh
+      env:
+        _workspaces: "tl_zigbee_sdk\\build\\tlsr_tc32"
+        _project_root: "tl_zigbee_sdk"
+        _extensions: "bin,elf,lst"
+      run: |
+        echo "_workspaces=$env:_workspaces" >> ${env:GITHUB_ENV}
+        echo "_project_root=$env:_project_root" >> ${env:GITHUB_ENV}
+        echo "_extensions=$env:_extensions" >> ${env:GITHUB_ENV}
+
+        # We need some intermediate variables to help upload artifacts.
+        $extension_list = $env:_extensions.Split(",")
+        $image_base="${{ inputs.zigbee_sdk }}\${env:_workspaces}\${{ inputs.project }}\${{ inputs.project }}"
+        $image_list = @()
+
+        # Writing a multi-line string is "magic" in GitHub!
+        # Ref: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+        $EOF=[System.Guid]::NewGuid().ToString()
+        echo "_image_files<<${EOF}" >> ${env:GITHUB_ENV}
+        foreach ($ext in $extension_list)
+        {
+          echo "${image_base}.${ext}" >> ${env:GITHUB_ENV}
+        }
+        echo "${EOF}" >> ${env:GITHUB_ENV}
+
+    - name: Find eclipsec
+      shell: pwsh
+      run: |
+        $eclipsec=Get-ChildItem -Path "${{ inputs.ide }}\eclipsec.exe" -Recurse | Select FullName
+        if ($eclipsec.count > 1)
+        {
+          Write-Error "Multiple instances of 'eclipsec' were found." -ErrorAction:Continue
+          Get-ChildItem -Path "${{ inputs.ide }}\eclipsec.exe" -Recurse | Select FullName
+          exit 1
+        }
+        # Passing result to the next step.
+        Write-Information "'$($eclipsec[0].FullName)' was found." -InformationAction Continue
+        echo "eclipsec=$($eclipsec[0].FullName)" >> $env:GITHUB_ENV
+
+    - name: Build TLSR8258 ZigBee image
+      shell: pwsh
+      run: |
+        Write-Information "Running build process '$env:eclipsec'..." -InformationAction Continue
+        # Testing time-out after 5 minutes.
+        $proc=Start-Process `
+          -FilePath $env:eclipsec `
+          -ArgumentList `
+            "-vm", """${{ inputs.ide }}\jre\bin\client""", `
+            "-noSplash", `
+            "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
+            "-import", """${{ inputs.zigbee_sdk }}\${env:_workspaces}""", `
+            "-build", """${env:_project_root}/${{ inputs.project }}""", `
+            "--launcher.suppressErrors" `
+          -NoNewWindow `
+          -RedirectStandardOutput $env:TEMP\stdout.txt `
+          -RedirectStandardError $env:TEMP\stderr.txt `
+          -PassThru
+
+        # Time out of 5 minutes.
+        $timedout = $null
+        Wait-Process -InputObject $proc -Timeout 300 -ErrorAction SilentlyContinue -ErrorVariable timedout
+
+        if ($timedout)
+        {
+          Write-Information "'eclipsec' timed-out before completing." -InformationAction Continue
+          $proc.Kill()
+        }
+        else
+        {
+          # Check exit code.
+          echo "eclipsec_rc=$($proc.ExitCode)" >> $env:GUBHUB_ENV
+        }
+
+    - name: Check for errors and expected files
+      shell: pwsh
+      run: |
+        # Display output, especially any errors!
+        Write-Information "STDOUT from the installer..." -InformationAction Continue
+        Get-Content -Path $env:TEMP\stdout.txt
+        Write-Information "STDERR from the installer..." -InformationAction Continue
+        Get-Content -Path $env:TEMP\stderr.txt
+
+        # Capture first line of errors to test later.
+        Get-Content  -Path $env:TEMP\stderr.txt -First 1
+        $stderr=Get-Content  -Path $env:TEMP\stderr.txt -First 1
+        Remove-Item -Path $env:TEMP\stdout.txt
+        Remove-Item -Path $env:TEMP\stderr.txt
+
+        # Builds worked it all of the following are true:
+        # - ExitCode is zero (0) (checked above)
+        # - stderr log output is empty
+        # - an 'elf' image has been created
+
+        # Appears that the compiler exits with status 1 for success!
+        # if ($env:eclipsec_rc -ne 0)
+        # {
+        #   Write-Error "eclipsec exited with $proc.ExitCode." -ErrorAction:Continue
+        #   exit 1
+        # }
+        # elseif ($stderr -ne "")
+
+        # Note that a toally empty error file returns $null when queried using Get-Content.
+        if ($stderr -ne $null)
+        {
+          Write-Error "eclipsec reported errors." -ErrorAction:Continue
+          exit 1
+        }
+
+        # See if we have all the expected files.
+        $image_root = "${{ inputs.zigbee_sdk }}\${env:_workspaces}\${{ inputs.project }}"
+        $extensions = "${env:_extensions}".split(",")
+        $missing = $False
+
+        foreach ($ext in $extensions)
+        {
+          if (! $(Test-Path -Path ${image_root}\${{ inputs.project }}.$ext))
+          {
+            Write-Error "Expected output file '${image_root}\${{ inputs.project }}.$ext' not found." -ErrorAction:Continue
+            $missing=$True
+          }
+        }
+
+        if ($missing)
+        {
+            Write-Error "Build has failed." -ErrorAction:Continue
+            exit 1
+        }
+
+        # Get here and we have succeeded.
+        Write-Information "eclipsec build succeeded." -InformationAction:Continue
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: tlsr825x-firmware
+        path: ${{ env._image_files }}
+        retention-days: 1

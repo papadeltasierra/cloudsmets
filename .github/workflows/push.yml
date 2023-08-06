@@ -1,0 +1,49 @@
+on: [push]
+
+env:
+  DRIVE: "c:"
+  TLSR825X: tlsr8258
+  IDE_DIR: Telink_IDE
+  SDK_DIR: sdk
+  IDE_URI: "https://www.dropbox.com/s/ths9rev0tvhhl96/Telink_IDE.zip?dl=1"
+  IDE_ZIP: Telink_IDE.zip
+  IDE_HASH: "D47595AAFAE1B711A04DC83BAB08467160EA2A3559EA976576C2F8A44F47BF1F"
+  IDE_EXE: TelinkSDKv1.3.1.exe
+  SDK_URI: "http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip"
+  SDK_ZIP: Zigbee_SDK.zip
+  SDK_HASH: "AD3C28FC2A50E9D550B933335FD96CE2A58EECDD602DEB451FCC54087947E01C"
+
+jobs:
+  TeLink-tlsr825x-build:
+    runs-on: windows-latest
+    name: Test install of the TLSR825x build environment and image build.
+    steps:
+      # We only need the actions currently since we are using the default builds etc.
+      - uses: actions/checkout@v3
+        with:
+          sparse-checkout: |
+            .github
+            actions
+      - id: install-ide
+        uses: ./actions/telink/tlsr825x/install-ide
+      - id: install-zigbee-sdk
+        uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
+      - id: build-tlsr825x-image
+        uses: ./actions/telink/tlsr825x/build
+
+  espressif-ESP32-build:
+    runs-on: ubuntu-latest
+    name: Testing Espressif Docker image generation.
+    steps:
+      # To use this repository's private action,
+      # you must check out the repository
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          sparse-checkout: |
+            .github
+            actions
+
+      - id: build-esp32-image
+        uses: ./actions/espressif/esp32/build
+
