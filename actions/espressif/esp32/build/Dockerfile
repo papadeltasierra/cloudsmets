@@ -31,7 +31,7 @@ COPY entrypoint.sh /entrypoint.sh
 RUN \
     echo "Installing toolchain prerequisites..." \
     && apt --yes update \
-    && apt --yes --quiet install \
+    && apt --yes --quiet --quiet install \
         wget flex bison gperf python3 python3-pip \
         python3-venv cmake ninja-build ccache \
         libffi-dev libssl-dev dfu-util libusb-1.0-0 \
