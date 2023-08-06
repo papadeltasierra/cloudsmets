@@ -72,7 +72,7 @@ RUN \
     echo "Installing the EspressIF IDF tools..." \
     && PUSHD=$PWD \
     && cd "${DIRNAME}/${FILEPREFIX}-${RELEASE}" \
-    && IDF_TOOLS_PATH=${DIRNAME} \
+    && export IDF_TOOLS_PATH=${DIRNAME} \
     && ./install.sh esp32 \
     && cd "${PUSHD}" \
     && echo "Done."

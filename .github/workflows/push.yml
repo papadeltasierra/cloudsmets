@@ -44,6 +44,7 @@ jobs:
           sparse-checkout: |
             .github
             actions
+            esp32
 
       - id: build-esp32-image
         uses: ./actions/espressif/esp32/build
