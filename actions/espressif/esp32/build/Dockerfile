@@ -24,14 +24,13 @@ ENV URLPREFIX=https://github.com/espressif/esp-idf/archive/refs/heads/release
 # path to the entry point is relative to where the 'action.yml' file resides.
 COPY entrypoint.sh /entrypoint.sh
 
-
 # Also adding:
 # - curl; so we can download the ZIPfile.
 # - unzip; so we can unzip it!
 RUN \
     echo "Installing toolchain prerequisites..." \
     && apt --yes --quiet update \
-    && apt --yes --quiet --quiet install \
+    && apt --yes --quiet=2 install \
         wget flex bison gperf python3 python3-pip \
         python3-venv cmake ninja-build ccache \
         libffi-dev libssl-dev dfu-util libusb-1.0-0 \
