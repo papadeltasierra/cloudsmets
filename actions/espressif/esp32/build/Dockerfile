@@ -3,7 +3,8 @@
 # - https://docs.github.com/en/actions/creating-actions/creating-a-docker-container-action:
 # - https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html
 #
-# Note that the file locations follow those in the instructions.
+# Note that the file locations follow those in the instructions with the exception
+# that an explicit _home directory is created in the working directory.
 #
 FROM ubuntu:20.04
 
@@ -20,6 +21,8 @@ ENV HASH=2d1fe74b50f8e351ebf307490e71e14a3753463b4bb060e26567c0849a586a10
 
 ENV FILEPREFIX=esp-idf-release
 ENV URLPREFIX=https://github.com/espressif/esp-idf/archive/refs/heads/release
+
+ENV _HOME=home
 
 # !!PDS: Move later when happy.
 # GitHub runs command in a Docker container via the entrypoint; note that the
@@ -65,15 +68,15 @@ RUN \
            exit 1; \
        fi \
     && echo "Extracting the EspressIF IDE..." \
-    && mkdir --parents "${HOME}/esp" \
-    && unzip  -q -d "${HOME}/esp" "${ESPTEMP}/${FILEPREFIX}-${RELEASE}.zip" \
+    && mkdir --parents "${_HOME}/esp" \
+    && unzip  -q -d "${_HOME}/esp" "${ESPTEMP}/${FILEPREFIX}-${RELEASE}.zip" \
     && echo "Deleting the temporary ZIPfile and directory..." \
     && rm --force --recursive "${ESPTEMP}"
 
 RUN \
     echo "Installing the EspressIF IDF tools..." \
     && PUSHD=$PWD \
-    && cd "${HOME}/esp/esp-idf" \
+    && cd "${_HOME}/esp/esp-idf" \
     && ./install.sh esp32 \
     && cd "${PUSHD}" \
     && echo "Done."

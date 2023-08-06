@@ -32,7 +32,10 @@ do
 done
 
 echo "Setting ESP-IDF environment variables..."
-. ${HOME}/esp-esp-idf/export.sh
+# Note the special directory that is below the working directory.
+_HOME=_home
+export _HOME
+. ${_HOME}/esp-esp-idf/export.sh
 
 # Ref: https://docs.github.com/en/actions/creating-actions/dockerfile-support-for-github-actions#workdir
 # Note that GitHub mounts the (GitHub) working directory path in the GITHUB_WORKSPACE
