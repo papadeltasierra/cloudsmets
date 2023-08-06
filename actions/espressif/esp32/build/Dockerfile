@@ -2,6 +2,9 @@
 # References:
 # - https://docs.github.com/en/actions/creating-actions/creating-a-docker-container-action:
 # - https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html
+#
+# Note that the file locations follow those in the instructions.
+#
 FROM ubuntu:20.04
 
 # This is required to ensure that tzdata installs based on the defaulted timezone of UTC.
@@ -15,7 +18,6 @@ ARG ESPTEMP=""
 ENV RELEASE=v5.1
 ENV HASH=2d1fe74b50f8e351ebf307490e71e14a3753463b4bb060e26567c0849a586a10
 
-ENV DIRNAME=/opt/espressif-idf
 ENV FILEPREFIX=esp-idf-release
 ENV URLPREFIX=https://github.com/espressif/esp-idf/archive/refs/heads/release
 
@@ -63,16 +65,15 @@ RUN \
            exit 1; \
        fi \
     && echo "Extracting the EspressIF IDE..." \
-    && mkdir --parents "${DIRNAME}" \
-    && unzip  -q -d "${DIRNAME}" "${ESPTEMP}/${FILEPREFIX}-${RELEASE}.zip" \
+    && mkdir --parents "${HOME}/esp" \
+    && unzip  -q -d "${HOME}/esp" "${ESPTEMP}/${FILEPREFIX}-${RELEASE}.zip" \
     && echo "Deleting the temporary ZIPfile and directory..." \
     && rm --force --recursive "${ESPTEMP}"
 
 RUN \
     echo "Installing the EspressIF IDF tools..." \
     && PUSHD=$PWD \
-    && cd "${DIRNAME}/${FILEPREFIX}-${RELEASE}" \
-    && export IDF_TOOLS_PATH=${DIRNAME} \
+    && cd "${HOME}/esp/esp-idf" \
     && ./install.sh esp32 \
     && cd "${PUSHD}" \
     && echo "Done."

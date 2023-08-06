@@ -32,9 +32,7 @@ do
 done
 
 echo "Setting ESP-IDF environment variables..."
-ls -lsap /opt
-ls -lsap /opt/espressif-idf
-. /opt/espressif-idf/export.sh
+. ${HOME}/esp-esp-idf/export.sh
 
 # Ref: https://docs.github.com/en/actions/creating-actions/dockerfile-support-for-github-actions#workdir
 # Note that GitHub mounts the (GitHub) working directory path in the GITHUB_WORKSPACE
