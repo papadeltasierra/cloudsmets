@@ -36,7 +36,7 @@ COPY entrypoint.sh /entrypoint.sh
 RUN \
     echo "Installing toolchain prerequisites..." \
     && apt --yes update > /dev/null 2>&1 \
-    && apt --yes install \
+    && apt --yes --option Dpkg::log=/dev/null install \
         wget flex bison gperf python3 python3-pip \
         python3-venv cmake ninja-build ccache \
         libffi-dev libssl-dev dfu-util libusb-1.0-0 \
@@ -76,6 +76,7 @@ RUN \
 RUN \
     echo "Installing the EspressIF IDF tools..." \
     && PUSHD=$PWD \
+    && ls -lsap ${_HOME}/esp \
     && cd "${_HOME}/esp/esp-idf" \
     && ./install.sh esp32 \
     && cd "${PUSHD}" \
