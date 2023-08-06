@@ -30,12 +30,12 @@ COPY entrypoint.sh /entrypoint.sh
 # Have to pipe to /dev/null because apt-get will not go '-quiet'!
 RUN \
     echo "Installing toolchain prerequisites..." \
-    && apt --yes update > /dev/null \
+    && apt --yes update > /dev/null 2>&1 \
     && apt --yes install \
         wget flex bison gperf python3 python3-pip \
         python3-venv cmake ninja-build ccache \
         libffi-dev libssl-dev dfu-util libusb-1.0-0 \
-        curl unzip > /dev/null
+        curl unzip > /dev/null 2>&1
 
 # Note the need for the semi-colons in the 'if' test below.
 # Also note that we cannot pass ESPTEMP between steps so we have to merge them
@@ -72,6 +72,7 @@ RUN \
     echo "Installing the EspressIF IDF tools..." \
     && PUSHD=$PWD \
     && cd "${DIRNAME}/${FILEPREFIX}-${RELEASE}" \
+    && IDF_TOOLS_PATH=${DIRNAME} \
     && ./install.sh esp32 \
     && cd "${PUSHD}" \
     && echo "Done."

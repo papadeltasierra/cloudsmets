@@ -32,6 +32,8 @@ do
 done
 
 echo "Setting ESP-IDF environment variables..."
+ls -lsap /opt
+ls -lsap /opt/espressif-idf
 . /opt/espressif-idf/export.sh
 
 # Ref: https://docs.github.com/en/actions/creating-actions/dockerfile-support-for-github-actions#workdir
@@ -41,6 +43,8 @@ echo "Setting ESP-IDF environment variables..."
 # finishes.
 
 echo "Changing project directory '${PROJECT}'..."
+pwd
+ls -lsap
 pushd "${PROJECT}" || exit 1
 
 echo "Setting target to be ESP32...."
