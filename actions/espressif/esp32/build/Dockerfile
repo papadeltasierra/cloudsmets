@@ -20,8 +20,9 @@ ENV FILEPREFIX=esp-idf-release
 ENV URLPREFIX=https://github.com/espressif/esp-idf/archive/refs/heads/release
 
 # !!PDS: Move later when happy.
-# GitHub runs command in a Docker container via the entrypoint.
-COPY actions/espressif/esp32/build/entrypoint.sh /entrypoint.sh
+# GitHub runs command in a Docker container via the entrypoint; note that the
+# path to the entry point is relative to where the 'action.yml' file resides.
+COPY entrypoint.sh /entrypoint.sh
 
 
 # Also adding:
