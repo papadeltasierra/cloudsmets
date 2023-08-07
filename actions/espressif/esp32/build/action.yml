@@ -12,7 +12,6 @@ runs:
   image: 'docker://espressif/idf:release-v5.1'
   args:
     - "idf.py"
-    - "--help"
     - "--project-dir"
     - "${{inputs.project}}"
     - "build"
