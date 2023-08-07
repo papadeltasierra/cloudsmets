@@ -12,7 +12,7 @@ runs:
   image: 'docker://espressif/idf:release-v5.1'
   args:
     - "ls"
-    - "--lsap"
+    - "-lsap"
 
 
 # \\${GITHUB_WORKSPACE}/${{ inputs.project }}"
