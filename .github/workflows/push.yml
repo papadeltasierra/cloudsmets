@@ -46,11 +46,6 @@ jobs:
             actions
             esp32
 
-      # - id: cmake-esp32-image
-      #   uses: ./actions/espressif/esp32/cmake
-      #   with:
-      #     project: esp32/cloudsmets
-
       - id: build-esp32-image
         uses: ./actions/espressif/esp32/build
         with:
