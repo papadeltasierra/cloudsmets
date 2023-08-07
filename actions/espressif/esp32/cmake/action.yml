@@ -12,4 +12,4 @@ runs:
   image: 'docker://espressif/idf:release-v5.1'
   args:
     - "cmake"
-    - "${{ inputs.project}}/build"
+    - "${{ inputs.project}}"
