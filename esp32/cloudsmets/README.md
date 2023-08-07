@@ -9,7 +9,7 @@ Starts a FreeRTOS task to print "Hello World".
 
 ## How to use example
 
-Follow detailed instructions provided specifically for this example. 
+Follow detailed instructions provided specifically for this example.
 
 Select the instructions depending on Espressif chip installed on your development board:
 
@@ -19,18 +19,18 @@ Select the instructions depending on Espressif chip installed on your developmen
 
 ## Example folder contents
 
-The project **hello_world** contains one source file in C language [hello_world_main.c](main/hello_world_main.c). The file is located in folder [main](main).
+The project **cloudsmets** contains one source file in C language [cloudsmets_main.c](main/cloudsmets_main.c). The file is located in folder [main](main).
 
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt` files that provide set of directives and instructions describing the project's source files and targets (executable, library, or both). 
+ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt` files that provide set of directives and instructions describing the project's source files and targets (executable, library, or both).
 
 Below is short explanation of remaining files in the project folder.
 
 ```
 ├── CMakeLists.txt
-├── pytest_hello_world.py      Python script used for automated testing
+├── pytest_cloudsmets.py      Python script used for automated testing
 ├── main
 │   ├── CMakeLists.txt
-│   └── hello_world_main.c
+│   └── cloudsmets_main.c
 └── README.md                  This is the file you are currently reading
 ```
 
