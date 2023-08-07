@@ -15,10 +15,9 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'Dockerfile'
-  env:
-    release: ${{ inputs.release }}
-    hash: ${{ inputs.hash }}
+  image: 'docker:://espressif/idf:release-v5.1'
   args:
-    - "--project"
-    - ${{ inputs.project }}
+    - "idf.py"
+    - "--build-dir"
+    - "esp32/cloudsmets"
+    - "build"
