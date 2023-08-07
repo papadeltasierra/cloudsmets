@@ -54,7 +54,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: espressif-firmware
-          path:
+          path: |
             esp32/cloudsmets/build/cloudsmets.bin
             esp32/cloudsmets/build/cloudsmets.elf
             esp32/cloudsmets/build/cloudsmets.map
