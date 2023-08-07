@@ -13,5 +13,8 @@ runs:
   args:
     - "idf.py"
     - "--build-dir"
-    - "${GITHUB_WORKSPACE}/esp32/cloudsmets"
+    - "bob/eric/james"
     - "build"
+
+
+# \\${GITHUB_WORKSPACE}/${{ inputs.project }}"
