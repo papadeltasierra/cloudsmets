@@ -11,6 +11,9 @@ runs:
   using: 'docker'
   image: 'docker://espressif/idf:release-v5.1'
   args:
+    - "cmake"
+    - "${{ inputs.project}}/build"
+    - "&&"
     - "idf.py"
     - "--project-dir"
     - "${{inputs.project}}"
