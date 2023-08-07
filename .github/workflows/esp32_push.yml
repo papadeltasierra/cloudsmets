@@ -1,8 +1,4 @@
-on:
-  push:
-    paths:
-      - 'esp32/**'
-      - '.github/workflows/esp32**'
+on: [push]
 
 env:
   DRIVE: "c:"
