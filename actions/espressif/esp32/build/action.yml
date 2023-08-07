@@ -11,8 +11,8 @@ runs:
   using: 'docker'
   image: 'docker://espressif/idf:release-v5.1'
   args:
-    - "idf.py"
-    - "--help"
+    - "ls"
+    - "--lsap"
 
 
 # \\${GITHUB_WORKSPACE}/${{ inputs.project }}"
