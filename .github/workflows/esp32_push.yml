@@ -40,13 +40,10 @@ jobs:
         name: Prepare firmware for upload to Azure blob storage
         shell: bash
         run: |
-          whoami
-          ls -lsap esp32/cloudsmets/build
-          chmod 777 esp32/cloudsmets/build
-          mkdir esp32/cloudsmets/build/azure
-          cp esp32/cloudsmets/build/cloudsmets.bin esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.bin
-          cp esp32/cloudsmets/build/cloudsmets.elf esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.elf
-          cp esp32/cloudsmets/build/cloudsmets.map esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.map
+          mkdir azure
+          cp esp32/cloudsmets/build/cloudsmets.bin azure/cloudsmets-${GITHUB_REF_NAME}.bin
+          cp esp32/cloudsmets/build/cloudsmets.elf azure/cloudsmets-${GITHUB_REF_NAME}.elf
+          cp esp32/cloudsmets/build/cloudsmets.map azure/cloudsmets-${GITHUB_REF_NAME}.map
 
       - if: ${{ github.ref_type == 'tag' }}
         name: Upload firmware to Azure blob storage
@@ -55,7 +52,7 @@ jobs:
           container: cloudsmets
           connection-string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
           name: cloudsmets
-          path: esp32/cloudsmets/build/azure
+          path: azure
 
       - uses: actions/upload-artifact@v3
         name: Upload firmware to GitHub artifacts storage
