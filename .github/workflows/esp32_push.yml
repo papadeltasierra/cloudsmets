@@ -14,7 +14,7 @@ jobs:
     steps:
       # To use this repository's private action,
       # you must check out the repository
-      - name: Checkout
+      - name: Checkout required files
         uses: actions/checkout@v3
         with:
           sparse-checkout: |
@@ -23,26 +23,31 @@ jobs:
             esp32
 
       - if: ${{ github.ref_type == 'tag' }}
+        name: Set firmware appplication version
         id: set-firmware-app-version
         shell: bash
         run: |
           sed --in-place s/\"0.0.0\"/\"${GITHUB_REF_NAME}\"/ esp32/cloudsmets/CMakeLists.txt
 
       - id: build-esp32-image
+        name: Build the ESP32 image
         uses: ./actions/espressif/esp32/build
         with:
           project: esp32/cloudsmets
 
       - if: ${{ github.ref_type == 'tag' }}
         id: prepare-for-blob-upload
+        name: Prepare firmware for upload to Azure blob storage
         shell: bash
         run: |
+          chmod +777 esp32/cloudsmets/build
           mkdir esp32/cloudsmets/build/azure
           cp esp32/cloudsmets/build/cloudsmets.bin esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.bin
           cp esp32/cloudsmets/build/cloudsmets.elf esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.elf
           cp esp32/cloudsmets/build/cloudsmets.map esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.map
 
       - if: ${{ github.ref_type == 'tag' }}
+        name: Upload firmware to Azure blob storage
         uses: fixpoint/azblob-upload-artifact@v4
         with:
           container: cloudsmets
@@ -51,6 +56,7 @@ jobs:
           path: esp32/cloudsmets/build/azure
 
       - uses: actions/upload-artifact@v3
+        name: Upload firmware to GitHub artifacts storage
         with:
           name: espressif-firmware
           path: |
