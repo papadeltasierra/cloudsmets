@@ -4,6 +4,8 @@ on:
       - .github/workflows/esp32*
       - actions/espressif/**
       - esp32/**
+    tags:
+      - *
 
 jobs:
   espressif-ESP32-build:
@@ -20,10 +22,33 @@ jobs:
             actions
             esp32
 
+      - if: ${{ github.ref_type == 'tag' }}
+        id: set-firmware-app-version
+        shell: bash
+        run: |
+          sed --in-place s/\"0.0.0\"/\"${GITHUB_REF_NAME}\"/ esp32/cloudsmets/CMakeLists.txt
+
       - id: build-esp32-image
         uses: ./actions/espressif/esp32/build
         with:
           project: esp32/cloudsmets
+
+      - if: ${{ github.ref_type == 'tag' }}
+        id: prepare-for-blob-upload
+        shell: bash
+        run: |
+          mkdir esp32/cloudsmets/build/azure
+          cp esp32/cloudsmets/build/cloudsmets.bin esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.bin
+          cp esp32/cloudsmets/build/cloudsmets.elf esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.elf
+          cp esp32/cloudsmets/build/cloudsmets.map esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.map
+
+      - if: ${{ github.ref_type == 'tag' }}
+        uses: fixpoint/azblob-upload-artifact@v4
+        with:
+          container: cloudsmets
+          connection-string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          name: cloudsmets
+          path: esp32/cloudsmets/build/azure
 
       - uses: actions/upload-artifact@v3
         with:
