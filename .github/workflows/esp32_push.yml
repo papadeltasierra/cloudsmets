@@ -51,8 +51,7 @@ jobs:
         uses: fixpoint/azblob-upload-artifact@v4
         with:
           connection-string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-          container: "0%2E0%2E1"
-          name: cloudsmets
+          name: ${{ github.ref_name }}
           path: azure
 
       - uses: actions/upload-artifact@v3
