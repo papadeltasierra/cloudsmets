@@ -1,9 +1,9 @@
 on:
   push:
     paths:
-      - .github/workflows/esp32*
-      - actions/espressif/**
-      - esp32/**
+      - '.github/workflows/esp32*'
+      - 'actions/espressif/**'
+      - 'esp32/**'
     tags:
       - '*'
 
@@ -41,16 +41,16 @@ jobs:
         shell: bash
         run: |
           mkdir azure
-          cp esp32/cloudsmets/build/cloudsmets.bin azure/cloudsmets-${GITHUB_REF_NAME}.bin
-          cp esp32/cloudsmets/build/cloudsmets.elf azure/cloudsmets-${GITHUB_REF_NAME}.elf
-          cp esp32/cloudsmets/build/cloudsmets.map azure/cloudsmets-${GITHUB_REF_NAME}.map
+          cp esp32/cloudsmets/build/cloudsmets.bin azure
+          cp esp32/cloudsmets/build/cloudsmets.elf azure
+          cp esp32/cloudsmets/build/cloudsmets.map azure
 
       - if: ${{ github.ref_type == 'tag' }}
         name: Upload firmware to Azure blob storage
         uses: fixpoint/azblob-upload-artifact@v4
         with:
-          container: cloudsmets
           connection-string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          container: ${{ github.ref_name }}
           name: cloudsmets
           path: azure
 

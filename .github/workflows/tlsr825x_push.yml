@@ -1,9 +1,9 @@
 on:
   push:
     paths:
-      - .github/workflows/tlsr825x*
-      - actions/telink/**
-      - tlsr825x/**
+      - '.github/workflows/tlsr825x*'
+      - 'actions/telink/**'
+      - 'tlsr825x/**'
 
 env:
   DRIVE: "c:"
