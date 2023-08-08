@@ -22,7 +22,7 @@ jobs:
             actions
             esp32
 
-      - if: ${{ github.ref_type == 'tag' }}
+      - if: github.ref_type == 'tag'
         name: Set firmware appplication version
         id: set-firmware-app-version
         shell: bash
@@ -35,7 +35,7 @@ jobs:
         with:
           project: esp32/cloudsmets
 
-      - if: ${{ github.ref_type == 'tag' }}
+      - if: github.ref_type == 'tag'
         id: prepare-for-blob-upload
         name: Prepare firmware for upload to Azure blob storage
         shell: bash
@@ -46,12 +46,12 @@ jobs:
           cp esp32/cloudsmets/build/cloudsmets.map azure
           ls -lsap azure
 
-      - if: ${{ github.ref_type == 'tag' }}
+      - if: github.ref_type == 'tag'
         name: Upload firmware to Azure blob storage
         uses: fixpoint/azblob-upload-artifact@v4
         with:
           connection-string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-          container: eric
+          container: "0%2E0%2E1"
           name: cloudsmets
           path: azure
 
