@@ -1,4 +1,9 @@
-on: [push]
+on:
+  push:
+    paths:
+      - .github/workflows/esp32*
+      - actions/espressif/**
+      - esp32/**
 
 jobs:
   espressif-ESP32-build:
