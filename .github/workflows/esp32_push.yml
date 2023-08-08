@@ -5,7 +5,7 @@ on:
       - actions/espressif/**
       - esp32/**
     tags:
-      - *
+      - '*'
 
 jobs:
   espressif-ESP32-build:
