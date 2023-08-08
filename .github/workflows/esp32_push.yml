@@ -40,7 +40,9 @@ jobs:
         name: Prepare firmware for upload to Azure blob storage
         shell: bash
         run: |
-          chmod +777 esp32/cloudsmets/build
+          whoami
+          ls -lsap esp32/cloudsmets/build
+          chmod 777 esp32/cloudsmets/build
           mkdir esp32/cloudsmets/build/azure
           cp esp32/cloudsmets/build/cloudsmets.bin esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.bin
           cp esp32/cloudsmets/build/cloudsmets.elf esp32/cloudsmets/build/cloudsmets-${GITHUB_REF_NAME}.elf
