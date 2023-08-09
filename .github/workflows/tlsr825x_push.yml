@@ -4,6 +4,8 @@ on:
       - '.github/workflows/tlsr825x*'
       - 'actions/telink/**'
       - 'tlsr825x/**'
+    tags-ignore:
+      - '*'
 
 env:
   DRIVE: "c:"
