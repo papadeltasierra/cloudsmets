@@ -4,6 +4,8 @@ on:
       - '.github/workflows/esp32*'
       - 'actions/espressif/**'
       - 'esp32/**'
+    branches:
+      - '**'
     tags:
       - '*'
 
