@@ -5,6 +5,9 @@ on:
       - 'actions/telink/**'
       - 'tlsr825x/**'
     tags-ignore:
+      # Without this, tagged builds always trigger this workflow and right now
+      # there is no need for that since we don't have a tlsr8258 image worth
+      # tagging and saving.
       - '*'
 
 env:
