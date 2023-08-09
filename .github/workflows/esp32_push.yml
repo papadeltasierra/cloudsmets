@@ -44,7 +44,6 @@ jobs:
           cp esp32/cloudsmets/build/cloudsmets.bin _azure.upload
           cp esp32/cloudsmets/build/cloudsmets.elf _azure.upload
           cp esp32/cloudsmets/build/cloudsmets.map _azure.upload
-          ls -lsap azure
 
       - if: github.ref_type == 'tag'
         name: Upload firmware to Azure blob storage
