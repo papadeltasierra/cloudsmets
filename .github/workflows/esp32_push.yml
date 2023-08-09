@@ -50,9 +50,10 @@ jobs:
         name: Upload firmware to Azure blob storage
         uses: fixpoint/azblob-upload-artifact@v4
         with:
-          connection-string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-          name: ${{ github.ref_name }}
-          path: _azure.upload
+          connection-string: '${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}'
+          container: 'cloudsmets'
+          name: '${{ github.ref_name }}'
+          path: '_azure.upload'
 
       - uses: actions/upload-artifact@v3
         name: Upload firmware to GitHub artifacts storage
