@@ -1,7 +1,8 @@
 /*
- * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
+ * Copyright (c) 2023 Paul D.smith (paul@pauldsmith.org.uk).
+ * License: Free to copy providing the author is acknowledged.
  *
- * SPDX-License-Identifier: CC0-1.0
+ * Application mainline and heartbeat/watchdog.
  */
 
 #include <stdio.h>
@@ -11,36 +12,69 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 
+#include "ft_err.h"
+
+#define MAIN "main"
+#define TAG "HB"
+
 void app_main(void)
 {
-    printf("Hello world!\n");
-
     /* Print chip information */
+    ByteType_t rc;
+
     esp_chip_info_t chip_info;
     uint32_t flash_size;
     esp_chip_info(&chip_info);
-    printf("This is %s chip with %d CPU core(s), WiFi%s%s, ",
+    ESP_LOGV("This is %s chip with %d CPU core(s), WiFi%s%s, ",
            CONFIG_IDF_TARGET,
            chip_info.cores,
            (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
            (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
 
-    printf("silicon revision %d, ", chip_info.revision);
+    ESP_LOGV("silicon revision %d, ", chip_info.revision);
     if(esp_flash_get_size(NULL, &flash_size) != ESP_OK) {
-        printf("Get flash size failed");
+        ESP_LOGE(msg_flash_failed);
         return;
     }
 
-    printf("%uMB %s flash\n", flash_size / (1024 * 1024),
+    ESP_LOGV("%uMB %s flash\n", flash_size / (1024 * 1024),
            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
-    printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
+    ESP_LOGV("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
 
-    for (int i = 10; i >= 0; i--) {
-        printf("Restarting in %d seconds...\n", i);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    // Create the tasks.
+    ESP_LOGV(MAIN, msg_creating);
+    rc = xTaskCreate(cfg_task, "Cfg", 4096, NULL, 10, &myTaskHandle);
+    PD_ERROR_CHECK(rc);
+    xTaskCreate(wifi_task, "Wifi", 4096, NULL, 10, &myTaskHandle);
+    PD_ERROR_CHECK(rc);
+    xTaskCreate(web_task, "Web", 4096, NULL, 10, &myTaskHandle);
+    PD_ERROR_CHECK(rc);
+    xTaskCreate(azure_task, "Azure", 4096, NULL, 10, &myTaskHandle);
+    PD_ERROR_CHECK(rc);
+    xTaskCreate(smets_task, "SMETS", 4096, NULL, 10, &myTaskHandle);
+    PD_ERROR_CHECK(rc);
+    xTaskCreate(ntp_task, "NTP", 4096, NULL, 10, &myTaskHandle);
+    PD_ERROR_CHECK(rc);
+    xTaskCreate(log_task, "log", 4096, NULL, 10, &myTaskHandle);
+    PD_ERROR_CHECK(rc);
+
+    // This now becomes the heartbeat/watchdog.
+    ESP_LOGV(TAG, msg_starting);
+    s_xQueue = xQueueCreate(STACK_DEPTH, sizeof(CFG_MSG) );
+    if (s_xQueue == 0)
+    {
+        ESP_LOGE(TAG, msg_no_queue);
+        // TODO: Reboot?
     }
-    printf("Restarting now.\n");
-    fflush(stdout);
-    esp_restart();
+
+    ESP_LOGV(TAG, msg_waiting);
+    while (1)
+    {
+        // 6000 ticks is 1min.
+        if( xQueueReceive(s_xQueue, &(rxBuffer), (TickType_t)6000))
+        {
+            ESP_LOGV(TAG, msg_msg_received, 0x1234);
+        }
+    }
 }
