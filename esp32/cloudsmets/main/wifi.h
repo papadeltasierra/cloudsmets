@@ -11,7 +11,9 @@
 #include "freertos/task.h"
 
 #include "msg.h"
+#include "cfg.h"
 
+// Sent message values.
 typedef enum msd_id_t
 {
     MSG_WIFI_ADHOC_UP = msg_task.WEB | 0x0001,
@@ -21,6 +23,16 @@ typedef enum msd_id_t
 
 typedef struct
 {
-    unsigned short msg:
-    unsigned short field:
-} msg_wifi_t;
+    char dummy[1];
+}
+
+// Received messages.
+union {
+    cfg_wifi_t cfg;
+} wifi_value_t;
+
+typedef struct
+{
+    common_msg_t common;
+    wifi_value_t value;
+} wifi_recv_msg_t;

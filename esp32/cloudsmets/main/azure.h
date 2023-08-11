@@ -10,9 +10,25 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-typedef struct msg_cloud
+#include "cfg.h"
+#include "smets.h"
+
+typedef union
 {
-    unsigned short msg:
-    unsigned short field:
-    unsigned char *value[1];
-} MSG_CLOUD;
+    // No value is actually sent.
+    char dummy[1];
+} azure_snd_value_t;
+
+// Received messages.
+typedef union
+{
+    cfg_wifi_t cfg;
+    smets_smets_ind_t smets;
+} azure_rcv_value_t;
+
+typedef struct
+{
+    msg_common_t common:
+    azure_value_t field:
+} azure_rcv_msg_t;
+

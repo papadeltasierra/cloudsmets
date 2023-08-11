@@ -8,7 +8,7 @@
 
 typedef short unsigned msg_id_t;
 
-typedef enum msg_id_t =
+msg_id_t enum
 {
     WEB =   0x0100,
     NTP =   0x0200,
@@ -19,4 +19,5 @@ typedef enum msg_id_t =
     AZURE = 0x0700,
     AWS =   0x0800,
     GCS =   0x0900
-} msg_task;
+    HBWD =  0x0A00;
+} msg_task_t;
