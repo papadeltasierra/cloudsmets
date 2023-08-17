@@ -1,4 +1,5 @@
 # .gitignore
-/tlsr8258/build/.metadata eol=lf
+/tlsr8258/build/.metadata/** eol=lf
+/tlsr8258/**/*.mk eol=lf
 !/tlsr8258/build/tlsr_tc32/cloudsmets
 !/tlsr8258/build/tlsr_tc32/boot.lnk
