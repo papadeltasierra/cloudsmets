@@ -1,3 +1,3 @@
 # .gitignore
-!tlst8258/build/tlsc_rc32/cloudsmets
-!tlst8258/build/tlsc_rc32/boot.lnk
+!tlsr8258/build/tlsr_tc32/cloudsmets
+!tlsr8258/build/tlsr_tc32/boot.lnk
