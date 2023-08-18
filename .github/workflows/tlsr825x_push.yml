@@ -3,7 +3,7 @@ on:
     paths:
       - '.github/workflows/tlsr825x*'
       - 'actions/telink/**'
-      - 'tlsr825x/**'
+      - 'tlsr8258/**'
     branches:
       - '**'
     tags-ignore:
