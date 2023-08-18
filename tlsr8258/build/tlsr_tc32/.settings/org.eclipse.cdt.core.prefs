@@ -1,0 +1,7 @@
+#Fri Aug 18 14:54:35 BST 2023
+eclipse.preferences.version=1
+environment/project/com.telink.tc32eclipse.configuration.app.release.435527967/BUILDARTIFACT/delimiter=;
+environment/project/com.telink.tc32eclipse.configuration.app.release.435527967/BUILDARTIFACT/operation=replace
+environment/project/com.telink.tc32eclipse.configuration.app.release.435527967/BUILDARTIFACT/value=${ConfigName}.elf
+environment/project/com.telink.tc32eclipse.configuration.app.release.435527967/append=true
+environment/project/com.telink.tc32eclipse.configuration.app.release.435527967/appendContributed=true
