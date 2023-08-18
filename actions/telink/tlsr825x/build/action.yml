@@ -13,7 +13,7 @@ inputs:
     default: c:\telink\zigbee_sdk
   project:
     description: tlsr825x project to build
-    default: cloudsmets_8258
+    default: cloudsmets-8258
   board:
     description: tlsr825x board to target
     default: unused
@@ -75,7 +75,7 @@ runs:
             "-noSplash", `
             "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
             "-import", """${env:GITHUB_WORKSPACE}\${env:_workspaces}""", `
-            "-build", """tlsr_tc32\${{ inputs.project }}""", `
+            "-build", """${{ inputs.project }}""", `
             "--launcher.suppressErrors" `
           -NoNewWindow `
           -RedirectStandardOutput $env:TEMP\stdout.txt `
