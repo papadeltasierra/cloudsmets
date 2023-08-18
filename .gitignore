@@ -1,0 +1,11 @@
+# Ignore .gitconfig file.
+.gitconfig
+
+# Ignore most of the Eclipse environment...
+# Ref: https://stackoverflow.com/questions/337304/which-eclipse-files-belong-under-version-control
+/tlsr8258/build/.metadata
+
+# ...except for...
+!/tlsr8258/build/tlsr_tc32.settings
+!/tlsr8258/build/tlsr_tc32/.project
+!/tlsr8258/build/tlsr_tc32/.cproject
