@@ -24,7 +24,8 @@ runs:
     - name: Set environment variables
       shell: pwsh
       env:
-        _workspaces: "tlsr8258\\build"
+        # !!PDS: This may be badly named!
+        _workspaces: "tlsr8258\\build\\tlsr_tc32"
         _project_root: "tlsr8258\\build\\tlsr_tc32"
         _extensions: "bin,elf,lst"
       run: |
