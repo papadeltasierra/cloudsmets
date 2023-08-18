@@ -3,20 +3,16 @@
 ## Preparation
 - Install the [Telink IDE] and [Telink Zigbee SDK]
   - Try to install these in the same locations as you will use for your [GitHub] CI process.  They don't have to be the same but it helps if they are.
-- From the `Control Panel`, `System`, `Advanced` settings, create two environment variables that indicate the roo directory where you installed your [Telink IDE] and [Telink Zigbee SDK] as per examples below:
+- From the `Control Panel`, `System`, `Advanced` settings, create three environment variables that indicate the root directory where you installed your [Telink IDE] and [Telink Zigbee SDK] as per examples below:
 
 |Variable|Purpose|Example|
 |-|-|-|
 |TELINK_IDE|Root for the IDE|c:\telink_zigbee_sdk\tl_zigbee_sdk|
 |TELINK_ZIGBEE_SDK|Root of the Zigbee SDK|c:\telink_ide|
+|GITHUB_WORKSPACE|Root of your Git project<br/>(GitHub will set this in the CI)|c:\git\cloudsmets|
 
-## Installing Eclipse Helios Git Support
-- Instead of trying to archive ... install [Eclipse EGit]
-- `Window`, `Preferences`, search for `Git`,
-- Set HOME environment variable, HOMEDRIVE,, HOMEPATH
-- Right click tlsr_tc32 project, Team, Export, `Share Project...`, Git
-- Right-click `tlsr_tc32`` project, `Export...`, `Team`, `Team project set`
-
+## Installing Eclipse Helios (E)Git Support
+> ** DO NOT DO THIS - it doesn't work! **
 
 ## Create Empty Workspace and Project
 - Replicate the directory structure used by the standard [Telink IDE] workspace but...
@@ -25,16 +21,16 @@
 |Directory|Purpose|
 |-|-|
 |tlsr8258|(New!) The root for our build environment|
-|tlsr8258\tlsr_tc32|The directory where the `workspace` will be created|
-|tlsr8258\tlsr_tc32\build|The directory where the `project` will be created|
+|tlsr8258\build|The directory where the `workspace` will be created|
+|tlsr8258\build\tlsr_tc32|The directory where the `project` will be created|
 
 > Do not create anything else at this time.
 
 - Start the [Telink IDE] and create an empty workspace
-  - At this point you can open the existing [Telink Zigbee SDK] workspace, or try creating yours immediately by providing the full path to your workspace directory e.g. `c:\git\<myproject>\tlsr8258\tlsr_tc32`
-  - If you opened the [Telink Zigbee SDK], noy use the `File`, `Switch workspace` menu to create a new workspace, entering the directory `c:\git\<myproject>\tlsr8258\tlsr_tc32`
+  - At this point you can open the existing [Telink Zigbee SDK] workspace, or try creating yours immediately by providing the full path to your workspace directory e.g. `c:\git\<myproject>\tlsr8258\build`
+  - If you opened the [Telink Zigbee SDK], now use the `File`, `Switch workspace` menu to create a new workspace, entering the directory `c:\git\<myproject>\tlsr8258\build`
 - Now create an empty project using the `File`, `New...` menu item
-  - The project must be a C (not C++) project and select the ???? tc32 application ???? option.
+  - The project must be a `C` (not `C++`) project and select the `TC32 Cross Target Application` option.
 
 ## Importing Some Source Code
 > Note that we only want to import a starting application here.  **DO NOT** import everything yet.
@@ -43,12 +39,12 @@
 - Select `General`, `File system` and then enter the directory of the `apps` directory in the installed [Telink Zigbee SDK]
 - You should see "`[ ] Apps`" as and option and you can expand this and **only select** the sample application that you will base your project on e.g. `sampleLight_8258`
 
-> If you have done this properly, yuo will be able to expand the `tlsr_tc32` project and see just the `apps/sampleLight_8258` directory and the **source code** below it.  If you see more, you did it wrongly - just sleect and delete `apps` and do it again.
+> If you have done this properly, you will be able to expand the `tlsr_tc32` project and see just the `apps/sampleLight_8258` directory and the **source code** below it.  If you see more, you did it wrongly - just select and delete `apps` and do it again.
 
 ## Linking Required Build Source
 > We are going to *import as links* those parts of the [Telink Zigbee SDK] that we need to build our application but we are **not** going to actually copy it.  The linked code will **not** appear as part of our Git repo.
 >
-> We will be using the environment variables created earlier to ensure that both locally, and in the [GitHub] CI, we can *find* this code and build our application.
+> We will be using the environment variables created earlier to ensure that, both locally and in the [GitHub] CI, we can *find* this code and build our application.
 
 - By looking at the [Telink Zigbee SDK] workspace and the resources in the project there, identify which parts of the [Telink Zigbee SDK] you need to link to your application's project
 - Use the same `Import` mechanism as before, select the resources but use the `Advanced` button to select links only, including creating the directory structure.
@@ -58,11 +54,16 @@
 ## Duplicating Build Parameters
 Put simply, open your workspace and the [Telink Zigbee SDK] workspaces side-by-side and duplicate all the settings from the [Telink Zigbee SDK] workspace into your workspace.  But here are the interesting bits ;-)
 
-> When you have to define something that is in the [Telink Zigbee SDK] (include paths, paths to pre and post build tools etc), enter them using:
->
-> `"${env:TELINK_ZIGBEE_SDK}/<rest-of-the-path>"`
->
-> This means that when you use your workspace in the [GitHub] CI, providing you have first set the environment variables via your CI pipeline, then the build will find the tools and files it needs and still work!
+- When you have to define something that is in the [Telink Zigbee SDK] (include paths, paths to pre and post build tools etc), enter them using:<br/>
+  `"${TELINK_ZIGBEE_SDK}/<rest-of-the-path>"`<br/>
+  This means that when you use your workspace in the [GitHub] CI, providing you have first set the environment variables via your CI pipeline, then the build will find the tools and files it needs and still work!
+- Enter paths to your source code using `"${GITHUB_WORKSPACE}/<rest-of-the-path>"` so that it can be found locally and in the [GitHub] CI pipeline.
+
+## Code-managing the Workspace
+Don't!  Just code-manage the project and settings as identified by these files/directories:
+- `tlsr8258/build/tlsr_tc32.settings`
+- `tlsr8258/build/tlsr_tc32/.project`
+- `tlsr8258/build/tlsr_tc32/.cproject`
 
 ## Things That Can Go wrong
 There will be other ways to break the build - it appears to be quite tricky to set-up correctly at first.
@@ -73,7 +74,7 @@ If you fail to define the MCU type, you can end up building for the wrong target
 ### Missing Files
 Means that either:
 - You are missing some path definitions in the workspace or
-- You set the environment variables pointing to the [Telink IDE] and/or [Telink Zigbee SDK] incorrectly.
+- You set the environment variables pointing to your repo (`GITHUB_WORKSPACE`) and/or [Telink Zigbee SDK] (`TELINK_ZIGBEE_SDK`) incorrectly.
 
 ### Wrong File Included
 - You have all the paths, but perhaps not in the correct order to ensure the build finds the correct instance of required included files or
