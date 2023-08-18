@@ -9,3 +9,7 @@
 !/tlsr8258/build/tlsr_tc32.settings
 !/tlsr8258/build/tlsr_tc32/.project
 !/tlsr8258/build/tlsr_tc32/.cproject
+
+# Ignore build output.
+tlsr_tc32/build/cloudsmets-8258
+tlsr_tc32/build/boot.lnk
