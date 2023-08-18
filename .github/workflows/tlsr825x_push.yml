@@ -24,7 +24,7 @@ env:
   SDK_URI: "http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip"
   SDK_ZIP: Zigbee_SDK.zip
   SDK_HASH: "AD3C28FC2A50E9D550B933335FD96CE2A58EECDD602DEB451FCC54087947E01C"
-  TELINK_ZIGBEE_SDK: "${SDK_DIR}/tl_sizebee_sdk"
+  TELINK_ZIGBEE_SDK: "${SDK_DIR}/tl_zigbee_sdk"
 
 jobs:
   TeLink-tlsr825x-build:
