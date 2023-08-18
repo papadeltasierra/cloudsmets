@@ -87,7 +87,6 @@ runs:
             "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
             "-import", """${env:GITHUB_WORKSPACE}\${env:_workspaces}""", `
             "-cleanBuild", """tlsr_tc32/${{ inputs.project }}""", `
-            "-E", "TELINK_ZIGBEE_SDK=${env:TELINK_ZIGBEE_SDK}", `
             "--launcher.suppressErrors" `
           -NoNewWindow `
           -RedirectStandardOutput $env:TEMP\stdout.txt `
