@@ -16,6 +16,7 @@ env:
   DRIVE: "c:"
   TLSR825X: tlsr8258
   IDE_DIR: Telink_IDE
+  # !!PDS: This is not being passed through - why?
   SDK_DIR: sdk
   IDE_URI: "https://www.dropbox.com/s/ths9rev0tvhhl96/Telink_IDE.zip?dl=1"
   IDE_ZIP: Telink_IDE.zip
@@ -24,7 +25,7 @@ env:
   SDK_URI: "http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip"
   SDK_ZIP: Zigbee_SDK.zip
   SDK_HASH: "AD3C28FC2A50E9D550B933335FD96CE2A58EECDD602DEB451FCC54087947E01C"
-  TELINK_ZIGBEE_SDK: "${SDK_DIR}/tl_zigbee_sdk"
+  TELINK_ZIGBEE_SDK: "c:/telink/zigbee_sdk/tl_zigbee_sdk"
 
 jobs:
   TeLink-tlsr825x-build:
