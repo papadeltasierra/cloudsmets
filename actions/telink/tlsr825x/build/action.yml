@@ -13,7 +13,7 @@ inputs:
     default: c:\telink\zigbee_sdk
   project:
     description: tlsr825x project to build
-    default: sampleGW_8258
+    default: cloudsmets_8258
   board:
     description: tlsr825x board to target
     default: unused
@@ -25,7 +25,7 @@ runs:
       shell: pwsh
       env:
         _workspaces: "tl_zigbee_sdk\\build\\tlsr_tc32"
-        _project_root: "tl_zigbee_sdk"
+        _project_root: "tlsr8258\\build"
         _extensions: "bin,elf,lst"
       run: |
         echo "_workspaces=$env:_workspaces" >> ${env:GITHUB_ENV}
