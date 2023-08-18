@@ -62,6 +62,17 @@ runs:
         Write-Information "'$($eclipsec[0].FullName)' was found." -InformationAction Continue
         echo "eclipsec=$($eclipsec[0].FullName)" >> $env:GITHUB_ENV
 
+    # Ideally we would use the '-E' option to override the Eclipse link variables
+    # but this version of headlessbuild is too old to have that option so we have
+    # to directly patch the .project file instead!
+    - name: 'Patch .project variables'
+      shell: pwsh
+      run: |
+        $TELINK_ZIGBEE_SDK_LINUX=${env:TELINK_ZIGBEE_SDK} -replace '\\', '/'
+        $Project="${env:GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
+        $Content=$(Get-Content -Path ${Project}) -replace '(<value>file:).*(</value>)', "$1${TELINK_ZIGBEE_SDK_LINUX}$2"
+        Set-Content -Path ${Project} -Value ${Content}
+
     - name: Build TLSR8258 ZigBee image
       shell: pwsh
       run: |
