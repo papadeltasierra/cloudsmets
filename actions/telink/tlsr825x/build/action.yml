@@ -75,7 +75,7 @@ runs:
             "-noSplash", `
             "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
             "-import", """${env:GITHUB_WORKSPACE}\${env:_workspaces}""", `
-            "-build", """${{ inputs.project }}""", `
+            "-build", """tlsr_tc32\${{ inputs.project }}""", `
             "--launcher.suppressErrors" `
           -NoNewWindow `
           -RedirectStandardOutput $env:TEMP\stdout.txt `
