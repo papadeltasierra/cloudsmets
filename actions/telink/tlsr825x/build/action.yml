@@ -72,7 +72,7 @@ runs:
             "-vm", """${{ inputs.ide }}\jre\bin\client""", `
             "-noSplash", `
             "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
-            "-import", """${{ inputs.zigbee_sdk }}\${env:_workspaces}""", `
+            "-import", """${GITHUB_WORKSPACE}\${env:_workspaces}""", `
             "-build", """${env:_project_root}/${{ inputs.project }}""", `
             "--launcher.suppressErrors" `
           -NoNewWindow `
