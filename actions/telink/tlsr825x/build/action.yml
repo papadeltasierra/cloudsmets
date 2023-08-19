@@ -68,10 +68,14 @@ runs:
     - name: 'Patch .project variables'
       shell: pwsh
       run: |
+        $Write-Information "GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}" -InformationAction Continue
+        $Write-Information "GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}" -InformationAction Continue
+        Get-Childitem -Path tlsr8258 -Recurse -Name
         $TELINK_ZIGBEE_SDK_LINUX=${env:TELINK_ZIGBEE_SDK} -replace '\\', '/'
-        $Project="${GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
-        $Content=$(Get-Content -Path ${Project}) -replace '(<value>file:).*(</value>)', "$1${TELINK_ZIGBEE_SDK_LINUX}$2"
-        Set-Content -Path ${Project} -Value ${Content}
+        $PROJECT_PATH="${GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
+        $Write-Information "PROJECT_PATH: ${PROJECT_PATH}" -InformationAction Continue
+        $Content=$(Get-Content -Path ${PROJECT_PATH}) -replace '(<value>file:).*(</value>)', "$1${TELINK_ZIGBEE_SDK_LINUX}$2"
+        Set-Content -Path ${PROJECT_PATH} -Value ${Content}
 
     - name: Build TLSR8258 ZigBee image
       shell: pwsh
