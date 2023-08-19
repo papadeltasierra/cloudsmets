@@ -37,6 +37,7 @@ jobs:
           uses: ./actions/telink/tlsr825x/install-ide
           with:
             telink_ide_path: ${{ env.TELINK_IDE_PATH }}
+            TRY_ME: ${{ var.TRY_ME }}
 
         - id: install-zigbee-sdk
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
