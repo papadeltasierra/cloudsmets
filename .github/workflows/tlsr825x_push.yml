@@ -36,16 +36,16 @@ jobs:
         - id: install-ide
           uses: ./actions/telink/tlsr825x/install-ide
           with:
-            telink_ide_path: ${TELINK_IDE_PATH}
+            telink_ide_path: ${env.TELINK_IDE_PATH}
 
         - id: install-zigbee-sdk
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
           with:
-            telink_zigbee_sdk_path: ${TELINK_ZIGBEE_SDK_PATH}
+            telink_zigbee_sdk_path: ${env.TELINK_ZIGBEE_SDK_PATH}
 
         - id: build-tlsr825x-image
           uses: ./actions/telink/tlsr825x/build
           with:
-            telink_ide_path: ${TELINK_IDE_PATH}
-            telink_zigbee_sdk_path: ${TELINK_ZIGBEE_SDK_PATH}
+            telink_ide_path: ${env.TELINK_IDE_PATH}
+            telink_zigbee_sdk_path: ${env.TELINK_ZIGBEE_SDK_PATH}
 
