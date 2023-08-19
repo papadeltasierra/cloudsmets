@@ -8,7 +8,7 @@ description: 'Install the Zigbee SDK required to build Telink tlsr825x projects'
 # env: Not valid here - see first 'step' below.
 
 inputs:
-  TELINK_ZIGBEE_SDK:
+  telink_zigbee_sdk_path_path:
     description: 'Directory into which to install the Zigbee SDK'
     default: '$GITHUB_WORKSPACE\_sdk'
 
@@ -30,8 +30,8 @@ runs:
     - name: Create target directory
       shell: pwsh
       run: |
-        if (!(Test-Path "${{ inputs.TELINK_ZIGBEE_SDK }}" -PathType container)) {
-          New-Item -Path "${{ inputs.TELINK_ZIGBEE_SDK }}" -ItemType "directory"
+        if (!(Test-Path "${{ inputs.telink_zigbee_sdk_path }}" -PathType container)) {
+          New-Item -Path "${{ inputs.telink_zigbee_sdk_path }}" -ItemType "directory"
         }
 
     # Download and expand the SDK.
@@ -57,7 +57,7 @@ runs:
 
     - name: Unzip the SDK
       shell: pwsh
-      run: Expand-Archive -Path "${env:_TEMP}\${env:SDK_ZIP}" -DestinationPath "${{ inputs.TELINK_ZIGBEE_SDK }}"
+      run: Expand-Archive -Path "${env:_TEMP}\${env:SDK_ZIP}" -DestinationPath "${{ inputs.telink_zigbee_sdk_path }}"
 
     - name: Delete SDK Zipfile
       shell: pwsh
@@ -65,4 +65,4 @@ runs:
 
     - name: List SDK
       shell: pwsh
-      run: Get-ChildItem -Path "${{ inputs.TELINK_ZIGBEE_SDK }}" -Recurse -Name
+      run: Get-ChildItem -Path "${{ inputs.telink_zigbee_sdk_path }}" -Recurse -Name

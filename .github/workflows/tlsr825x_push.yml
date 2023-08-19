@@ -21,7 +21,10 @@ jobs:
           shell: pwsh
           run: |
             echo "TELINK_IDE_PATH=${env:GITHUB_WORKSPACE}\_ide" >> ${env:GITHUB_ENV}
-            echo "TELINK_ZIGBEE_SDK=${env:GITHUB_WORKSPACE}\_sdk" >> ${env:GITHUB_ENV}
+
+            # The _PATH is the place we install to.
+            echo "TELINK_ZIGBEE_SDK_PATH=${env:GITHUB_WORKSPACE}\_sdk" >> ${env:GITHUB_ENV}
+            echo "TELINK_ZIGBEE_SDK=${env:GITHUB_WORKSPACE}\_sdk\tl_zigbee_sdk" >> ${env:GITHUB_ENV}
 
         - uses: actions/checkout@v3
           with:
@@ -38,11 +41,11 @@ jobs:
         - id: install-zigbee-sdk
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
           with:
-            TELINK_ZIGBEE_SDK: ${{ env.TELINK_ZIGBEE_SDK }}
+            telink_zigbee_sdk_path: ${{ env.TELINK_ZIGBEE_SDK_PATH }}
 
         - id: build-tlsr825x-image
           uses: ./actions/telink/tlsr825x/build
           with:
             telink_ide_path: ${{ env.TELINK_IDE_PATH }}
-            TELINK_ZIGBEE_SDK: ${{ env.TELINK_ZIGBEE_SDK }}
+            telink_zigbee_sdk: ${{ env.TELINK_ZIGBEE_SDK }}
 

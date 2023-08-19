@@ -8,7 +8,7 @@ inputs:
   telink_ide_path:
     description: Location of the Telink IDE
     default: $GITHUB_WORKSPACE\_ide
-  TELINK_ZIGBEE_SDK:
+  telink_zigbee_sdk:
     description: Location of the Telink Zigbee SDK
     default: $GITHUB_WORKSPACE\_sdk
   dummy:
@@ -67,10 +67,10 @@ runs:
     - name: 'Patch .project Path Variable'
       shell: pwsh
       run: |
-        $TELINK_ZIGBEE_SDK_LINUX=${inputs.TELINK_ZIGBEE_SDK} -replace '\\', '/'
+        $telink_zigbee_sdk_LINUX=${inputs.telink_zigbee_sdk} -replace '\\', '/'
         $PROJECT_PATH="${env:GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
         Write-Information "PROJECT_PATH: ${PROJECT_PATH}" -InformationAction Continue
-        $Content=$(Get-Content -Path ${PROJECT_PATH}) -replace '(<value>)\$%7BTELINK_ZIGBEE_SDK_WS%7D(</value>)', "file:$1${TELINK_ZIGBEE_SDK_LINUX}$2"
+        $Content=$(Get-Content -Path ${PROJECT_PATH}) -replace '(<value>)\$%7Btelink_zigbee_sdk_WS%7D(</value>)', "file:$1${telink_zigbee_sdk_LINUX}$2"
         Set-Content -Path ${PROJECT_PATH} -Value ${Content}
 
     - name: Build TLSR8258 ZigBee image
