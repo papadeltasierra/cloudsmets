@@ -11,18 +11,6 @@ inputs:
   telink_ide_path:
     description: 'Directory into which to install the IDE'
     default: $GITHUB_WORKSPACE\_ide
-  dummy1:
-    description: 'Directory into which to install the IDE'
-    default: $GITHUB_WORKSPACE\_ide
-  dummy2:
-    description: 'Directory into which to install the IDE'
-    default: ${env.GITHUB_WORKSPACE}\_ide
-  # This does not work at all!  "Unrecognised name-value".
-  # dummy3:
-  #   description: 'Directory into which to install the IDE'
-  #   default: ${{GITHUB_WORKSPACE}}\_ide
-  # Actions canot have "action scoped env (variables)" so set them in an
-  # initial step.
 
 runs:
   using: "composite"
@@ -36,9 +24,6 @@ runs:
         IDE_HASH: "D47595AAFAE1B711A04DC83BAB08467160EA2A3559EA976576C2F8A44F47BF1F"
         IDE_EXE: TelinkSDKv1.3.1.exe
       run: |
-        Write-Information "Dummy1: ${{ inputs.dummy1 }}" -InformationAction Continue
-        Write-Information "Dummy2: ${{ inputs.dummy2 }}" -InformationAction Continue
-        # Write-Information "Dummy3: ${{ inputs.dummy3 }}" -InformationAction Continue
         Write-Information "IDE: ${{ inputs.telink_ide_path }}" -InformationAction Continue
         echo "IDE_URI=$IDE_URI" >> ${env:GITHUB_ENV}
         echo "IDE_ZIP=$IDE_ZIP" >> ${env:GITHUB_ENV}
