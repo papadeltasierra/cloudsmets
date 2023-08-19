@@ -2025,7 +2025,7 @@
 	<variableList>
 		<variable>
 			<name>TELINK_ZIGBEE_SDK</name>
-			<value>file:/c:/users/pds/git/telink_zigbee_sdk/tl_zigbee_sdk</value>
+			<value>$%7BTELINK_ZIGBEE_SDK_WS%7D</value>
 		</variable>
 	</variableList>
 </projectDescription>
