@@ -17,9 +17,10 @@ inputs:
   dummy2:
     description: 'Directory into which to install the IDE'
     default: ${env.GITHUB_WORKSPACE}\_ide
-  dummy3:
-    description: 'Directory into which to install the IDE'
-    default: ${{GITHUB_WORKSPACE}}\_ide
+  # This does not work at all!  "Unrecognised name-value".
+  # dummy3:
+  #   description: 'Directory into which to install the IDE'
+  #   default: ${{GITHUB_WORKSPACE}}\_ide
   # Actions canot have "action scoped env (variables)" so set them in an
   # initial step.
 
@@ -37,7 +38,7 @@ runs:
       run: |
         Write-Information "Dummy1: ${{ inputs.dummy1 }}" -InformationAction Continue
         Write-Information "Dummy2: ${{ inputs.dummy2 }}" -InformationAction Continue
-        Write-Information "Dummy3: ${{ inputs.dummy3 }}" -InformationAction Continue
+        # Write-Information "Dummy3: ${{ inputs.dummy3 }}" -InformationAction Continue
         Write-Information "IDE: ${{ inputs.telink_ide_path }}" -InformationAction Continue
         echo "IDE_URI=$IDE_URI" >> ${env:GITHUB_ENV}
         echo "IDE_ZIP=$IDE_ZIP" >> ${env:GITHUB_ENV}
