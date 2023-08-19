@@ -5,13 +5,8 @@ Param(
 )
 
 # Make information messages appear.
-InformationPreference = 'Continue'
-
-
-inputs:
-  telink_ide_path:
-    description: 'Directory into which to install the IDE'
-    default: $GITHUB_WORKSPACE\_ide
+$InformationPreference = 'Continue'
+$DebugPreference = 'Continue'
 
 runs:
   using: "composite"
@@ -79,6 +74,7 @@ $proc=Start-Process `
     -RedirectStandardError "${env:_TEMP}\stderr.txt" `
     -Wait `
     -PassThru
+
 Write-Information "Installer exit code: $($proc.ExitCode.ToString())." -InformationAction:Continue
 Write-Information "STDOUT from the installer..." -InformationAction:Continue
 Get-Content -Path ${env:_TEMP}\stdout.txt
@@ -87,6 +83,6 @@ Get-Content -Path ${env:_TEMP}\stderr.txt
 Remove-Item -Path ${env:_TEMP}\stdout.txt
 Remove-Item -Path ${env:_TEMP}\stderr.txt
 
-        # List the top-level to really confirm that we were installed.
-        Write-Information "Directories/files in ${{ inputs.telink_ide_path }}..." -InformationAction:Continue
-        Get-ChildItem =Path ${{ inputs.telink_ide_path }} -Recurse -Name
+# List the top-level to really confirm that we were installed.
+Write-Information "Directories/files in ${{ inputs.telink_ide_path }}..." -InformationAction:Continue
+Get-ChildItem -Path ${{ inputs.telink_ide_path }} -Recurse -Name
