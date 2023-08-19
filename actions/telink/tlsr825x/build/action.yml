@@ -67,7 +67,7 @@ runs:
     - name: 'Patch .project Path Variable'
       shell: pwsh
       run: |
-        $TELINK_ZIGBEE_SDK_LINUX=$${{ inputs.telink_zigbee_sdk }} -replace '\\', '/'
+        $TELINK_ZIGBEE_SDK_LINUX=${{ inputs.telink_zigbee_sdk }} -replace '\\', '/'
         Write-Information "TELINK_ZIGBEE_SDK_LINUX: ${TELINK_ZIGBEE_SDK_LINUX}" -InformationAction Continue
         $PROJECT_PATH="${env:GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
         Write-Information "PROJECT_PATH: ${PROJECT_PATH}" -InformationAction Continue
