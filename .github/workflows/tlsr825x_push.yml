@@ -46,6 +46,6 @@ jobs:
         - id: build-tlsr825x-image
           uses: ./actions/telink/tlsr825x/build
           with:
-            telink_ide_path: $TELINK_IDE_PATH
-            telink_zigbee_sdk_path: $TELINK_ZIGBEE_SDK_PATH
+            telink_ide_path: "$TELINK_IDE_PATH"
+            telink_zigbee_sdk_path: "$TELINK_ZIGBEE_SDK_PATH"
 
