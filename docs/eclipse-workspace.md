@@ -42,9 +42,19 @@
 > If you have done this properly, you will be able to expand the `tlsr_tc32` project and see just the `apps/sampleLight_8258` directory and the **source code** below it.  If you see more, you did it wrongly - just select and delete `apps` and do it again.
 
 ## Linking Required Build Source
-> We are going to *import as links* those parts of the [Telink Zigbee SDK] that we need to build our application but we are **not** going to actually copy it.  The linked code will **not** appear as part of our Git repo.
->
-> We will be using the environment variables created earlier to ensure that, both locally and in the [GitHub] CI, we can *find* this code and build our application.
+### Path Variables
+[Eclipse] uses `Path Variables` to refer to linked resource.  `Path Variables` **are not** the same as environment variables and you cannot use environment variables to refer to linked resources.  This means that if the linked resources (i.e. the ZigBee SDK) is installed in a different location locally to the [GitHub] CI,one of the build potentially won't work!
+
+However can use the followng tricks to work around this:
+- `Path Variables` can be sert at both Workspace and Project scope.  As you will see below, we **do not** code manage the workspace, which is a part of our local build, so any changes we make there **do not** end up in the [Github] CI environment
+- `Path Variables` **can** be defined in terms of other variables so...
+- Define variable `TELINK_ZIGBEE_SDK_WS` at Workspace scope (via `Windows`, `Preferences`, `General`, `Workspace`, `Linked Resources`)
+- Define variable `TELINK_ZIGBEE_SDK` at Project scope (via `Project explorer` tab, `tlsr_tc32`, right-click, `Properties`, `Resource`, `Linked Resources`
+  - At this point, the local build will work but in the [GitHub] CI, there is no workspace, `TELINK_ZIGBEE_SDK_WS` is not defined and the build will fail
+- Use a Pwershell regex to **patch the `.project` file** during the [GitHub] CI build; the patch does the following:
+  - Replaces the references to the `TELINK_ZIGBEE_SDK_WS` variable with the correct path to the [Tlink ZigBee SDK] as installed indie the [GitHub] CI.
+
+We can now *import as links* those parts of the [Telink Zigbee SDK] that we need to build our application but we are **not** going to actually copy it.  The linked code will **not** appear as part of our Git repo.  We import relative to the `TELINK_ZIGBEE_SDK` `Path Variable` which means that paths are corrected in both local and [GitHub] CI build environments.
 
 - By looking at the [Telink Zigbee SDK] workspace and the resources in the project there, identify which parts of the [Telink Zigbee SDK] you need to link to your application's project
 - Use the same `Import` mechanism as before, select the resources but use the `Advanced` button to select links only, including creating the directory structure.
@@ -109,4 +119,4 @@ Note that the imported location might be different to that in the [Telink Zigbee
 [Telink IDE]: http://wiki.telink-semi.cn/wiki/IDE-and-Tools/IDE-for-TLSR8-Chips/
 [Telink Zigbee SDK]: http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip
 [GitHub]: https://github.com
-[Eclipse EGit]: https://archive.eclipse.org/egit/updates-1.0/
+[Eclipse]: https://www.eclipse.org/downloads/packages/release/helios/r
