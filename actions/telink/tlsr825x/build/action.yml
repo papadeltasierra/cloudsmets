@@ -5,18 +5,15 @@ description: 'Install the Telink IDE, Zigbee SDK and the build a tlsr825x projec
 # env: Not valid in an Action; see the first step below.
 
 inputs:
-  ide:
+  telink_ide_path:
     description: Location of the Telink IDE
-    default: c:\telink\ide
-  zigbee_sdk:
+    default: $GITHUB_WORKSPACE\_ide
+  telink_zigbee_sdk_path:
     description: Location of the Telink Zigbee SDK
-    default: c:\telink\zigbee_sdk
-  project:
-    description: tlsr825x project to build
+    default: $GITHUB_WORKSPACE\_sdk
+  target:
+    description: tlsr8258 target to build
     default: cloudsmets-8258
-  board:
-    description: tlsr825x board to target
-    default: unused
 
 runs:
   using: "composite"
@@ -25,17 +22,15 @@ runs:
       shell: pwsh
       env:
         # !!PDS: This may be badly named!
-        _workspaces: "tlsr8258\\build\\tlsr_tc32"
-        _project_root: "tlsr8258\\build\\tlsr_tc32"
-        _extensions: "bin,elf,lst"
+        PROJECT: "tlsr8258\\build\\tlsr_tc32"
+        EXTENSIONS: "bin,elf,lst"
       run: |
-        echo "_workspaces=$env:_workspaces" >> ${env:GITHUB_ENV}
-        echo "_project_root=$env:_project_root" >> ${env:GITHUB_ENV}
-        echo "_extensions=$env:_extensions" >> ${env:GITHUB_ENV}
+        echo "PROJECT=$env:PROJECT" >> ${env:GITHUB_ENV}
+        echo "EXTENSIONS=$env:EXTENSIONS" >> ${env:GITHUB_ENV}
 
         # We need some intermediate variables to help upload artifacts.
-        $extension_list = $env:_extensions.Split(",")
-        $image_base="${{ inputs.zigbee_sdk }}\${env:_workspaces}\${{ inputs.project }}\${{ inputs.project }}"
+        $extension_list = $env:EXTENSIONS.Split(",")
+        $image_base="${{ inputs.zigbee_sdk }}\${env:PROJECT}\${{ inputs.target }}\${{ inputs.target }}"
         $image_list = @()
 
         # Writing a multi-line string is "magic" in GitHub!
@@ -51,29 +46,26 @@ runs:
     - name: Find eclipsec
       shell: pwsh
       run: |
-        $eclipsec=Get-ChildItem -Path "${{ inputs.ide }}\eclipsec.exe" -Recurse | Select FullName
+        $eclipsec=Get-ChildItem -Path "${{ inputs.telink_ide_path }}\eclipsec.exe" -Recurse | Select FullName
         if ($eclipsec.count > 1)
         {
           Write-Error "Multiple instances of 'eclipsec' were found." -ErrorAction:Continue
-          Get-ChildItem -Path "${{ inputs.ide }}\eclipsec.exe" -Recurse | Select FullName
+          Get-ChildItem -Path "${{ inputs.telink_ide_path }}\eclipsec.exe" -Recurse | Select FullName
           exit 1
         }
         # Passing result to the next step.
         Write-Information "'$($eclipsec[0].FullName)' was found." -InformationAction Continue
         echo "eclipsec=$($eclipsec[0].FullName)" >> $env:GITHUB_ENV
 
-    # Ideally we would use the '-E' option to override the Eclipse link variables
-    # but this version of headlessbuild is too old to have that option so we have
-    # to directly patch the .project file instead!
-    - name: 'Patch .project variables'
+    # Eclipse Path Variables cannot be changed using any option so we patch the
+    # '.project' file directly.
+    - name: 'Patch .project Path Variable'
       shell: pwsh
       run: |
-        Write-Information "GITHUB_WORKSPACE: ${env:GITHUB_WORKSPACE}" -InformationAction Continue
-        Get-Childitem -Path tlsr8258 -Recurse -Name
-        $TELINK_ZIGBEE_SDK_LINUX=${env:TELINK_ZIGBEE_SDK} -replace '\\', '/'
+        $TELINK_ZIGBEE_SDK_LINUX_PATH=${inputs.telink_zigbee_sdk_path} -replace '\\', '/'
         $PROJECT_PATH="${env:GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
         Write-Information "PROJECT_PATH: ${PROJECT_PATH}" -InformationAction Continue
-        $Content=$(Get-Content -Path ${PROJECT_PATH}) -replace '(<value>)\$%7BTELINK_ZIGBEE_SDK_WS%7D(</value>)', "file:$1${TELINK_ZIGBEE_SDK_LINUX}$2"
+        $Content=$(Get-Content -Path ${PROJECT_PATH}) -replace '(<value>)\$%7BTELINK_ZIGBEE_SDK_WS%7D(</value>)', "file:$1${TELINK_ZIGBEE_SDK_LINUX_PATH}$2"
         Set-Content -Path ${PROJECT_PATH} -Value ${Content}
 
     - name: Build TLSR8258 ZigBee image
@@ -81,15 +73,14 @@ runs:
       run: |
         Write-Information "Running build process '$env:eclipsec'..." -InformationAction Continue
         # Testing time-out after 5 minutes.
-        # !!PDS: "-build", """${env:_project_root}/${{ inputs.project }}""",
         $proc=Start-Process `
           -FilePath $env:eclipsec `
           -ArgumentList `
-            "-vm", """${{ inputs.ide }}\jre\bin\client""", `
+            "-vm", """${{ inputs.telink_ide_path }}\jre\bin\client""", `
             "-noSplash", `
             "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
-            "-import", """${env:GITHUB_WORKSPACE}\${env:_workspaces}""", `
-            "-cleanBuild", """tlsr_tc32/${{ inputs.project }}""", `
+            "-import", """${env:GITHUB_WORKSPACE}\${env:PROJECT}""", `
+            "-cleanBuild", """tlsr_tc32/${{ inputs.target }}""", `
             "--launcher.suppressErrors" `
           -NoNewWindow `
           -RedirectStandardOutput $env:TEMP\stdout.txt `
@@ -139,7 +130,7 @@ runs:
         # }
         # elseif ($stderr -ne "")
 
-        # Note that a toally empty error file returns $null when queried using Get-Content.
+        # Note that a totally empty error file returns $null when queried using Get-Content.
         if ($stderr -ne $null)
         {
           Write-Error "eclipsec reported errors." -ErrorAction:Continue
@@ -147,15 +138,15 @@ runs:
         }
 
         # See if we have all the expected files.
-        $image_root = "${{ inputs.zigbee_sdk }}\${env:_workspaces}\${{ inputs.project }}"
-        $extensions = "${env:_extensions}".split(",")
+        $image_root = "${{ inputs.zigbee_sdk }}\${env:PROJECT}\${{ inputs.target }}"
+        $extensions = "${env:EXTENSIONS}".split(",")
         $missing = $False
 
         foreach ($ext in $extensions)
         {
-          if (! $(Test-Path -Path ${image_root}\${{ inputs.project }}.$ext))
+          if (! $(Test-Path -Path ${image_root}\${{ inputs.target }}.$ext))
           {
-            Write-Error "Expected output file '${image_root}\${{ inputs.project }}.$ext' not found." -ErrorAction:Continue
+            Write-Error "Expected output file '${image_root}\${{ inputs.target }}.$ext' not found." -ErrorAction:Continue
             $missing=$True
           }
         }

@@ -13,19 +13,13 @@ on:
       - '*'
 
 env:
-  DRIVE: "c:"
-  TLSR825X: tlsr8258
-  IDE_DIR: Telink_IDE
-  # !!PDS: This is not being passed through - why?
-  SDK_DIR: sdk
-  IDE_URI: "https://www.dropbox.com/s/ths9rev0tvhhl96/Telink_IDE.zip?dl=1"
-  IDE_ZIP: Telink_IDE.zip
-  IDE_HASH: "D47595AAFAE1B711A04DC83BAB08467160EA2A3559EA976576C2F8A44F47BF1F"
-  IDE_EXE: TelinkSDKv1.3.1.exe
+  # Locations where we will install the required software.
+  TELINK_ZIGBEE_SDK_PATH: "$GITHUB_WORKSPACE/_sdk"
+  TELINK_IDE_PATH: $GITHUB_WORKSPACE/_ide
+
   SDK_URI: "http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip"
   SDK_ZIP: Zigbee_SDK.zip
   SDK_HASH: "AD3C28FC2A50E9D550B933335FD96CE2A58EECDD602DEB451FCC54087947E01C"
-  TELINK_ZIGBEE_SDK: "c:/telink/zigbee_sdk/tl_zigbee_sdk"
 
 jobs:
   TeLink-tlsr825x-build:
@@ -38,9 +32,20 @@ jobs:
               .github
               actions
               tlsr8258
+
         - id: install-ide
           uses: ./actions/telink/tlsr825x/install-ide
+          with:
+            telink_ide_path: $TELINK_IDE_PATH
+
         - id: install-zigbee-sdk
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
+          with:
+            telink_zigbee_sdk_path: $TELINK_ZIGBEE_SDK_PATH
+
         - id: build-tlsr825x-image
           uses: ./actions/telink/tlsr825x/build
+          with:
+            telink_ide_path: $TELINK_IDE_PATH
+            telink_zigbee_sdk_path: $TELINK_ZIGBEE_SDK_PATH
+

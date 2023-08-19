@@ -8,10 +8,11 @@ description: 'Install the Eclipse based IDE required to build Telink tlsr825x pr
 # env:  Not allowed here; see the first step below.
 
 inputs:
-  directory:
+  telink_ide_path:
     description: 'Directory into which to install the IDE'
-    default: 'c:\telink\ide'
-  # Actions should not use "env" so create fake inputs prefixed with underscore.
+    default: $GITHUB_WORKSPACE\_ide
+  # Actions canot have "action scoped env (variables)" so set them in an
+  # initial step.
 
 runs:
   using: "composite"
@@ -19,33 +20,35 @@ runs:
     - name: Set-up environment variables.
       shell: pwsh
       env:
-        _uri: "https://www.dropbox.com/s/ths9rev0tvhhl96/Telink_IDE.zip?dl=1"
-        _zip: Telink_IDE.zip
-        _hash: "D47595AAFAE1B711A04DC83BAB08467160EA2A3559EA976576C2F8A44F47BF1F"
+        # Download locations, filenames and SHA256 hashes.
+        IDE_URI: "https://www.dropbox.com/s/ths9rev0tvhhl96/Telink_IDE.zip?dl=1"
+        IDE_ZIP: Telink_IDE.zip
+        IDE_HASH: "D47595AAFAE1B711A04DC83BAB08467160EA2A3559EA976576C2F8A44F47BF1F"
+        IDE_EXE: TelinkSDKv1.3.1.exe
       run: |
-        echo "_uri=$env:_uri" >> ${env:GITHUB_ENV}
-        echo "_zip=$env:_zip" >> ${env:GITHUB_ENV}
-        echo "_hash=$env:_hash" >> ${env:GITHUB_ENV}
+        echo "IDE_URI=$IDE_URI" >> ${env:GITHUB_ENV}
+        echo "IDE_ZIP=$IDE_ZIP" >> ${env:GITHUB_ENV}
+        echo "IDE_HASH=$IDE_HASH" >> ${env:GITHUB_ENV}
 
     # Create the required directories.
-    - name: Create target directoryTLSR825x base directory
+    - name: Create target directory
       shell: pwsh
       run: |
-        if (!(Test-Path ${{ inputs.directory }} -PathType container)) {
-          New-Item -Path ${{ inputs.directory }} -ItemType "directory"
+        if (!(Test-Path ${{ inputs.telink_ide_path }} -PathType container)) {
+          New-Item -Path ${{ inputs.telink_ide_path }} -ItemType "directory"
         }
 
     # Download and expand the IDE
     - name: Download the IDE
       shell: pwsh
-      run: Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:_uri}" -OutFile "${env:TEMP}\${env:_zip}"
+      run: Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:IDE_URI}" -OutFile "${env:TEMP}\${env:IDE_ZIP}"
 
     # Validate that the IDE has not changed.
     - name: Check IDE hash/version
       shell: pwsh
       run: |
-        $Hash=Get-FileHash -Path "${env:TEMP}\${env:_zip}" -Algorithm sha256
-        if ($Hash.hash.ToString() -ne $env:_hash)
+        $Hash=Get-FileHash -Path "${env:TEMP}\${env:IDE_SIP}" -Algorithm sha256
+        if ($Hash.hash.ToString() -ne $env:IDE_HASH)
         {
           Write-Warning "IDE hash has changed implying IDE update!"
           Write-Warning "Expected sha256: ${env:IDE_HASH}"
@@ -55,22 +58,22 @@ runs:
     # Note that the IDE has a path "IDE" baked into it.
     - name: Unzip the IDE
       shell: pwsh
-      run: Expand-Archive -Path "${env:TEMP}\${env:_zip}" -DestinationPath "${env:TEMP}"
+      run: Expand-Archive -Path "${env:TEMP}\${env:IDE_ZIP}" -DestinationPath "${env:TEMP}"
     - name: Delete IDE Zipfile
       shell: pwsh
-      run: Remove-Item -Path "${env:TEMP}\${env:_zip}"
+      run: Remove-Item -Path "${env:TEMP}\${env:IDE_ZIP}"
 
     - name: List IDE
       shell: pwsh
-      run: Get-ChildItem -Path "${env:TEMP}\IDE" -Recurse
+      run: Get-ChildItem -Path "${{ inputs.telink_ide_path }}" -Recurse -Name
 
     - name: Report the IDE version and spot multiple unexpected EXEs.
       shell: pwsh
       run: |
-        $exes=Get-ChildItem -Path ${env:TEMP}\IDE\telink*.exe | Select FullName
+        $exes=Get-ChildItem -Path ${{ inputs.telink_ide_path }}\telink*.exe | Select FullName
         if ($exes.count > 1) {
           Write-Error "Multiple executables were found that could be IDE installers" -ErrorAction:Continue
-          Get-ChildItem -Path "${env:TEMP}\IDE\telink*.exe" | Select FullName
+          Get-ChildItem -Path "${{ inputs.telink_ide_path }}\telink*.exe" | Select FullName
           exit 1
         }
         $version="unknown"
@@ -92,7 +95,7 @@ runs:
           -ArgumentList `
             "/VERYSILENT", `
             "/SUPPRESSMSGBOXES", `
-            "/DIR=""${{ inputs.directory }}""", `
+            "/DIR=""${{ inputs.telink_ide_path }}""", `
             "/NOICONS", `
             "/LOG=""${logfile}""" `
           -NoNewWindow `
@@ -109,5 +112,5 @@ runs:
         Remove-Item -Path ${env:TEMP}\stderr.txt
 
         # List the top-level to really confirm that we were installed.
-        Write-Information "Directories/files in ${{ inputs.directory }}..." -InformationAction:Continue
-        Get-ChildItem ${{ inputs.directory }}
+        Write-Information "Directories/files in ${{ inputs.telink_ide_path }}..." -InformationAction:Continue
+        Get-ChildItem =Path ${{ inputs.telink_ide_path }} -Recurse -Name
