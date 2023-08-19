@@ -10,7 +10,7 @@ inputs:
     default: $GITHUB_WORKSPACE\_ide
   telink_zigbee_sdk:
     description: Location of the Telink Zigbee SDK
-    default: $GITHUB_WORKSPACE\_sdk
+    default: $GITHUB_WORKSPACE\_sdk\tl_zigbee_sdk
   dummy:
     description: Location of the Telink Zigbee SDK
     default: $GITHUB_WORKSPACE\_sdk
@@ -68,9 +68,10 @@ runs:
       shell: pwsh
       run: |
         $TELINK_ZIGBEE_SDK_LINUX=${inputs.telink_zigbee_sdk} -replace '\\', '/'
+        Write-Information "TELINK_ZIGBEE_SDK_LINUX: ${TELINK_ZIGBEE_SDK_LINUX}" -InformationAction Continue
         $PROJECT_PATH="${env:GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
         Write-Information "PROJECT_PATH: ${PROJECT_PATH}" -InformationAction Continue
-        $Content=$(Get-Content -Path ${PROJECT_PATH}) -replace '(<value>)\$%7BTELINK_ZIGBEE_SDK_WS%7D(</value>)', "file:$1${TELINK_ZIGBEE_SDK_LINUX}$2"
+        $Content=$(Get-Content -Path ${PROJECT_PATH} -raw) -replace '(<value>)\$%7BTELINK_ZIGBEE_SDK_WS%7D(</value>)', "file:$1${TELINK_ZIGBEE_SDK_LINUX}$2"
         Set-Content -Path ${PROJECT_PATH} -Value ${Content}
         Get-Content -Path ${PROJECT_PATH}
 
