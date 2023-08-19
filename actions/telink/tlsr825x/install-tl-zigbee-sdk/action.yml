@@ -22,6 +22,7 @@ runs:
         SDK_ZIP: Zigbee_SDK.zip
         SDK_HASH: "33206990B4443565D5D05CB2737235BA3A56D91567714387975212D57EB01583"
       run: |
+        echo "_TEMP=${env:GITHUB_WORKSPACE}\_temp" >> $env:GITHUB_ENV
         echo "SDK_URI=${env:SDK_URI}" >> $env:GITHUB_ENV
         echo "SDK_ZIP=${env:SDK_ZIP}" >> $env:GITHUB_ENV
         echo "SDK_HASH=${env:SDK_HASH}" >> $env:GITHUB_ENV
@@ -36,13 +37,13 @@ runs:
     # Download and expand the SDK.
     - name: Download the Zigbee SDK
       shell: pwsh
-      run: Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:SDK_URI}" -OutFile "${env:TEMP}\${env:SDK_ZIP}"
+      run: Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:SDK_URI}" -OutFile "${env:_TEMP}\${env:SDK_ZIP}"
 
     # Validate that the Zigbee SDK has not changed.
     - name: Check SDK hash/version
       shell: pwsh
       run: |
-        $Hash=Get-FileHash -Path "${env:TEMP}\${env:SDK_ZIP}" -Algorithm sha256
+        $Hash=Get-FileHash -Path "${env:_TEMP}\${env:SDK_ZIP}" -Algorithm sha256
         if ($Hash.hash.ToString() -ne $env:SDK_HASH)
         {
           Write-Warning "Zigbee SDK hash has changed implying Zigbee SDK update!"
@@ -52,11 +53,11 @@ runs:
 
     - name: Unzip the SDK
       shell: pwsh
-      run: Expand-Archive -Path "${env:TEMP}\${env:SDK_ZIP}" -DestinationPath "${{ inputs.telink_zigbee_sdk_path }}"
+      run: Expand-Archive -Path "${env:_TEMP}\${env:SDK_ZIP}" -DestinationPath "${{ inputs.telink_zigbee_sdk_path }}"
 
     - name: Delete SDK Zipfile
       shell: pwsh
-      run: Remove-Item -Path "${env:TEMP}\${env:SDK_ZIP}"
+      run: Remove-Item -Path "${env:_TEMP}\${env:SDK_ZIP}"
 
     - name: List SDK
       shell: pwsh
