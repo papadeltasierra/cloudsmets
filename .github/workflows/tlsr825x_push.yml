@@ -38,7 +38,8 @@ jobs:
           uses: ./actions/telink/tlsr825x/install-ide
           with:
             # ${TELINK_IDE_PATH} does not work.
-            telink_ide_path: ${env.TELINK_IDE_PATH}
+            # telink_ide_path: ${env.TELINK_IDE_PATH}
+            telink_ide_path: 'c:\temp\john'
 
         - id: install-zigbee-sdk
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
