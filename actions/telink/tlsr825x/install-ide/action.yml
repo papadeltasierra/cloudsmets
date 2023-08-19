@@ -25,6 +25,7 @@ runs:
         IDE_EXE: TelinkSDKv1.3.1.exe
       run: |
         Write-Information "IDE: ${{ inputs.telink_ide_path }}" -InformationAction Continue
+        echo "_TEMP=${env:GITHUB_WORKSPACE}\_temp" >> $env:GITHUB_ENV
         echo "IDE_URI=${env:IDE_URI}" >> ${env:GITHUB_ENV}
         echo "IDE_ZIP=${env:IDE_ZIP}" >> ${env:GITHUB_ENV}
         echo "IDE_HASH=${env:IDE_HASH}" >> ${env:GITHUB_ENV}
@@ -40,13 +41,13 @@ runs:
     # Download and expand the IDE
     - name: Download the IDE
       shell: pwsh
-      run: Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:IDE_URI}" -OutFile "${env:TEMP}\${env:IDE_ZIP}"
+      run: Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:IDE_URI}" -OutFile "${env:_TEMP}\${env:IDE_ZIP}"
 
     # Validate that the IDE has not changed.
     - name: Check IDE hash/version
       shell: pwsh
       run: |
-        $Hash=Get-FileHash -Path "${env:TEMP}\${env:IDE_SIP}" -Algorithm sha256
+        $Hash=Get-FileHash -Path "${env:_TEMP}\${env:IDE_SIP}" -Algorithm sha256
         if ($Hash.hash.ToString() -ne $env:IDE_HASH)
         {
           Write-Warning "IDE hash has changed implying IDE update!"
@@ -57,10 +58,10 @@ runs:
     # Note that the IDE has a path "IDE" baked into it.
     - name: Unzip the IDE
       shell: pwsh
-      run: Expand-Archive -Path "${env:TEMP}\${env:IDE_ZIP}" -DestinationPath "${env:TEMP}"
+      run: Expand-Archive -Path "${env:_TEMP}\${env:IDE_ZIP}" -DestinationPath "${env:_TEMP}"
     - name: Delete IDE Zipfile
       shell: pwsh
-      run: Remove-Item -Path "${env:TEMP}\${env:IDE_ZIP}"
+      run: Remove-Item -Path "${env:_TEMP}\${env:IDE_ZIP}"
 
     - name: List IDE
       shell: pwsh
@@ -86,8 +87,8 @@ runs:
     - name: Install the IDE
       shell: pwsh
       run: |
-        Get-ChildItem -Path "${env:TEMP}\IDE\telink*.exe"
-        $exes=Get-ChildItem -Path "${env:TEMP}\IDE\telink*.exe"
+        Get-ChildItem -Path "${env:_TEMP}\IDE\telink*.exe"
+        $exes=Get-ChildItem -Path "${env:_TEMP}\IDE\telink*.exe"
         # Run the installer, waiting for it to complte, redirecting output etc.
         $proc=Start-Process `
           -FilePath $exes[0].FullName `
@@ -98,17 +99,17 @@ runs:
             "/NOICONS", `
             "/LOG=""${logfile}""" `
           -NoNewWindow `
-          -RedirectStandardOutput "${env:TEMP}\stdout.txt" `
-          -RedirectStandardError "${env:TEMP}\stderr.txt" `
+          -RedirectStandardOutput "${env:_TEMP}\stdout.txt" `
+          -RedirectStandardError "${env:_TEMP}\stderr.txt" `
           -Wait `
           -PassThru
         Write-Information "Installer exit code: $($proc.ExitCode.ToString())." -InformationAction:Continue
         Write-Information "STDOUT from the installer..." -InformationAction:Continue
-        Get-Content -Path ${env:TEMP}\stdout.txt
+        Get-Content -Path ${env:_TEMP}\stdout.txt
         Write-Information "STDERR from the installer..." -InformationAction:Continue
-        Get-Content -Path ${env:TEMP}\stderr.txt
-        Remove-Item -Path ${env:TEMP}\stdout.txt
-        Remove-Item -Path ${env:TEMP}\stderr.txt
+        Get-Content -Path ${env:_TEMP}\stderr.txt
+        Remove-Item -Path ${env:_TEMP}\stdout.txt
+        Remove-Item -Path ${env:_TEMP}\stderr.txt
 
         # List the top-level to really confirm that we were installed.
         Write-Information "Directories/files in ${{ inputs.telink_ide_path }}..." -InformationAction:Continue
