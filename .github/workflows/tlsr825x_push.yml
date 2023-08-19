@@ -45,8 +45,10 @@ jobs:
             # telink_ide_path: $TELINK_IDE_PATH
             # Seems to expand through string and $env to blank and leave .TELINK_IDE_PATH!
             # telink_ide_path: $env.TELINK_IDE_PATH
-            # Seems to expand through string and $env to blank and leave .TELINK_IDE_PATH!
-            telink_ide_path: '$TELINK_IDE_PATH'
+            # This gets there as empty!
+            # telink_ide_path: '$TELINK_IDE_PATH'
+            # Runner context?
+            telink_ide_path: ${{env.TELINK_IDE_PATH}}
 
         - id: install-zigbee-sdk
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
