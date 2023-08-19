@@ -10,10 +10,10 @@ description: 'Install the Eclipse based IDE required to build Telink tlsr825x pr
 inputs:
   telink_ide_path:
     description: 'Directory into which to install the IDE'
-    default: $GITHUB_WORKSPACE\_ide
+    default: ${GITHUB_WORKSPACE}\_ide
   dummy:
     description: 'Directory into which to install the IDE'
-    default: $GITHUB_WORKSPACE\_ide
+    default: ${GITHUB_WORKSPACE}\_ide
   # Actions canot have "action scoped env (variables)" so set them in an
   # initial step.
 
