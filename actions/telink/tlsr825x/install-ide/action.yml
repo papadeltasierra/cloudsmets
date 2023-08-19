@@ -116,4 +116,4 @@ runs:
 
         # List the top-level to really confirm that we were installed.
         Write-Information "Directories/files in ${{ inputs.telink_ide_path }}..." -InformationAction:Continue
-        Get-ChildItem =Path ${{ inputs.telink_ide_path }} -Recurse -Name
+        Get-ChildItem -Path ${{ inputs.telink_ide_path }} -Recurse -Name
