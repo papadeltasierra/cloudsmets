@@ -69,7 +69,7 @@ runs:
       shell: pwsh
       run: |
         $TELINK_ZIGBEE_SDK_LINUX=${env:TELINK_ZIGBEE_SDK} -replace '\\', '/'
-        $Project="${env:GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
+        $Project="${GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
         $Content=$(Get-Content -Path ${Project}) -replace '(<value>file:).*(</value>)', "$1${TELINK_ZIGBEE_SDK_LINUX}$2"
         Set-Content -Path ${Project} -Value ${Content}
 
