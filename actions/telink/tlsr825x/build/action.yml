@@ -11,6 +11,9 @@ inputs:
   telink_zigbee_sdk_path:
     description: Location of the Telink Zigbee SDK
     default: $GITHUB_WORKSPACE\_sdk
+  dummy:
+    description: Location of the Telink Zigbee SDK
+    default: $GITHUB_WORKSPACE\_sdk
   target:
     description: tlsr8258 target to build
     default: cloudsmets-8258
@@ -25,6 +28,8 @@ runs:
         PROJECT: "tlsr8258\\build\\tlsr_tc32"
         EXTENSIONS: "bin,elf,lst"
       run: |
+        Write-Information "Dummy: ${env::DUMMY}" -InformationAction Continue
+        Write-Information "IDE: ${{ inputs.telink_ide_path }}" -InformationAction Continue
         echo "PROJECT=$env:PROJECT" >> ${env:GITHUB_ENV}
         echo "EXTENSIONS=$env:EXTENSIONS" >> ${env:GITHUB_ENV}
 
