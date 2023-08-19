@@ -68,15 +68,15 @@ runs:
 
     - name: List IDE
       shell: pwsh
-      run: Get-ChildItem -Path "${{ inputs.telink_ide_path }}" -Recurse -Name
+      run: Get-ChildItem -Path "${env:_TEMP}" -Recurse -Name
 
     - name: Report the IDE version and spot multiple unexpected EXEs.
       shell: pwsh
       run: |
-        $exes=Get-ChildItem -Path ${{ inputs.telink_ide_path }}\telink*.exe | Select FullName
+        $exes=Get-ChildItem -Path ${env:_TEMP}\IDE\telink*.exe | Select FullName
         if ($exes.count > 1) {
           Write-Error "Multiple executables were found that could be IDE installers" -ErrorAction:Continue
-          Get-ChildItem -Path "${{ inputs.telink_ide_path }}\telink*.exe" | Select FullName
+          Get-ChildItem -Path "${env:_TEMP}\IDE\telink*.exe" | Select FullName
           exit 1
         }
         $version="unknown"
