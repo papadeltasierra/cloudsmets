@@ -22,9 +22,9 @@ runs:
         SDK_ZIP: Zigbee_SDK.zip
         SDK_HASH: "33206990B4443565D5D05CB2737235BA3A56D91567714387975212D57EB01583"
       run: |
-        echo "SDK_URI=$SDK_URI" >> $env:GITHUB_ENV
-        echo "SDK_ZIP=$SDK_ZIP" >> $env:GITHUB_ENV
-        echo "SDK_HASH=$SDK_HASH" >> $env:GITHUB_ENV
+        echo "SDK_URI=${env:SDK_URI}" >> $env:GITHUB_ENV
+        echo "SDK_ZIP=${env:SDK_ZIP}" >> $env:GITHUB_ENV
+        echo "SDK_HASH=${env:SDK_HASH}" >> $env:GITHUB_ENV
 
     - name: Create target directory
       shell: pwsh
