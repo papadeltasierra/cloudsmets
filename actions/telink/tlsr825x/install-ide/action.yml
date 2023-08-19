@@ -26,7 +26,7 @@ runs:
       run: |
         Write-Information "Try me 1: ${TRY_ME}" -InformationAction Continue
         Write-Information "Try me 2: ${env:TRY_ME}" -InformationAction Continue
-        Write-Information "Try me 3: ${var:TRY_ME}" -InformationAction Continue
+        Write-Information "Try me 3: ${vars:TRY_ME}" -InformationAction Continue
         echo "_TEMP=${env:GITHUB_WORKSPACE}\_temp" >> $env:GITHUB_ENV
         echo "IDE_URI=${env:IDE_URI}" >> ${env:GITHUB_ENV}
         echo "IDE_ZIP=${env:IDE_ZIP}" >> ${env:GITHUB_ENV}
