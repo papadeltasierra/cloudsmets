@@ -1,11 +1,12 @@
-# Action to install the Telink Eclipse based IDE.
-#
-# TODO:
-# - Hard-code more paths since we cannot guarentee anything if things move!
-name: 'Install Telink IDE'
-description: 'Install the Eclipse based IDE required to build Telink tlsr825x projects'
+# Script to install the Telink Eclipse based IDE.
+Param(
+  [Parameter(Require=true)]
+  string $telink_ide_path="${env:GITHUB_WORKSPACE}\_ide"
+)
 
-# env:  Not allowed here; see the first step below.
+# Make information messages appear.
+InformationPreference = 'Continue'
+
 
 inputs:
   telink_ide_path:
@@ -50,7 +51,7 @@ runs:
     - name: Check IDE hash/version
       shell: pwsh
       run: |
-        $Hash=Get-FileHash -Path "${env:_TEMP}\${env:IDE_ZIP}" -Algorithm sha256
+        $Hash=Get-FileHash -Path "${env:_TEMP}\${env:IDE_SIP}" -Algorithm sha256
         if ($Hash.hash.ToString() -ne $env:IDE_HASH)
         {
           Write-Warning "IDE hash has changed implying IDE update!"
