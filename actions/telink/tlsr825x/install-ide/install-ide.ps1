@@ -8,6 +8,9 @@ Param(
 $InformationPreference = 'Continue'
 $DebugPreference = 'Continue'
 
+Write-Information "IDE1: ${IDE_URL}"
+Write-Information "IDE2: ${env:IDE_URL}"
+
 Write-Information "Downloading the IDE to temp. directory..."
 Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:IDE_URI}" -OutFile "${env:TEMP}\${env:IDE_ZIP}"
 
