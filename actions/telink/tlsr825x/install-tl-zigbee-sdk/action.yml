@@ -37,7 +37,11 @@ runs:
     # Download and expand the SDK.
     - name: Download the Zigbee SDK
       shell: pwsh
-      run: Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:SDK_URI}" -OutFile "${env:_TEMP}\${env:SDK_ZIP}"
+      run: |
+        if (!(Test-Path "${env:_TEMP}" -PathType container)) {
+          New-Item -Path "${env:_TEMP}" -ItemType "directory"
+        }
+        Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:SDK_URI}" -OutFile "${env:_TEMP}\${env:SDK_ZIP}"
 
     # Validate that the Zigbee SDK has not changed.
     - name: Check SDK hash/version
