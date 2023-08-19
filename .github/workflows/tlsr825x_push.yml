@@ -14,8 +14,8 @@ on:
 
 env:
   # Locations where we will install the required software.
-  TELINK_ZIGBEE_SDK_PATH: ${{ env.GITHUB_WORKSPACE }}\_sdk
-  TELINK_IDE_PATH: ${{ env.GITHUB_WORKSPACE }}\_ide
+  TELINK_ZIGBEE_SDK_PATH: $GITHUB_WORKSPACE\_sdk
+  TELINK_IDE_PATH: $GITHUB_WORKSPACE\_ide
 
   SDK_URI: "http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip"
   SDK_ZIP: Zigbee_SDK.zip
