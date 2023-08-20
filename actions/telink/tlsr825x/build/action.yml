@@ -71,7 +71,7 @@ runs:
         Write-Information "TELINK_ZIGBEE_SDK_LINUX: ${TELINK_ZIGBEE_SDK_LINUX}" -InformationAction Continue
         $PROJECT_PATH="${env:GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
         Write-Information "PROJECT_PATH: ${PROJECT_PATH}" -InformationAction Continue
-        $Content=$(Get-Content -Path ${PROJECT_PATH} -raw) -replace '(<value>)\$%7BTELINK_ZIGBEE_SDK_WS%7D(</value>)', "file:/$1${TELINK_ZIGBEE_SDK_LINUX}$2"
+        $Content=$(Get-Content -Path ${PROJECT_PATH} -raw) -replace '<value>\$%7BTELINK_ZIGBEE_SDK_WS%7D</value>', "<value>file:/$1${TELINK_ZIGBEE_SDK_LINUX}$2</value>"
         Set-Content -Path ${PROJECT_PATH} -Value ${Content}
         Get-Content -Path ${PROJECT_PATH}
 
