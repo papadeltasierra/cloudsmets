@@ -137,6 +137,11 @@ runs:
         # }
         # elseif ($stderr -ne "")
 
+        # Eclipsec throws warnings via STDERR so we have to remove them, then
+        # remove whitespace and only THEN can we see if $stderr is null!
+
+
+
         # Note that a totally empty error file returns $null when queried using Get-Content.
         if ($stderr -ne $null)
         {
