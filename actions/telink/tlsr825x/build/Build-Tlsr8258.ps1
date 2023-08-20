@@ -4,6 +4,8 @@ Param(
     [Parameter(Required=true)]
     string $TelinkZigbeeSdkPathPath
     [Parameter(Required=true)]
+    string $Project
+    [Parameter(Required=true)]
     string $Target
 )
 
@@ -18,63 +20,49 @@ function Write-Error($message) {
 $DebugPreference = Continue
 $InformationPreference = Continue
 
+Write-Debug "TelinkIdePath: ${TelinkIdePath}"
+Write-Debug "TelinkZigBeeSdkPath: ${TelinkZigBeeSdkPath}"
+Write-Debug "Target: ${Target}"
+
 $Project = "tlsr8258\build\tlsr_tc32"
 $Extensions = @('bin', 'elf', 'lst')
 
-Write-Information "IDE: ${TelinkIdePath}"
-
-$image_base="${TelinkZigBeeSdkPath}\\${Project}\\${Target}\\${Target}"
-
-# Eclipsec is hard-coded.
-        $eclipsec=Get-ChildItem -Path "${{ inputs.telink_ide_path }}\eclipsec.exe" -Recurse | Select FullName
-        if ($eclipsec.count > 1)
-        {
-          Write-Error "Multiple instances of 'eclipsec' were found." -ErrorAction:Continue
-          Get-ChildItem -Path "${{ inputs.telink_ide_path }}\eclipsec.exe" -Recurse | Select FullName
-          exit 1
-        }
-        # Passing result to the next step.
-        Write-Information "'$($eclipsec[0].FullName)' was found." -InformationAction Continue
-        echo "eclipsec=$($eclipsec[0].FullName)" >> $env:GITHUB_ENV
-
 # We have to patch the '.project' file to ensure that the linked resources are
 # found and this requires a 'Linux format' directory name!
+Write-Information "Patching '.project' file..."
 $TelinkZigbeeSdkPathLinux="${TelinkZigbeeSdkPath}" -replace '\\', '/'
 Write-Debug "TelinkZigbeeSdkPathLinux: ${TelinkZigbeeSdkPathLinux"
 
-$ProjectPath="${env:GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
-Write-Debug "ProjecTPath: ${ProjectPath}"
+$DotProjectPath="${env:GITHUB_WORKSPACE}\${Project}\.project"
+Write-Debug "ProjectPath: ${ProjectPath}"
 
 # Patch the file...
-$Content=$(Get-Content -Path ${ProjectPath} -raw) -replace `
+$Content=$(Get-Content -Path ${DotProjectPath} -raw) -replace `
     '<value>\$%7BTELINK_ZIGBEE_SDK_WS%7D</value>', `
     "<value>file:/${TelinkZigbeeSdkPathLinux}</value>"
 
 # Write the patched info back.
-Set-Content -Path ${PROJECT_PATH} -Value ${Content}
+Set-Content -Path ${DotProjectPath} -Value ${Content}
 
 if $DebugPreference -eq Continue
 {
-    Get-Content -Path ${PROJECT_PATH}
+    Get-Content -Path ${DotProjectPath}
 }
 
-    - name: Build TLSR8258 ZigBee image
-      shell: pwsh
-      run: |
-Write-Information "Running build process '$env:eclipsec'..." -InformationAction Continue
-# Testing time-out after 5 minutes.
+Write-Information "Running build process '${TelinkIdePath}\eclipsec.exe'..."
+# Time out the build after 5 minutes in case something hangs.
 $proc=Start-Process `
-    -FilePath $env:eclipsec `
+    -FilePath "${TelinkIdePath}\eclipsec.exe" `
     -ArgumentList `
-    "-vm", """${{ inputs.telink_ide_path }}\jre\bin\client""", `
+    "-vm", """${TelinkIdePath}\jre\bin\client""", `
     "-noSplash", `
     "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
-    "-import", """${env:GITHUB_WORKSPACE}\${env:PROJECT}""", `
-    "-cleanBuild", """tlsr_tc32/${{ inputs.target }}""", `
+    "-import", """${env:GITHUB_WORKSPACE}\${Project}""", `
+    "-cleanBuild", """tlsr_tc32/${Target}""", `
     "--launcher.suppressErrors" `
     -NoNewWindow `
-    -RedirectStandardOutput $env:TEMP\stdout.txt `
-    -RedirectStandardError $env:TEMP\stderr.txt `
+    -RedirectStandardOutput "${env:TEMP}\stdout.txt" `
+    -RedirectStandardError "${env:TEMP}\stderr.txt" `
     -PassThru
 
 # Time out of 5 minutes.
@@ -83,16 +71,19 @@ Wait-Process -InputObject $proc -Timeout 300 -ErrorAction SilentlyContinue -Erro
 
 if ($timedout)
 {
-    Write-Information "'eclipsec' timed-out before completing." -InformationAction Continue
+    Write-Error "'eclipsec' timed-out before completing."
     $proc.Kill()
 }
 
 # Display output, especially any errors!
-Write-Debug "STDOUT from the installer..."
-Get-Content -Path $env:TEMP\stdout.txt
+if ($DebugPreference -eq Continue)
+{
+    Write-Debug "STDOUT from the installer..."
+    Get-Content -Path "${env:TEMP}\stdout.txt"
 
-Write-Debug "STDERR from the installer..."
-Get-Content -Path $env:TEMP\stderr.txt
+    Write-Debug "STDERR from the installer..."
+    Get-Content -Path ${env:TEMP}\stderr.txt"
+}
 
 # Capture first line of errors to test later.
 Get-Content -Path "${env:TEMP}\stderr.txt" -First 1
@@ -116,8 +107,8 @@ Remove-Item -Path "${env:TEMP}\stderr.txt"
 # }
 # elseif ($stderr -ne "")
 
-# Eclipsec throws warnings via STDERR so we have to remove them, then
-# remove whitespace and only THEN can we see if $stderr is null!
+# eclipsec throws warnings via STDERR so we have to remove them, then
+# remove whitespace and only THEN can we see if $stderr is null or empty!
 if ($stderr -ne $null)
 {
     $stderr=$stderr -replace '(?m)^.*The option was ignored\.$', ''
@@ -130,6 +121,7 @@ if (($stderr -ne $null) -and ($stderr -ne ''))
 }
 
 # See if we have all the expected files.
+Write-Information "Check expected firmware files are present..."
 $ImageRoot = "${TelinkZigbeeSdkPath}\${Project}\${Target}"
 Write-Debug "ImageRoot: $ImageRoot"
 
@@ -150,10 +142,4 @@ if ($missing)
 }
 
 # Get here and we have succeeded.
-Write-Information "eclipsec build succeeded."
-
-    - uses: actions/upload-artifact@v3
-      with:
-        name: tlsr825x-firmware
-        path: ${{ env._image_files }}
-        retention-days: 1
+Write-Information "eclipsec build succeeded!"

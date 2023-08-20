@@ -24,9 +24,6 @@ runs:
         IDE_HASH: "D47595AAFAE1B711A04DC83BAB08467160EA2A3559EA976576C2F8A44F47BF1F"
         IDE_EXE: TelinkSDKv1.3.1.exe
       run: |
-        Write-Information "Try me 1: ${TRY_ME}" -InformationAction Continue
-        Write-Information "Try me 2: ${env:TRY_ME}" -InformationAction Continue
-        Write-Information "Try me 3: ${vars:TRY_ME}" -InformationAction Continue
         echo "_TEMP=${env:GITHUB_WORKSPACE}\_temp" >> $env:GITHUB_ENV
         echo "IDE_URI=${env:IDE_URI}" >> ${env:GITHUB_ENV}
         echo "IDE_ZIP=${env:IDE_ZIP}" >> ${env:GITHUB_ENV}

@@ -37,7 +37,6 @@ jobs:
           uses: ./actions/telink/tlsr825x/install-ide
           with:
             telink_ide_path: ${{ env.TELINK_IDE_PATH }}
-            TRY_ME: ${{ vars.TRY_ME }}
 
         - id: install-zigbee-sdk
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
@@ -49,4 +48,38 @@ jobs:
           with:
             telink_ide_path: ${{ env.TELINK_IDE_PATH }}
             telink_zigbee_sdk: ${{ env.TELINK_ZIGBEE_SDK }}
+            project: ${{ vars.TLSR8258_PROJECT }}
+            target: ${{ vars.TLSR8258_TARGET }}
+
+        - if: github.ref_type == 'tag'
+          id: prepare-for-blob-upload
+          name: Prepare firmware for upload to Azure blob storage
+          shell: bash
+          run: |
+            mkdir _azure.upload
+            TELINK_ZIGBEE_SDK_PATH=${{ env.GITHUB_WORKSPACE }}\${{ vars.TELINK_ZIGBEE_SDK_DIR }}
+            cp ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.bin _azure.upload
+            cp ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.elf _azure.upload
+            cp ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.lst _azure.upload
+
+        - if: github.ref_type == 'tag'
+          name: Upload firmware to Azure blob storage
+          uses: fixpoint/azblob-upload-artifact@v4
+          with:
+            connection-string: '${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}'
+            container: 'cloudsmets'
+            name: '${{ github.ref_name }}'
+            path: '_azure.upload'
+
+        - uses: actions/upload-artifact@v3
+          name: Upload firmware to GitHub artifacts storage
+          with:
+            name: tlsr8258-firmware
+            path: |
+              ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.bin
+              ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.elf
+              ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.lst
+            retention-days: 1
+            if-no-files-found: error
+
 

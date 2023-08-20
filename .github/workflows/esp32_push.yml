@@ -59,7 +59,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         name: Upload firmware to GitHub artifacts storage
         with:
-          name: espressif-firmware
+          name: esp32-firmware
           path: |
             esp32/cloudsmets/build/cloudsmets.bin
             esp32/cloudsmets/build/cloudsmets.elf

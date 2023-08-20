@@ -8,7 +8,7 @@ description: 'Install the Zigbee SDK required to build Telink tlsr825x projects'
 # env: Not valid here - see first 'step' below.
 
 inputs:
-  telink_zigbee_sdk_path_path:
+  telink_zigbee_sdk_path:
     description: 'Directory into which to install the Zigbee SDK'
     default: '$GITHUB_WORKSPACE\_sdk'
 
