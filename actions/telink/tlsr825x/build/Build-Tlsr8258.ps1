@@ -2,28 +2,28 @@ Param(
     [Parameter(Required = true)]
     string $TelinkIdePath
     [Parameter(Required=true)]
-    string $TelinkZigBeeSDK
+    string $TelinkZigbeeSdkPathPath
     [Parameter(Required=true)]
     string $Target
 )
+
+# Override the built-in cmdlet with a custom version that is not noisy!
+function Write-Error($message) {
+    [Console]::ForegroundColor = 'red'
+    [Console]::Error.WriteLine($message)
+    [Console]::ResetColor()
+}
 
 # Set debugging, or not.
 $DebugPreference = Continue
 $InformationPreference = Continue
 
-runs:
-  using: "composite"
-  steps:
-    - name: Set environment variables
-      shell: pwsh
-      env:
-        # !!PDS: This may be badly named!
 $Project = "tlsr8258\build\tlsr_tc32"
 $Extensions = @('bin', 'elf', 'lst')
 
-Write-Information "IDE: ${{ inputs.telink_ide_path }}" -InformationAction Continue
+Write-Information "IDE: ${TelinkIdePath}"
 
-$image_base="${TelinkZigBeeSdk}\${Project}\${Target\\${Target}"
+$image_base="${TelinkZigBeeSdkPath}\\${Project}\\${Target}\\${Target}"
 
 # Eclipsec is hard-coded.
         $eclipsec=Get-ChildItem -Path "${{ inputs.telink_ide_path }}\eclipsec.exe" -Recurse | Select FullName
@@ -39,8 +39,8 @@ $image_base="${TelinkZigBeeSdk}\${Project}\${Target\\${Target}"
 
 # We have to patch the '.project' file to ensure that the linked resources are
 # found and this requires a 'Linux format' directory name!
-$TelinkZigBeeSdkLinux="${TelinkZigBeeSdk}" -replace '\\', '/'
-Write-Debug "TelinkZigBeeSdkLinux: ${TelinkZigBeeSdkLinux"
+$TelinkZigbeeSdkPathLinux="${TelinkZigbeeSdkPath}" -replace '\\', '/'
+Write-Debug "TelinkZigbeeSdkPathLinux: ${TelinkZigbeeSdkPathLinux"
 
 $ProjectPath="${env:GITHUB_WORKSPACE}\tlsr8258\build\tlsr_tc32\.project"
 Write-Debug "ProjecTPath: ${ProjectPath}"
@@ -48,7 +48,7 @@ Write-Debug "ProjecTPath: ${ProjectPath}"
 # Patch the file...
 $Content=$(Get-Content -Path ${ProjectPath} -raw) -replace `
     '<value>\$%7BTELINK_ZIGBEE_SDK_WS%7D</value>', `
-    "<value>file:/${TelinkZigBeeSdkLinux}</value>"
+    "<value>file:/${TelinkZigbeeSdkPathLinux}</value>"
 
 # Write the patched info back.
 Set-Content -Path ${PROJECT_PATH} -Value ${Content}
@@ -111,7 +111,7 @@ Remove-Item -Path "${env:TEMP}\stderr.txt"
 # Appears that the compiler exits with status 1 for success!
 # if ($env:eclipsec_rc -ne 0)
 # {
-#   Write-Error "eclipsec exited with $proc.ExitCode." -ErrorAction:Continue
+#   Write-Error "eclipsec exited with $proc.ExitCode."
 #   exit 1
 # }
 # elseif ($stderr -ne "")
@@ -130,27 +130,27 @@ if (($stderr -ne $null) -and ($stderr -ne ''))
 }
 
 # See if we have all the expected files.
-$image_root = "${{ inputs.zigbee_sdk }}\${env:PROJECT}\${{ inputs.target }}"
-$extensions = "${env:EXTENSIONS}".split(",")
-$missing = $False
+$ImageRoot = "${TelinkZigbeeSdkPath}\${Project}\${Target}"
+Write-Debug "ImageRoot: $ImageRoot"
 
+$missing = $False
 foreach ($ext in $extensions)
 {
-    if (! $(Test-Path -Path ${image_root}\${{ inputs.target }}.$ext))
+    if (! $(Test-Path -Path ${image_root}\${Target}.$ext))
     {
-    Write-Error "Expected output file '${image_root}\${{ inputs.target }}.$ext' not found." -ErrorAction:Continue
-    $missing=$True
+        Write-Error "Expected output file '${ImageRoot}\${Target}.$ext' not found."
+        $missing = $true
     }
 }
 
 if ($missing)
 {
-    Write-Error "Build has failed." -ErrorAction:Continue
+    Write-Error "Build has failed."
     exit 1
 }
 
-        # Get here and we have succeeded.
-        Write-Information "eclipsec build succeeded." -InformationAction:Continue
+# Get here and we have succeeded.
+Write-Information "eclipsec build succeeded."
 
     - uses: actions/upload-artifact@v3
       with:

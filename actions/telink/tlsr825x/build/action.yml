@@ -139,11 +139,13 @@ runs:
 
         # Eclipsec throws warnings via STDERR so we have to remove them, then
         # remove whitespace and only THEN can we see if $stderr is null!
-
-
-
-        # Note that a totally empty error file returns $null when queried using Get-Content.
         if ($stderr -ne $null)
+        {
+          $stderr=$stderr -replace '(?m)^.*The option was ignored\.$', ''
+          $stderr=$stderr -replace '\s', ''
+        }
+        # Note that a totally empty error file returns $null when queried using Get-Content.
+        if (($stderr -ne $null) -and ($stderr -ne ''))
         {
           Write-Error "eclipsec reported errors." -ErrorAction:Continue
           exit 1
