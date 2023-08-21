@@ -55,7 +55,7 @@ $proc=Start-Process `
     -FilePath "${TelinkIdePath}\eclipsec.exe" `
     -RedirectStandardOutput "${env:TEMP}\stdout.txt" `
     -RedirectStandardError "${env:TEMP}\stderr.txt" `
-    -PassThru" `
+    -PassThru `
     -ArgumentList `
         "-vm", "${TelinkIdePath}\jre\bin\client", `
         "-noSplash", `
