@@ -128,16 +128,15 @@ if (($null -eq $stderr) -and ($stderr -ne ''))
 
 # See if we have all the expected files.
 Write-Information "Check expected firmware files are present..."
-Get-ChildItem -Path . -Recurse -Name -Filter '*.elf'
 $ImageRoot = "${Project}\${Target}"
 Write-Debug "ImageRoot: $ImageRoot"
 
 $missing = $False
-foreach ($ext in $extensions)
+foreach ($Ext in $Extensions)
 {
-    if (! $(Test-Path -Path ${image_root}\${Target}.$ext))
+    if (! $(Test-Path -Path ${ImageRoot}\${Target}.${Ext}))
     {
-        Write-Error "Expected output file '${ImageRoot}\${Target}.$ext' not found."
+        Write-Error "Expected output file '${ImageRoot}\${Target}.${Ext}' not found."
         $missing = $true
     }
 }
