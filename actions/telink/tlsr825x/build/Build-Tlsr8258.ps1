@@ -59,7 +59,7 @@ Write-Information "Start-Process `
     ""-noSplash"", `
     ""-application"", ""org.eclipse.cdt.managedbuilder.core.headlessbuild"", `
     ""-import"", ""${env:GITHUB_WORKSPACE}\${Project}"", `
-    ""-cleanBuild", ""tlsr_tc32/${Target}"", `
+    ""-cleanBuild"", ""tlsr_tc32/${Target}"", `
     ""--launcher.suppressErrors"" `
     -NoNewWindow `
     -PassThru"
