@@ -25,7 +25,7 @@ runs:
           -TelinkIdePath ""${{ inputs.telink_ide}}"" `
           -TelinkZigbeeSdkPath ""${{ inputs.telink_zigbee_sdk }}"" `
           -Project ""${{ inputs.project }}"" `
-          -Target ""${{ inputs.target }}"""
+          -Target ""${{ inputs.target }}""".Replace("`r", '').Replace("`n", '')
         Invoke-Expression -Command "${ShellScript}"
 
 #     - name: Set environment variables
