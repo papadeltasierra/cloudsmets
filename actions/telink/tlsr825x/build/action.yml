@@ -18,6 +18,7 @@ inputs:
     description: tlsr825x board to target
     default: unused
 
+
 runs:
   using: "composite"
   steps:
