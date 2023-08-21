@@ -57,10 +57,9 @@ jobs:
           shell: bash
           run: |
             mkdir _azure.upload
-            TELINK_ZIGBEE_SDK_PATH=${{ env.GITHUB_WORKSPACE }}\${{ vars.TELINK_ZIGBEE_SDK_DIR }}
-            cp ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.bin _azure.upload
-            cp ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.elf _azure.upload
-            cp ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.lst _azure.upload
+            cp ${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}\${{ vars.TLSR8258_TARGET }}.bin _azure.upload
+            cp ${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}\${{ vars.TLSR8258_TARGET }}.elf _azure.upload
+            cp ${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}\${{ vars.TLSR8258_TARGET }}.lst _azure.upload
 
         - if: github.ref_type == 'tag'
           name: Upload firmware to Azure blob storage
@@ -76,9 +75,9 @@ jobs:
           with:
             name: tlsr8258-firmware
             path: |
-              ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.bin
-              ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.elf
-              ${TELINK_ZIGBEE_SDK_PATH}\${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}.lst
+              ${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}\${{ vars.TLSR8258_TARGET }}.bin
+              ${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}\${{ vars.TLSR8258_TARGET }}.elf
+              ${{ vars.TLSR8258_PROJECT }}\${{ vars.TLSR8258_TARGET }}\${{ vars.TLSR8258_TARGET }}.lst
             retention-days: 1
             if-no-files-found: error
 
