@@ -62,7 +62,7 @@ $proc=Start-Process `
         "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
         "-import", "${env:GITHUB_WORKSPACE}\${Project}", `
         "-cleanBuild", "tlsr_tc32/${Target}", `
-        "--launcher.suppressErrors" `
+        "--launcher.suppressErrors", `
         "-NoNewWindow"
 
 if ($LASTEXITCODE -ne 0)
