@@ -56,14 +56,14 @@ $proc=Start-Process `
     -RedirectStandardOutput "${env:TEMP}\stdout.txt" `
     -RedirectStandardError "${env:TEMP}\stderr.txt" `
     -PassThru `
+    -NoNewWindow `
     -ArgumentList `
         "-vm", "${TelinkIdePath}\jre\bin\client", `
         "-noSplash", `
         "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
         "-import", "${env:GITHUB_WORKSPACE}\${Project}", `
         "-cleanBuild", "tlsr_tc32/${Target}", `
-        "--launcher.suppressErrors", `
-        "-NoNewWindow"
+        "--launcher.suppressErrors"
 
 #if ($LASTEXITCODE -ne 0)
 #{
