@@ -19,7 +19,6 @@ runs:
   steps:
     - name: Set environment variables
       shell: pwsh
-      env:
       run: |
         ${GITHUB_ACTION_PATH}\Build-Tlsr8258 `
           -TelinkIdePath ${{ inputs.telink_ide}} `
