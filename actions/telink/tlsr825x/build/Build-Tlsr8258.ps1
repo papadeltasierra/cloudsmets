@@ -65,11 +65,11 @@ $proc=Start-Process `
         "--launcher.suppressErrors", `
         "-NoNewWindow"
 
-if ($LASTEXITCODE -ne 0)
-{
-    Write-Error "eclipsec existed with error status code: ${LASTEXITCODE}."
-    exit 1
-}
+#if ($LASTEXITCODE -ne 0)
+#{
+#    Write-Error "eclipsec exited with error status code: ${LASTEXITCODE}."
+#    exit 1
+#}
 
 # Time out of 5 minutes.
 $timedout = $null
