@@ -128,7 +128,8 @@ if (($null -eq $stderr) -and ($stderr -ne ''))
 
 # See if we have all the expected files.
 Write-Information "Check expected firmware files are present..."
-$ImageRoot = "${TelinkZigbeeSdkPath}\${Project}\${Target}"
+Get-ChildItem
+$ImageRoot = "${env:GITHUB_WORKSPACE}\${Project}\${Target}"
 Write-Debug "ImageRoot: $ImageRoot"
 
 $missing = $False
