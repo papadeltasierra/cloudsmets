@@ -21,7 +21,7 @@ runs:
     - name: Set environment variables
       shell: pwsh
       run: |
-        ${GITHUB_ACTION_PATH}\Build-Tlsr8258 `
+        ${env:GITHUB_ACTION_PATH}\Build-Tlsr8258 `
           -TelinkIdePath ${{ inputs.telink_ide}} `
           -TelinkZigbeeSdkPath ${{ inputs.telink_zigbee_sdk }} `
           -Project ${{ inputs.project }} `
