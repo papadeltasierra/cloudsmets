@@ -51,7 +51,8 @@ if ($DebugPreference -eq 'Continue')
 
 Write-Information "Running build process '${TelinkIdePath}\eclipsec.exe'..."
 # Time out the build after 5 minutes in case something hangs.
-$proc=Start-Process `
+# $proc=Start-Process `
+Start-Process `
     -FilePath "${TelinkIdePath}\eclipsec.exe" `
     -ArgumentList `
     "-vm", """${TelinkIdePath}\jre\bin\client""", `
