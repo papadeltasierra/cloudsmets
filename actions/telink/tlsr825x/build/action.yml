@@ -26,7 +26,7 @@ runs:
           -TelinkZigbeeSdkPath ""${{ inputs.telink_zigbee_sdk }}"" `
           -Project ""${{ inputs.project }}"" `
           -Target ""${{ inputs.target }}"""
-        Invoke-Expression -Command "${ShellScript}
+        Invoke-Expression -Command "${ShellScript}"
 
 #     - name: Set environment variables
 #       shell: pwsh
