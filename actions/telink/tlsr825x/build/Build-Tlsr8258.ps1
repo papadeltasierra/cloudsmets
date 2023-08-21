@@ -1,12 +1,12 @@
 Param(
-    [Parameter(Required = true)]
-    string $TelinkIdePath
-    [Parameter(Required=true)]
-    string $TelinkZigbeeSdkPathPath
-    [Parameter(Required=true)]
-    string $Project
-    [Parameter(Required=true)]
-    string $Target
+    [Parameter(Mandatory = $true)]
+    [string] $TelinkIdePath,
+    [Parameter(Mandatory = $true)]
+    [string] $TelinkZigbeeSdkPathPath,
+    [Parameter(Mandatory = $true)]
+    [string] $Project,
+    [Parameter(Mandatory = $true)]
+    [string] $Target
 )
 
 # Override the built-in cmdlet with a custom version that is not noisy!
@@ -24,14 +24,14 @@ Write-Debug "TelinkIdePath: ${TelinkIdePath}"
 Write-Debug "TelinkZigBeeSdkPath: ${TelinkZigBeeSdkPath}"
 Write-Debug "Target: ${Target}"
 
-$Project = "tlsr8258\build\tlsr_tc32"
+$Project = 'tlsr8258\build\tlsr_tc32'
 $Extensions = @('bin', 'elf', 'lst')
 
 # We have to patch the '.project' file to ensure that the linked resources are
 # found and this requires a 'Linux format' directory name!
 Write-Information "Patching '.project' file..."
-$TelinkZigbeeSdkPathLinux="${TelinkZigbeeSdkPath}" -replace '\\', '/'
-Write-Debug "TelinkZigbeeSdkPathLinux: ${TelinkZigbeeSdkPathLinux"
+$TelinkZigbeeSdkPathLinux=${TelinkZigbeeSdkPath} -replace '\\', '/'
+Write-Debug "TelinkZigbeeSdkPathLinux: ${TelinkZigbeeSdkPathLinux}"
 
 $DotProjectPath="${env:GITHUB_WORKSPACE}\${Project}\.project"
 Write-Debug "ProjectPath: ${ProjectPath}"
@@ -44,7 +44,7 @@ $Content=$(Get-Content -Path ${DotProjectPath} -raw) -replace `
 # Write the patched info back.
 Set-Content -Path ${DotProjectPath} -Value ${Content}
 
-if $DebugPreference -eq Continue
+if ($DebugPreference -eq 'Continue')
 {
     Get-Content -Path ${DotProjectPath}
 }
@@ -76,13 +76,13 @@ if ($timedout)
 }
 
 # Display output, especially any errors!
-if ($DebugPreference -eq Continue)
+if ($DebugPreference -eq 'Continue')
 {
     Write-Debug "STDOUT from the installer..."
     Get-Content -Path "${env:TEMP}\stdout.txt"
 
     Write-Debug "STDERR from the installer..."
-    Get-Content -Path ${env:TEMP}\stderr.txt"
+    Get-Content -Path "${env:TEMP}\stderr.txt"
 }
 
 # Capture first line of errors to test later.
@@ -109,12 +109,12 @@ Remove-Item -Path "${env:TEMP}\stderr.txt"
 
 # eclipsec throws warnings via STDERR so we have to remove them, then
 # remove whitespace and only THEN can we see if $stderr is null or empty!
-if ($stderr -ne $null)
+if ($null -eq $stderr)
 {
     $stderr=$stderr -replace '(?m)^.*The option was ignored\.$', ''
     $stderr=$stderr -replace '\s', ''
 }
-if (($stderr -ne $null) -and ($stderr -ne ''))
+if (($null -eq $stderr) -and ($stderr -ne ''))
 {
     Write-Error "eclipsec reported errors."
     exit 1
