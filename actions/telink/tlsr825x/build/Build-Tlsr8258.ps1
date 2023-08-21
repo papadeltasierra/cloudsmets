@@ -55,11 +55,11 @@ Write-Information "Running build process '${TelinkIdePath}\eclipsec.exe'..."
 Start-Process `
     -FilePath "${TelinkIdePath}\eclipsec.exe" `
     -ArgumentList `
-    "-vm", """${TelinkIdePath}\jre\bin\client""", `
+    "-vm", "${TelinkIdePath}\jre\bin\client", `
     "-noSplash", `
     "-application", "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
-    "-import", """${env:GITHUB_WORKSPACE}\${Project}""", `
-    "-cleanBuild", """tlsr_tc32/${Target}""", `
+    "-import", "${env:GITHUB_WORKSPACE}\${Project}", `
+    "-cleanBuild", "tlsr_tc32/${Target}", `
     "--launcher.suppressErrors" `
     -NoNewWindow `
     -PassThru
