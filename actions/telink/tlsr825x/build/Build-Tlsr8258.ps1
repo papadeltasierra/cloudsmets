@@ -51,20 +51,25 @@ if ($DebugPreference -eq 'Continue')
 
 Write-Information "Running build process '${TelinkIdePath}\eclipsec.exe'..."
 # Time out the build after 5 minutes in case something hangs.
-# $proc=Start-Process `
-Write-Information "Start-Process `
-    -FilePath ""${TelinkIdePath}\eclipsec.exe"" `
+$proc=Start-Process `
+    -FilePath "${TelinkIdePath}\eclipsec.exe" `
     -ArgumentList `
-    ""-vm"", ""${TelinkIdePath}\jre\bin\client"", `
-    ""-noSplash"", `
-    ""-application"", ""org.eclipse.cdt.managedbuilder.core.headlessbuild"", `
-    ""-import"", ""${env:GITHUB_WORKSPACE}\${Project}"", `
-    ""-cleanBuild"", ""tlsr_tc32/${Target}"", `
-    ""--launcher.suppressErrors"" `
+    -vm, "${TelinkIdePath}\jre\bin\client", `
+    -noSplash, `
+    -application, "org.eclipse.cdt.managedbuilder.core.headlessbuild", `
+    -import, "${env:GITHUB_WORKSPACE}\${Project}", `
+    -cleanBuild, "tlsr_tc32/${Target}", `
+    --launcher.suppressErrors `
     -NoNewWindow `
+    -RedirectStandardOutput "${env:TEMP}\stdout.txt" `
+    -RedirectStandardError "${env:TEMP}\stderr.txt" `
     -PassThru"
-#    -RedirectStandardOutput "${env:TEMP}\stdout.txt" `
-#    -RedirectStandardError "${env:TEMP}\stderr.txt" `
+
+if ($LASTEXITCODE -ne 0)
+{
+    Write-Error "eclipsec existed with error status code: ${LASTEXITCODE}."
+    exit 1
+}
 
 # Time out of 5 minutes.
 $timedout = $null
