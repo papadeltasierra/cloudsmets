@@ -61,9 +61,9 @@ $proc=Start-Process `
     "-cleanBuild", """tlsr_tc32/${Target}""", `
     "--launcher.suppressErrors" `
     -NoNewWindow `
-    -RedirectStandardOutput "${env:TEMP}\stdout.txt" `
-    -RedirectStandardError "${env:TEMP}\stderr.txt" `
     -PassThru
+#    -RedirectStandardOutput "${env:TEMP}\stdout.txt" `
+#    -RedirectStandardError "${env:TEMP}\stderr.txt" `
 
 # Time out of 5 minutes.
 $timedout = $null
