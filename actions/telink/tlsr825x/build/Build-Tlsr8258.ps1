@@ -2,7 +2,7 @@ Param(
     [Parameter(Mandatory = $true)]
     [string] $TelinkIdePath,
     [Parameter(Mandatory = $true)]
-    [string] $TelinkZigbeeSdkPathPath,
+    [string] $TelinkZigbeeSdkPath,
     [Parameter(Mandatory = $true)]
     [string] $Project,
     [Parameter(Mandatory = $true)]
