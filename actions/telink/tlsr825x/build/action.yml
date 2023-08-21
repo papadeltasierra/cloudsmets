@@ -21,7 +21,7 @@ runs:
     - name: Set environment variables
       shell: pwsh
       run: |
-        $ShellScript="""${env:GITHUB_ACTION_PATH}\Build-Tlsr8258.ps1"""
+        $ShellScript="${env:GITHUB_ACTION_PATH}\Build-Tlsr8258.ps1"
         $Arguments="`
           -TelinkIdePath ""${{ inputs.telink_ide}}"" `
           -TelinkZigbeeSdkPath ""${{ inputs.telink_zigbee_sdk }}"" `
