@@ -21,13 +21,15 @@ runs:
     - name: Set environment variables
       shell: pwsh
       run: |
-        $ShellScript="""${env:GITHUB_ACTION_PATH}\Build-Tlsr8258.ps1"" `
+        $ShellScript="""${env:GITHUB_ACTION_PATH}\Build-Tlsr8258.ps1"""
+        $Arguments="`
           -TelinkIdePath ""${{ inputs.telink_ide}}"" `
           -TelinkZigbeeSdkPath ""${{ inputs.telink_zigbee_sdk }}"" `
           -Project ""${{ inputs.project }}"" `
           -Target ""${{ inputs.target }}""".Replace("`r", '').Replace("`n", '')
-        Write-Information "Script: ${ShellScript}" -InformationAction 'Continue'
-        Invoke-Expression -Command "${ShellScript}"
+        & $ShellScript $Arguments
+        # Write-Information "Script: ${ShellScript}" -InformationAction 'Continue'
+        # Invoke-Expression -Command "${ShellScript}"
 
 #     - name: Set environment variables
 #       shell: pwsh
