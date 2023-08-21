@@ -17,8 +17,8 @@ function Write-Error($message) {
 }
 
 # Set debugging, or not.
-$DebugPreference = Continue
-$InformationPreference = Continue
+$DebugPreference = 'Continue'
+$InformationPreference = 'Continue'
 
 Write-Debug "TelinkIdePath: ${TelinkIdePath}"
 Write-Debug "TelinkZigBeeSdkPath: ${TelinkZigBeeSdkPath}"
