@@ -59,7 +59,7 @@ Write-Information "Unziping the SDK..."
 Expand-Archive -Path "${env:TEMP}\${TelinkZigBeeSdkZip}" -DestinationPath "${TelinkZigBeeSdkPath}"
 Remove-Item -Path "${env:TEMP}\${TelinkZigBeeSdkZip}"
 
-if ($DebugPreference == 'Continue')
+if ($DebugPreference -eq 'Continue')
 {
     Get-ChildItem -Path "${TelinkZigBeeSdkPath}" -Recurse -Name
 }
