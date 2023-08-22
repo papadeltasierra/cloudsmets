@@ -36,7 +36,7 @@ if ($Hash.hash.ToString() -ne "${TelinkIdeHash}")
 
 Write-Information "Unzipping the IDE..."
 Expand-Archive -Path "${env:TEMP}\${TelinkIdeZip}" -DestinationPath "${env:TEMP}"
-run: Remove-Item -Path "${env:TEMP}\${TelinkIdeZip}"
+Remove-Item -Path "${env:TEMP}\${TelinkIdeZip}"
 if ($DebugPreference == 'Continue')
 {
     Get-ChildItem -Path "${env:TEMP}" -Recurse -Name
