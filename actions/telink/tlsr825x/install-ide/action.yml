@@ -28,9 +28,9 @@ runs:
         $ShellScript="${env:GITHUB_ACTION_PATH}\install-TelinkIde.ps1"
         $Arguments=@{
           TelinkIdePath = "${{ inputs.telink_ide_path }}"
-          IdeUri = "${{ inputs.telink_ide_uri }}"
-          IdeZip = "${{ inputs.telink_ide_zip }}"
-          IdeHash = "${{ inputs.telink_ide_hash }}"
+          TelinkIdeUri = "${{ inputs.telink_ide_uri }}"
+          TelinkIdeZip = "${{ inputs.telink_ide_zip }}"
+          TelinkIdeHash = "${{ inputs.telink_ide_hash }}"
         }
         & $ShellScript @Arguments
 
