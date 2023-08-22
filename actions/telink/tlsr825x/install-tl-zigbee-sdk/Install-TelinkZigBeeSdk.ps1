@@ -7,11 +7,11 @@ Param(
     [Parameter(Mandatory = $true)]
     [string] $TelinkZigBeeSdkPath,
     [Parameter(Mandatory = $true)]
-    [string] $SdkUri,
+    [string] $TelinkZigBeeSdkUri,
     [Parameter(Mandatory = $true)]
-    [string] $SdkZip,
+    [string] $TelinkZigBeeSdkZip,
     [Parameter(Mandatory = $true)]
-    [string] $SdkHash
+    [string] $TelinkZigBeeSdkHash
 )
 
 # Override the built-in cmdlet with a custom version that is not noisy!
@@ -30,9 +30,9 @@ $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 
 Write-Debug "TelinkSigBeeSdkPath: ${TelinkSigBeeSdkPath}"
-Write-Debug "SdkUri: ${SdkUri}"
-Write-Debug "SdkZip: ${SdkZip}"
-Write-Debug "SdkHash: ${SdkHash}"
+Write-Debug "TelinkZigBeeSdkUri: ${TelinkZigBeeSdkUri}"
+Write-Debug "TelinkZigBeeSdkZip: ${TelinkZigBeeSdkZip}"
+Write-Debug "TelinkZigBeeSdkHash: ${TelinkZigBeeSdkHash}"
      
 Write-Information "Creating target directory '${TelinkZigBeeSdkPath}'..."    
 if (!(Test-Path "${TelinkZigBeeSdkPath}" -PathType container)) {
@@ -43,21 +43,21 @@ Write-Information "Downloading the Telink ZigBee SDK..."
 if (!(Test-Path "${env:TEMP}" -PathType container)) {
     New-Item -Path "${env:TEMP}" -ItemType "directory"
 }
-Invoke-RestMethod -Method GET -FollowRelLink -Uri "${SdkUri}" -OutFile "${env:TEMP}\${SdkZip}"
+Invoke-RestMethod -Method GET -FollowRelLink -Uri "${TelinkZigBeeSdkUri}" -OutFile "${env:TEMP}\${TelinkZigBeeSdkZip}"
 
 Write-Information "Validating the downloaded SDK..."
-$Hash=Get-FileHash -Path "${env:TEMP}\${SdkZip}" -Algorithm sha256
-if ($Hash.hash.ToString() -ne $SdkHash)
+$Hash=Get-FileHash -Path "${env:TEMP}\${TelinkZigBeeSdkZip}" -Algorithm sha256
+if ($Hash.hash.ToString() -ne "${TelinkZigBeeSdkHash}")
 {
     Write-Error "Zigbee SDK hash has changed implying Zigbee SDK update!"
-    Write-Error "Expected sha256: ${SdkHash}"
+    Write-Error "Expected sha256: ${TelinkZigBeeSdkHash}"
     Write-Error "Actual sha256:   $(Out-String -InputObject $Hash.hash)"
     exit 1
 }
 
 Write-Information "Unziping the SDK..."
-Expand-Archive -Path "${env:TEMP}\${SdkZip}" -DestinationPath "${TelinkZigBeeSdkPath}"
-Remove-Item -Path "${env:TEMP}\${SdkZip}"
+Expand-Archive -Path "${env:TEMP}\${TelinkZigBeeSdkZip}" -DestinationPath "${TelinkZigBeeSdkPath}"
+Remove-Item -Path "${env:TEMP}\${TelinkZigBeeSdkZip}"
 
 if ($DebugPreference == 'Continue')
 {
