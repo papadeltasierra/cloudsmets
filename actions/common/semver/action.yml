@@ -1,0 +1,13 @@
+name: 'Check for semver tag'
+description: 'Check if a Tag follows a limited Semver format.'
+inputs:
+  tag:
+    description: The tag to be tested.
+    required: true
+
+runs:
+  steps:
+    - name: Check the tag using a Powershell script.
+      shell: pwsh
+      run: |
+        Test-TagIsSemver -Tag ${tag}
