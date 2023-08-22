@@ -22,7 +22,7 @@ Write-Information "Downloading the IDE..."
 if (!(Test-Path "${env:TEMP}" -PathType container)) {
     New-Item -Path "${env:TEMP}" -ItemType "directory"
 }
-Invoke-RestMethod -Method GET -FollowRelLink -Uri "${TelinkIdeUri}" -OutFile "${env:_TEMP}\${TelinkIdeZip}"
+Invoke-RestMethod -Method GET -FollowRelLink -Uri "${TelinkIdeUri}" -OutFile "${env:TEMP}\${TelinkIdeZip}"
 
 Write-Information "Validating the downloaded IDE..."
 $Hash=Get-FileHash -Path "${env:TEMP}\${TelinkIdeZip}" -Algorithm sha256
