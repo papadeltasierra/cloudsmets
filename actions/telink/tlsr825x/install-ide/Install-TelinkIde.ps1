@@ -52,7 +52,7 @@ if ($Hash.hash.ToString() -ne "${TelinkIdeHash}")
 Write-Information "Unzipping the IDE..."
 Expand-Archive -Path "${env:TEMP}\${TelinkIdeZip}" -DestinationPath "${env:TEMP}"
 Remove-Item -Path "${env:TEMP}\${TelinkIdeZip}"
-if ($DebugPreference == 'Continue')
+if ($DebugPreference -eq 'Continue')
 {
     Get-ChildItem -Path "${env:TEMP}" -Recurse -Name
 }
@@ -84,7 +84,7 @@ Get-Content -Path "${env:TEMP}\stderr.txt"
 Remove-Item -Path "${env:TEMP}\stdout.txt"
 Remove-Item -Path "${env:TEMP}\stderr.txt"
 
-if ($DebugPreference == 'Continue')
+if ($DebugPreference -eq 'Continue')
 {
     Write-Debug "Directories/files in '${TelinkIdePath}'..."
     Get-ChildItem -Path "${TelinkIdePath}" -Recurse -Name
