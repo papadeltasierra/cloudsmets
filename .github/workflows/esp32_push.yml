@@ -3,6 +3,7 @@ on:
     paths:
       - '.github/workflows/esp32*'
       - 'actions/espressif/**'
+      - 'actions/common/**'
       - 'esp32/**'
     branches:
       - '**'
