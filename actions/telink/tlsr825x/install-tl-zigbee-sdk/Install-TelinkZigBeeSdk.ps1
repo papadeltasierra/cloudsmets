@@ -58,10 +58,8 @@ if ($Hash.hash.ToString() -ne "${TelinkZigBeeSdkHash}")
 Write-Information "Unzipping the SDK..."
 
 # !!PDS: Debug - does the file exist?
-Write-Information "Before unzip..."
-Get-ChildItem -Path "${env:TEMP}\${TelinkZigBeeSdkZip}"
-Write-Information "Destination..."
-Get-ChildItem -Path "${TelinkZigBeeSdkPath}"
+Write-Information "Path: ${env:TEMP}\${TelinkZigBeeSdkZip}..."
+Write-Information "DestinationPath: ${TelinkZigBeeSdkPath}..."
 Write-Information "Expand it..."
 Expand-Archive -Path ${env:TEMP}\${TelinkZigBeeSdkZip} -DestinationPath "${TelinkZigBeeSdkPath}"
 
