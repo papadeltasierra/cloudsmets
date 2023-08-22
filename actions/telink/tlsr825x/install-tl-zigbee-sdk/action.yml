@@ -78,7 +78,9 @@ runs:
 
     - name: Unzip the SDK
       shell: pwsh
-      run: Expand-Archive -Path "${env:_TEMP}\${env:SDK_ZIP}" -DestinationPath "${{ inputs.telink_zigbee_sdk_path }}"
+      run: |
+        Write-Information "Expand-Archive -Path ""${env:_TEMP}\${env:SDK_ZIP}"" -DestinationPath ""${{ inputs.telink_zigbee_sdk_path }}"""
+        Expand-Archive -Force -PassThru -Path "${env:_TEMP}\${env:SDK_ZIP}" -DestinationPath "${{ inputs.telink_zigbee_sdk_path }}"
 
     - name: Delete SDK Zipfile
       shell: pwsh
