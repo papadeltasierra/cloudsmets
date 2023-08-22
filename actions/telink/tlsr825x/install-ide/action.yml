@@ -12,7 +12,12 @@ description: 'Install the Eclipse based IDE required to build Telink tlsr825x pr
 inputs:
   telink_ide_path:
     description: 'Directory into which to install the IDE'
-    default: $GITHUB_WORKSPACE\_ide
+  telink_ide_uri:
+    description: 'URI from which to download the IDE'
+  telink_ide_zip:
+    description: 'Name of the ZIPfile containing the IDE'
+  telink_ide_hash:
+    description: 'SHA256 that can be used to validate the integrity of the downloaded IDE'
 
 runs:
   using: "composite"
@@ -23,9 +28,9 @@ runs:
         $ShellScript="${env:GITHUB_ACTION_PATH}\install-TelinkIde.ps1"
         $Arguments=@{
           TelinkIdePath = "${{ inputs.telink_ide}}"
-          IdeUri = "${{ vars.IDE_URI }}"
-          IdeZip = "${{ vars.IDE_ZIP }}"
-          IdeHash = "${{ vars.IDE_HASH }}"
+          IdeUri = "${{ inputs.telink_ide_uri }}"
+          IdeZip = "${{ inputs.telink_ide_zip }}"
+          IdeHash = "${{ inputs.telink_ide_hash }}"
         }
         & $ShellScript @Arguments
 
