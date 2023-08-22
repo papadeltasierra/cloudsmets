@@ -20,11 +20,11 @@ jobs:
         - name: set-env-vars
           shell: pwsh
           run: |
-            echo "TELINK_IDE_PATH=${env:GITHUB_WORKSPACE}\_ide" >> ${env:GITHUB_ENV}
+            echo "TELINK_IDE_PATH=${env:GITHUB_WORKSPACE}\${{ vars.IDE_DIR }}" >> ${env:GITHUB_ENV}
 
             # The _PATH is the place we install to.
-            echo "TELINK_ZIGBEE_SDK_PATH=${env:GITHUB_WORKSPACE}\_sdk" >> ${env:GITHUB_ENV}
-            echo "TELINK_ZIGBEE_SDK=${env:GITHUB_WORKSPACE}\_sdk\tl_zigbee_sdk" >> ${env:GITHUB_ENV}
+            echo "TELINK_ZIGBEE_SDK_PATH=${env:GITHUB_WORKSPACE}\${{ vars.SDK_DIR}} " >> ${env:GITHUB_ENV}
+            echo "TELINK_ZIGBEE_SDK=${env:GITHUB_WORKSPACE}\${{ vars.SDK_DIR }}\tl_zigbee_sdk" >> ${env:GITHUB_ENV}
 
         - uses: actions/checkout@v3
           with:
