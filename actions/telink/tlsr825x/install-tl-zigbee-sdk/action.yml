@@ -26,10 +26,10 @@ runs:
         $ShellScript="${env:GITHUB_ACTION_PATH}\install-TelinkZigBeeSdk.ps1"
         # TODO: Change the variable names and the script expectations.
         $Arguments=@{
-          TelinkZigbeeSdkPath = "${{ inputs.telink_sizbee_sdk_path }}"
-          SdkUri = "${{ inputs.telink_sizbee_sdk_uri }}"
-          SdkZip = "${{ inputs.telink_sizbee_sdk_zip }}"
-          SdkHash = "${{ inputs.telink_sizbee_sdk_hash }}"
+          TelinkZigbeeSdkPath = "${{ inputs.telink_zigbee_sdk_path }}"
+          TelinkZigbeeSdkUri = "${{ inputs.telink_zigbee_sdk_uri }}"
+          TelinkZigbeeSdkZip = "${{ inputs.telink_zigbee_sdk_zip }}"
+          TelinkZigbeeSdkHash = "${{ inputs.telink_zigbee_sdk_hash }}"
         }
         & $ShellScript @Arguments
 
