@@ -13,6 +13,21 @@ Param(
     [string] $TelinkIdeHash
 )
 
+# Override the built-in cmdlet with a custom version that is not noisy!
+function Write-Error($message) {
+    [Console]::ForegroundColor = 'red'
+    [Console]::Error.WriteLine($message)
+    [Console]::ResetColor()
+}
+
+# Abort the script if any command fails.
+$PSNativeCommandUseErrorActionPreference = $true
+$ErrorActionPreference = 'Stop'
+
+# Always display information messages.
+# Debug is enabled by setting the "common parameter" -Debug
+$InformationPreference = 'Continue'
+
 Write-Information "Creating target directory '${TelinkIdePath}..."
 if (!(Test-Path ${TelinkIdePath} -PathType container)) {
     New-Item -Path ${TelinkIdePath} -ItemType "directory"
@@ -49,17 +64,17 @@ $exes=Get-ChildItem -Path "${env:TEMP}\IDE\telink*.exe"
 # Run the installer, waiting for it to complte, redirecting output etc.
 $proc=Start-Process `
     -FilePath $exes[0].FullName `
-    -ArgumentList `
-    "/VERYSILENT", `
-    "/SUPPRESSMSGBOXES", `
-    "/DIR=""$TelinkIdePath""", `
-    "/NOICONS", `
-    "/LOG=""${logfile}""" `
     -NoNewWindow `
     -RedirectStandardOutput "${env:TEMP}\stdout.txt" `
     -RedirectStandardError "${env:TEMP}\stderr.txt" `
     -Wait `
-    -PassThru
+    -PassThru `
+    -ArgumentList `
+      "/VERYSILENT", `
+      "/SUPPRESSMSGBOXES", `
+      "/DIR=""${TelinkIdePath}""", `
+      "/NOICONS", `
+      "/LOG=""${env:TEMP}\Install-TelinkIde.log"""
 
 Write-Information "Installer exit code: $($proc.ExitCode.ToString())."
 Write-Information "STDOUT from the installer..."
