@@ -17,75 +17,19 @@ inputs:
   telink_zigbee_sdk_hash:
     description: 'SHA256 hash to validate the integrity of the downloaded SDK'
 
-# runs:
-#   using: "composite"
-#   steps:
-#     - name: Run the installer script
-#       shell: pwsh
-#       run: |
-#         $ShellScript="${env:GITHUB_ACTION_PATH}\install-TelinkZigBeeSdk.ps1"
-#         # TODO: Change the variable names and the script expectations.
-#         $Arguments=@{
-#           TelinkZigBeeSdkPath = "${{ inputs.telink_zigbee_sdk_path }}"
-#           TelinkZigBeeSdkUri = "${{ inputs.telink_zigbee_sdk_uri }}"
-#           TelinkZigBeeSdkZip = "${{ inputs.telink_zigbee_sdk_zip }}"
-#           TelinkZigBeeSdkHash = "${{ inputs.telink_zigbee_sdk_hash }}"
-#         }
-#         & $ShellScript @Arguments
-
 runs:
   using: "composite"
   steps:
-    - name: Set environment variables.
-      shell: pwsh
-      env:
-        SDK_URI: "http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip"
-        SDK_ZIP: Zigbee_SDK.zip
-        SDK_HASH: "33206990B4443565D5D05CB2737235BA3A56D91567714387975212D57EB01583"
-      run: |
-        echo "_TEMP=${env:GITHUB_WORKSPACE}\_temp" >> $env:GITHUB_ENV
-        echo "SDK_URI=${env:SDK_URI}" >> $env:GITHUB_ENV
-        echo "SDK_ZIP=${env:SDK_ZIP}" >> $env:GITHUB_ENV
-        echo "SDK_HASH=${env:SDK_HASH}" >> $env:GITHUB_ENV
-
-    - name: Create target directory
+    - name: Run the installer script
       shell: pwsh
       run: |
-        if (!(Test-Path "${{ inputs.telink_zigbee_sdk_path }}" -PathType container)) {
-          New-Item -Path "${{ inputs.telink_zigbee_sdk_path }}" -ItemType "directory"
+        $ShellScript="${env:GITHUB_ACTION_PATH}\install-TelinkZigBeeSdk.ps1"
+        # TODO: Change the variable names and the script expectations.
+        $Arguments=@{
+          TelinkZigBeeSdkPath = "${{ inputs.telink_zigbee_sdk_path }}"
+          TelinkZigBeeSdkUri = "${{ inputs.telink_zigbee_sdk_uri }}"
+          TelinkZigBeeSdkZip = "${{ inputs.telink_zigbee_sdk_zip }}"
+          TelinkZigBeeSdkHash = "${{ inputs.telink_zigbee_sdk_hash }}"
         }
-
-    # Download and expand the SDK.
-    - name: Download the Zigbee SDK
-      shell: pwsh
-      run: |
-        if (!(Test-Path "${env:_TEMP}" -PathType container)) {
-          New-Item -Path "${env:_TEMP}" -ItemType "directory"
-        }
-        Invoke-RestMethod -Method GET -FollowRelLink -Uri "${env:SDK_URI}" -OutFile "${env:_TEMP}\${env:SDK_ZIP}"
-
-    # Validate that the Zigbee SDK has not changed.
-    - name: Check SDK hash/version
-      shell: pwsh
-      run: |
-        $Hash=Get-FileHash -Path "${env:_TEMP}\${env:SDK_ZIP}" -Algorithm sha256
-        if ($Hash.hash.ToString() -ne $env:SDK_HASH)
-        {
-          Write-Warning "Zigbee SDK hash has changed implying Zigbee SDK update!"
-          Write-Warning "Expected sha256: ${env:SDK_HASH}"
-          Write-Warning "Actual sha256:   $(Out-String -InputObject $Hash.hash)"
-        }
-
-    - name: Unzip the SDK
-      shell: pwsh
-      run: |
-        Write-Information "Expand-Archive -Path ""${env:_TEMP}\${env:SDK_ZIP}"" -DestinationPath ""${{ inputs.telink_zigbee_sdk_path }}""" -InformationAction 'Continue'
-        Expand-Archive -Force -PassThru -Path "${env:_TEMP}\${env:SDK_ZIP}" -DestinationPath "${{ inputs.telink_zigbee_sdk_path }}"
-
-    - name: Delete SDK Zipfile
-      shell: pwsh
-      run: Remove-Item -Path "${env:_TEMP}\${env:SDK_ZIP}"
-
-    - name: List SDK
-      shell: pwsh
-      run: Get-ChildItem -Path "${{ inputs.telink_zigbee_sdk_path }}" -Recurse -Name
+        & $ShellScript @Arguments
+  
