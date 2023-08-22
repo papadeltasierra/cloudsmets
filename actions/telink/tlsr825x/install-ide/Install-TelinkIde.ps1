@@ -28,6 +28,11 @@ $ErrorActionPreference = 'Stop'
 # Debug is enabled by setting the "common parameter" -Debug
 $InformationPreference = 'Continue'
 
+Write-Debug "TelinkIdePath: ${TelinkIdePath}"
+Write-Debug "TelinkIdeUri: ${TelinkIdeUri}"
+Write-Debug "TelinkIdeZip: ${TelinkIdeZip}"
+Write-Debug "TelinkIdeHash: ${TelinkIdeHash}"
+
 Write-Information "Creating target directory '${TelinkIdePath}..."
 if (!(Test-Path ${TelinkIdePath} -PathType container)) {
     New-Item -Path ${TelinkIdePath} -ItemType "directory"
