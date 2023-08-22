@@ -63,7 +63,7 @@ Get-ChildItem -Path "${env:TEMP}\${TelinkZigBeeSdkZip}"
 Write-Information "Destination..."
 Get-ChildItem -Path "${TelinkZigBeeSdkPath}"
 Write-Information "Expand it..."
-Expand-Archive -Path "${env:TEMP}\${TelinkZigBeeSdkZip}" -DestinationPath "${TelinkZigBeeSdkPath}"
+Expand-Archive -Path ${env:TEMP}\${TelinkZigBeeSdkZip} -DestinationPath "${TelinkZigBeeSdkPath}"
 
 # !!PDS: Debug - does the file exist?
 Write-Information "After unzip..."
