@@ -45,9 +45,9 @@ jobs:
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
           with:
             telink_zigbee_sdk_path: ${{ env.TELINK_ZIGBEE_SDK_PATH }}
-            telink_zigbee_sdk_uri: ${{ vars.IDE_URI }}
-            telink_zigbee_sdk_zip: ${{ vars.IDE_ZIP }}
-            telink_zigbee_sdk_hash: ${{ vars.IDE_HASH }}
+            telink_zigbee_sdk_uri: ${{ vars.SDK_URI }}
+            telink_zigbee_sdk_zip: ${{ vars.SDK_ZIP }}
+            telink_zigbee_sdk_hash: ${{ vars.SDK_HASH }}
 
         - id: build-tlsr825x-image
           uses: ./actions/telink/tlsr825x/build
