@@ -28,7 +28,7 @@ jobs:
 
             # The _PATH is the place we install to, the _SDK is where we reference to.
             # echo "TELINK_ZIGBEE_SDK_PATH=${env:GITHUB_WORKSPACE}\${{ vars.TELINK_ZIGBEE_SDK_DIR}} " >> ${env:GITHUB_ENV}
-            echo "TELINK_ZIGBEE_SDK_PATH=${Qualifier}\${{ vars.TELINK_ZIGBEE_SDK_DIR}} " >> ${env:GITHUB_ENV}
+            echo "TELINK_ZIGBEE_SDK_PATH=${Qualifier}\${{ vars.TELINK_ZIGBEE_SDK_DIR}}" >> ${env:GITHUB_ENV}
             # echo "TELINK_ZIGBEE_SDK=${env:GITHUB_WORKSPACE}\${{ vars.TELINK_ZIGBEE_SDK_DIR }}\tl_zigbee_sdk" >> ${env:GITHUB_ENV}
             echo "TELINK_ZIGBEE_SDK=${Qualifier}\${{ vars.TELINK_ZIGBEE_SDK_DIR }}\tl_zigbee_sdk" >> ${env:GITHUB_ENV}
 
