@@ -20,11 +20,11 @@ jobs:
         - name: set-env-vars
           shell: pwsh
           run: |
-            echo "TELINK_IDE_PATH=${env:GITHUB_WORKSPACE}\${{ vars.IDE_DIR }}" >> ${env:GITHUB_ENV}
+            echo "TELINK_IDE_PATH=${env:GITHUB_WORKSPACE}\${{ vars.TELINK_IDE_DIR }}" >> ${env:GITHUB_ENV}
 
-            # The _PATH is the place we install to.
-            echo "TELINK_ZIGBEE_SDK_PATH=${env:GITHUB_WORKSPACE}\${{ vars.SDK_DIR}} " >> ${env:GITHUB_ENV}
-            echo "TELINK_ZIGBEE_SDK=${env:GITHUB_WORKSPACE}\${{ vars.SDK_DIR }}\tl_zigbee_sdk" >> ${env:GITHUB_ENV}
+            # The _PATH is the place we install to, the _SDK is where we reference to.
+            echo "TELINK_ZIGBEE_SDK_PATH=${env:GITHUB_WORKSPACE}\${{ vars.TELINK_ZIGBEE_SDK_DIR}} " >> ${env:GITHUB_ENV}
+            echo "TELINK_ZIGBEE_SDK=${env:GITHUB_WORKSPACE}\${{ vars.TELINK_ZIGBEE_SDK_DIR }}\tl_zigbee_sdk" >> ${env:GITHUB_ENV}
 
         - uses: actions/checkout@v3
           with:
@@ -37,17 +37,17 @@ jobs:
           uses: ./actions/telink/tlsr825x/install-ide
           with:
             telink_ide_path: ${{ env.TELINK_IDE_PATH }}
-            telink_ide_uri: ${{ vars.IDE_URI }}
-            telink_ide_zip: ${{ vars.IDE_ZIP }}
-            telink_ide_hash: ${{ vars.IDE_HASH }}
+            telink_ide_uri: ${{ vars.TELINK_IDE_URI }}
+            telink_ide_zip: ${{ vars.TELINK_IDE_ZIP }}
+            telink_ide_hash: ${{ vars.TELINK_IDE_HASH }}
 
         - id: install-zigbee-sdk
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
           with:
             telink_zigbee_sdk_path: ${{ env.TELINK_ZIGBEE_SDK_PATH }}
-            telink_zigbee_sdk_uri: ${{ vars.SDK_URI }}
-            telink_zigbee_sdk_zip: ${{ vars.SDK_ZIP }}
-            telink_zigbee_sdk_hash: ${{ vars.SDK_HASH }}
+            telink_zigbee_sdk_uri: ${{ vars.TELINK_ZIGBEE_SDK_URI }}
+            telink_zigbee_sdk_zip: ${{ vars.TELINK_ZIGBEE_SDK_ZIP }}
+            telink_zigbee_sdk_hash: ${{ vars.TELINK_ZIGBEE_SDK_HASH }}
 
         - id: build-tlsr825x-image
           uses: ./actions/telink/tlsr825x/build
