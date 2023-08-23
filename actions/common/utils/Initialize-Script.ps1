@@ -14,7 +14,4 @@ $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 
 # If appropriate, display the parameter for the script.
-foreach ($Parameter in $MyInvocation.MyCommand.Parameters.GetEnumerator())
-{
-  Write-Debug "${Parameter.key}: ${Parameter.value}"
-}
+$PSBoundParameters
