@@ -14,10 +14,8 @@ Param(
 )
 
 # Override the built-in cmdlet with a custom version that is not noisy!
-function Write-Error($message) {
-    [Console]::ForegroundColor = 'red'
-    [Console]::Error.WriteLine($message)
-    [Console]::ResetColor()
+function Write-Error($Message) {
+    Write-Host -Foreground red -Message ${Message}
 }
 
 # Abort the script if any command fails.
