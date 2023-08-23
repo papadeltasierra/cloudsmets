@@ -6,6 +6,7 @@ inputs:
     required: true
 
 runs:
+  using: composite
   steps:
     - name: Check the tag using a Powershell script.
       shell: pwsh
