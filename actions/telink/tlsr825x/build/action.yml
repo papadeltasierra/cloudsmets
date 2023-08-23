@@ -25,7 +25,7 @@ runs:
         $DebugFlag = $False
         if ( "${{ inputs.debug }}" -ieq "true" )
         {
-          $DebugFlag = $False
+          $DebugFlag = $True
         }
         $ShellScript="${env:GITHUB_ACTION_PATH}\Build-Tlsr8258.ps1"
         $Arguments=@{

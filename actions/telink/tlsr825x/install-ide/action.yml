@@ -30,7 +30,7 @@ runs:
         $DebugFlag = $False
         if ( "${{ inputs.debug }}" -ieq "true" )
         {
-          $DebugFlag = $False
+          $DebugFlag = $True
         }
         $ShellScript="${env:GITHUB_ACTION_PATH}\install-TelinkIde.ps1"
         $Arguments=@{
