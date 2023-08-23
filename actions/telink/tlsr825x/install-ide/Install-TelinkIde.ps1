@@ -16,6 +16,9 @@ Param(
 # Common initialization
 . "${PSScriptRoot}\..\..\..\common\utils\Initialize-Script.ps1"
 
+Write-Error "Did we really redefine this?"
+$PSBoundParameters
+
 Write-Information "Creating target directory '${TelinkIdePath}..."
 if (!(Test-Path ${TelinkIdePath} -PathType container)) {
     New-Item -Path ${TelinkIdePath} -ItemType "directory"
