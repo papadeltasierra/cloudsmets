@@ -15,6 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Testing Espressif Docker image generation.
     steps:
+      # Check tag has correct syntax.
+      - if: github.ref_type == 'tag'
+        uses: ./actions/common/semver
+        with:
+          tag: $GITHUB_TAG    
+          
       # To use this repository's private action,
       # you must check out the repository
       - name: Checkout required files
