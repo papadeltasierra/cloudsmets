@@ -15,7 +15,7 @@ Param(
 )
 
 # Common initialization
-. "${PSScriptRoot}\..\..\common\utils\Initialize-Script.ps1"
+. "${PSScriptRoot}\..\..\..\common\utils\Initialize-Script.ps1"
 
 Write-Information "Creating target directory '${TelinkZigBeeSdkPath}'..."
 if (!(Test-Path "${TelinkZigBeeSdkPath}" -PathType container)) {

@@ -14,7 +14,7 @@ Param(
 )
 
 # Common initialization
-. "${PSScriptRoot}\..\..\common\utils\Initialize-Script.ps1"
+. "${PSScriptRoot}\..\..\..\common\utils\Initialize-Script.ps1"
 
 Write-Information "Creating target directory '${TelinkIdePath}..."
 if (!(Test-Path ${TelinkIdePath} -PathType container)) {

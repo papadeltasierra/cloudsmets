@@ -10,7 +10,7 @@ Param(
 )
 
 # Common initialization
-. "${PSScriptRoot}\..\..\common\utils\Initialize-Script.ps1"
+. "${PSScriptRoot}\..\..\..\common\utils\Initialize-Script.ps1"
 
 $Project = 'tlsr8258\build\tlsr_tc32'
 $Extensions = @('bin', 'elf', 'lst')
