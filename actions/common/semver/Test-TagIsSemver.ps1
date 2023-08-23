@@ -3,11 +3,12 @@ Param(
   [string] $Tag
 )
 
-# Override the built-in cmdlet with a custom version to avoid stack etc.
-function Write-Error($message) {
-    [Console]::ForegroundColor = 'red'
-    [Console]::Error.WriteLine($message)
-    [Console]::ResetColor()
+# Common initialization.
+. "${PSScriptRoot}\..\utils\Initialize-Script.ps1"
+
+# Override the built-in cmdlet with a custom version that is not noisy!
+function Write-Error {
+    Write-Host -Foreground red @Args
 }
 
 $InformationPreference = 'Continue'

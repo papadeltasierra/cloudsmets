@@ -16,6 +16,8 @@ inputs:
     description: 'ZIPfile containing the Telink ZigBee SDK'
   telink_zigbee_sdk_hash:
     description: 'SHA256 hash to validate the integrity of the downloaded SDK'
+  debug:
+    description: 'Debug flag'
 
 runs:
   using: "composite"
@@ -30,6 +32,7 @@ runs:
           TelinkZigBeeSdkUri = "${{ inputs.telink_zigbee_sdk_uri }}"
           TelinkZigBeeSdkZip = "${{ inputs.telink_zigbee_sdk_zip }}"
           TelinkZigBeeSdkHash = "${{ inputs.telink_zigbee_sdk_hash }}"
+          Debug = "${{ inputs.debug }}"
         }
         & $ShellScript @Arguments
-  
+

@@ -29,7 +29,7 @@ jobs:
           uses: ./actions/common/semver
           with:
             tag: $GITHUB_TAG
-            
+
         - name: set-env-vars
           shell: pwsh
           run: |
@@ -51,6 +51,7 @@ jobs:
             telink_ide_uri: ${{ vars.TELINK_IDE_URI }}
             telink_ide_zip: ${{ vars.TELINK_IDE_ZIP }}
             telink_ide_hash: ${{ vars.TELINK_IDE_HASH }}
+            debug: ${{ vars.DEBUG }}
 
         - id: install-zigbee-sdk
           uses: ./actions/telink/tlsr825x/install-tl-zigbee-sdk
@@ -59,6 +60,7 @@ jobs:
             telink_zigbee_sdk_uri: ${{ vars.TELINK_ZIGBEE_SDK_URI }}
             telink_zigbee_sdk_zip: ${{ vars.TELINK_ZIGBEE_SDK_ZIP }}
             telink_zigbee_sdk_hash: ${{ vars.TELINK_ZIGBEE_SDK_HASH }}
+            debug: ${{ vars.DEBUG }}
 
         - id: build-tlsr825x-image
           uses: ./actions/telink/tlsr825x/build
@@ -67,6 +69,7 @@ jobs:
             telink_zigbee_sdk: ${{ env.TELINK_ZIGBEE_SDK }}
             project: ${{ vars.TLSR8258_PROJECT }}
             target: ${{ vars.TLSR8258_TARGET }}
+            debug: ${{ vars.DEBUG }}
 
         - if: github.ref_type == 'tag'
           id: prepare-for-blob-upload

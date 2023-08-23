@@ -9,20 +9,8 @@ Param(
     [string] $Target
 )
 
-# Override the built-in cmdlet with a custom version that is not noisy!
-function Write-Error($message) {
-    [Console]::ForegroundColor = 'red'
-    [Console]::Error.WriteLine($message)
-    [Console]::ResetColor()
-}
-
-# Set debugging, or not.
-$DebugPreference = 'Continue'
-$InformationPreference = 'Continue'
-
-Write-Debug "TelinkIdePath: ${TelinkIdePath}"
-Write-Debug "TelinkZigBeeSdkPath: ${TelinkZigBeeSdkPath}"
-Write-Debug "Target: ${Target}"
+# Common initialization
+. "${PSScriptRoot}\..\..\common\utils\Initialize-Script.ps1"
 
 $Project = 'tlsr8258\build\tlsr_tc32'
 $Extensions = @('bin', 'elf', 'lst')

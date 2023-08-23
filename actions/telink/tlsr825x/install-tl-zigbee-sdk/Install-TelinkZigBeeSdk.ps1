@@ -14,27 +14,10 @@ Param(
     [string] $TelinkZigBeeSdkHash
 )
 
-# Override the built-in cmdlet with a custom version that is not noisy!
-function Write-Error($message) {
-    [Console]::ForegroundColor = 'red'
-    [Console]::Error.WriteLine($message)
-    [Console]::ResetColor()
-}
+# Common initialization
+. "${PSScriptRoot}\..\..\common\utils\Initialize-Script.ps1"
 
-# Abort the script if any command fails.
-$PSNativeCommandUseErrorActionPreference = $true
-$ErrorActionPreference = 'Stop'
-
-# Always display information messages.
-# Debug is enabled by setting the "common parameter" -Debug
-$InformationPreference = 'Continue'
-
-Write-Debug "TelinkSigBeeSdkPath: ${TelinkSigBeeSdkPath}"
-Write-Debug "TelinkZigBeeSdkUri: ${TelinkZigBeeSdkUri}"
-Write-Debug "TelinkZigBeeSdkZip: ${TelinkZigBeeSdkZip}"
-Write-Debug "TelinkZigBeeSdkHash: ${TelinkZigBeeSdkHash}"
-     
-Write-Information "Creating target directory '${TelinkZigBeeSdkPath}'..."    
+Write-Information "Creating target directory '${TelinkZigBeeSdkPath}'..."
 if (!(Test-Path "${TelinkZigBeeSdkPath}" -PathType container)) {
     New-Item -Path "${TelinkZigBeeSdkPath}" -ItemType "directory"
 }

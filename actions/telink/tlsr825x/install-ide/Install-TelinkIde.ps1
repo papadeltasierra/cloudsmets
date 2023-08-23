@@ -13,23 +13,8 @@ Param(
     [string] $TelinkIdeHash
 )
 
-# Override the built-in cmdlet with a custom version that is not noisy!
-function Write-Error {
-    Write-Host -Foreground red @Args
-}
-
-# Abort the script if any command fails.
-$PSNativeCommandUseErrorActionPreference = $true
-$ErrorActionPreference = 'Stop'
-
-# Always display information messages.
-# Debug is enabled by setting the "common parameter" -Debug
-$InformationPreference = 'Continue'
-
-Write-Debug "TelinkIdePath: ${TelinkIdePath}"
-Write-Debug "TelinkIdeUri: ${TelinkIdeUri}"
-Write-Debug "TelinkIdeZip: ${TelinkIdeZip}"
-Write-Debug "TelinkIdeHash: ${TelinkIdeHash}"
+# Common initialization
+. "${PSScriptRoot}\..\..\common\utils\Initialize-Script.ps1"
 
 Write-Information "Creating target directory '${TelinkIdePath}..."
 if (!(Test-Path ${TelinkIdePath} -PathType container)) {
