@@ -25,6 +25,11 @@ runs:
     - name: Run the installer script
       shell: pwsh
       run: |
+        $DebugFlag = $False
+        if ( "${{ inputs.debug }}" -ieq== "true" )
+        {
+          $DebugFlag = $False
+        }
         $ShellScript="${env:GITHUB_ACTION_PATH}\install-TelinkZigBeeSdk.ps1"
         # TODO: Change the variable names and the script expectations.
         $Arguments=@{
@@ -32,7 +37,7 @@ runs:
           TelinkZigBeeSdkUri = "${{ inputs.telink_zigbee_sdk_uri }}"
           TelinkZigBeeSdkZip = "${{ inputs.telink_zigbee_sdk_zip }}"
           TelinkZigBeeSdkHash = "${{ inputs.telink_zigbee_sdk_hash }}"
-          Debug = "${{ inputs.debug }}"
+          Debug = $DebugFlag
         }
         & $ShellScript @Arguments
 

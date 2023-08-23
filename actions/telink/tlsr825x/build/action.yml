@@ -22,12 +22,17 @@ runs:
     - name: Set environment variables
       shell: pwsh
       run: |
+              $DebugFlag = $False
+        if ( "${{ inputs.debug }}" -ieq== "true" )
+        {
+          $DebugFlag = $False
+        }
         $ShellScript="${env:GITHUB_ACTION_PATH}\Build-Tlsr8258.ps1"
         $Arguments=@{
           TelinkIdePath = "${{ inputs.telink_ide}}"
           TelinkZigbeeSdkPath = "${{ inputs.telink_zigbee_sdk }}"
           Project = "${{ inputs.project }}"
           Target = "${{ inputs.target }}"
-          Debug = "${{ inputs.debug }}"
+          Debug = $DebugFlag
         }
         & $ShellScript @Arguments
