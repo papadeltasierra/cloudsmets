@@ -28,7 +28,7 @@ runs:
       shell: pwsh
       run: |
         $DebugFlag = $False
-        if ( "${{ inputs.debug }}" -ieq== "true" )
+        if ( "${{ inputs.debug }}" -ieq "true" )
         {
           $DebugFlag = $False
         }

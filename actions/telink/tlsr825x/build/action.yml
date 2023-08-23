@@ -22,8 +22,8 @@ runs:
     - name: Set environment variables
       shell: pwsh
       run: |
-              $DebugFlag = $False
-        if ( "${{ inputs.debug }}" -ieq== "true" )
+        $DebugFlag = $False
+        if ( "${{ inputs.debug }}" -ieq "true" )
         {
           $DebugFlag = $False
         }
