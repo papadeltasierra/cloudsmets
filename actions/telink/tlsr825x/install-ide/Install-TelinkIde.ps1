@@ -14,8 +14,8 @@ Param(
 )
 
 # Override the built-in cmdlet with a custom version that is not noisy!
-function Write-Error($Message) {
-    Write-Host -Foreground red -Message ${Message}
+function Write-Error {
+    Write-Host -Foreground red @Args
 }
 
 # Abort the script if any command fails.
