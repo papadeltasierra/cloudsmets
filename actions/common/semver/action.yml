@@ -5,6 +5,7 @@ inputs:
     description: The tag to be tested.
     required: true
 
+
 runs:
   using: composite
   steps:
