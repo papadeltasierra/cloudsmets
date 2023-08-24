@@ -28,7 +28,7 @@ jobs:
         - if: github.ref_type == 'tag'
           uses: ./actions/common/semver
           with:
-            tag: $GITHUB_TAG
+            tag: $GITHUB_REF
 
         - name: set-env-vars
           shell: pwsh
