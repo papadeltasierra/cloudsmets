@@ -7,11 +7,6 @@ on:
       - 'tlsr8258/**'
     branches:
       - '**'
-    tags-ignore:
-      # Without this, tagged builds always trigger this workflow and right now
-      # there is no need for that since we don't have a tlsr8258 image worth
-      # tagging and saving.
-      - '*'
 
 jobs:
   TeLink-tlsr825x-build:
@@ -28,7 +23,7 @@ jobs:
         - if: github.ref_type == 'tag'
           uses: ./actions/common/semver
           with:
-            tag: ${{ github.ref }}
+            tag: ${{ github.ref_name }}
 
         - name: set-env-vars
           shell: pwsh
