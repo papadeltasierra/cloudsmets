@@ -11,4 +11,4 @@ runs:
     - name: Check the tag using a Powershell script.
       shell: pwsh
       run: |
-        ${env:GITHUB_ACTION_PATH}\Test-TagIsSemver -Tag ${tag}
+        ${env:GITHUB_ACTION_PATH}\Test-TagIsSemver.ps1 -Tag ${tag}
