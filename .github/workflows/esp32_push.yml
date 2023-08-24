@@ -29,7 +29,7 @@ jobs:
       - if: github.ref_type == 'tag'
         uses: ./actions/common/semver
         with:
-          tag: $GITHUB_REF    
+          tag: ${{ github.ref }}    
           
       - if: github.ref_type == 'tag'
         name: Set firmware appplication version
