@@ -6,6 +6,8 @@ on:
       - 'tlsr825x/**'
     branches:
       - '**'
+    tags:
+      - '*'
 
 env:
   DRIVE: "c:"
