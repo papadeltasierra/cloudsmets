@@ -9,6 +9,8 @@
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
  *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
+ *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
  *          You may obtain a copy of the License at
@@ -139,7 +141,12 @@ extern "C" {
 #define MODULE_WATCHDOG_ENABLE						0
 
 /* UART module */
+// !!PDS: Expect to have UART wupport to talk to the ESP32-C3.
+#ifdef CLOUDSMETS
+#define	MODULE_UART_ENABLE							1
+#else
 #define	MODULE_UART_ENABLE							0
+#endif
 
 #if (ZBHCI_USB_PRINT || ZBHCI_USB_CDC || ZBHCI_USB_HID || ZBHCI_UART)
 	#define ZBHCI_EN								1
@@ -149,6 +156,10 @@ extern "C" {
 /**********************************************************************
  * ZCL cluster support setting
  */
+// !!PDS: Expect to enable just ZCL_METERING_SUPPORT
+#ifdef CLOUDSMETS
+#define ZCL_METERING_SUPPORT						1
+#else
 #define ZCL_ON_OFF_SUPPORT							1
 #define ZCL_LEVEL_CTRL_SUPPORT						1
 #define ZCL_LIGHT_COLOR_CONTROL_SUPPORT				1
@@ -156,6 +167,7 @@ extern "C" {
 #define ZCL_OTA_SUPPORT								1
 #if TOUCHLINK_SUPPORT
 #define ZCL_ZLL_COMMISSIONING_SUPPORT				1
+#endif
 #endif
 
 

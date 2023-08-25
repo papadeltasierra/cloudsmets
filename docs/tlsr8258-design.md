@@ -8,7 +8,7 @@ Everything below refers to the [Telink] tlsr8258 portion of the CloudSMETS devic
     - Seems that this protects the source code which implies that some of the source code is common between various [Telink] examples.
     - Propoose to remove all unused code and retire the variable.
 1. There are lots of options being build in; we don't need them but we will need some others, probably.
-
+1. What is "retention" in
 
 ## Requirements
 - CloudSMETS is a [ZigBee] _end device_ i.e. it comments out to a _coordinator_ and does not relay ZigBee signals like a _router_.

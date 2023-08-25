@@ -133,6 +133,8 @@ void light_blink_stop(void)
 	}
 }
 
+// !!PDS: The LilyGo board has no buttons associated with the tlsr8258.
+#ifndef CLOUDSMETS
 /*******************************************************************
  * @brief	Button click detect:
  * 			SW1. keep press button1 5s === factory reset
@@ -180,6 +182,7 @@ void brc_toggle(void)
 	}
 }
 
+#ifndef CLOUDSMETS
 void buttonShortPressed(u8 btNum){
 	if(btNum == VK_SW1){
 		if(zb_isDeviceJoinedNwk()){
@@ -276,5 +279,6 @@ void app_key_handler(void){
 		}
 	}
 }
+#endif  /* CLOUDSMETS */
 
 #endif  /* __PROJECT_TL_SWITCH__ */

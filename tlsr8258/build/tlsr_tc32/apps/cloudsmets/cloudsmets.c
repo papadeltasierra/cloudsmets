@@ -188,6 +188,7 @@ void user_app_init(void)
 	/* Register ZCL specific cluster information */
 	zcl_register(SAMPLE_SWITCH_ENDPOINT, SAMPLE_SWITCH_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_cloudsmetsClusterList);
 
+// !!PDS: Upgrade will never be OTA, which means "over ZigBee"
 #if ZCL_OTA_SUPPORT
     ota_init(OTA_TYPE_CLIENT, (af_simple_descriptor_t *)&cloudsmets_simpleDesc, &cloudsmets_otaInfo, &cloudsmets_otaCb);
 #endif
@@ -241,6 +242,7 @@ void user_init(bool isRetention)
 	rf_paInit(PA_TX, PA_RX);
 #endif
 
+// !!PDS: The tlsr8258 is controlled via the ESP32-C3 using the zbhci.
 #if ZBHCI_EN
 	zbhciInit();
 #endif
@@ -249,6 +251,7 @@ void user_init(bool isRetention)
 	drv_pm_wakeupPinConfig(g_switchPmCfg, sizeof(g_switchPmCfg)/sizeof(drv_pm_pinCfg_t));
 #endif
 
+    // !!PDS: What is retention ?????
 	if(!isRetention){
 		/* Initialize Stack */
 		stack_init();
