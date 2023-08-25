@@ -1,7 +1,7 @@
 /********************************************************************************************************
- * @file    sampleSwitchEpCfg.c
+ * @file    cloudsmetsEpCfg.c
  *
- * @brief   This is the source file for sampleSwitchEpCfg
+ * @brief   This is the source file for cloudsmetsEpCfg
  *
  * @author  Zigbee Group
  * @date    2021
@@ -30,7 +30,7 @@
  */
 #include "tl_common.h"
 #include "zcl_include.h"
-#include "sampleSwitch.h"
+#include "cloudsmets.h"
 
 /**********************************************************************
  * LOCAL CONSTANTS
@@ -54,7 +54,7 @@
 /**
  *  @brief Definition for Incoming cluster / Sever Cluster
  */
-const u16 sampleSwitch_inClusterList[] =
+const u16 cloudsmets_inClusterList[] =
 {
 	ZCL_CLUSTER_GEN_BASIC,
 	ZCL_CLUSTER_GEN_IDENTIFY,
@@ -66,7 +66,7 @@ const u16 sampleSwitch_inClusterList[] =
 /**
  *  @brief Definition for Outgoing cluster / Client Cluster
  */
-const u16 sampleSwitch_outClusterList[] =
+const u16 cloudsmets_outClusterList[] =
 {
 #ifdef ZCL_GROUP
 	ZCL_CLUSTER_GEN_GROUPS,
@@ -91,23 +91,23 @@ const u16 sampleSwitch_outClusterList[] =
 /**
  *  @brief Definition for Server cluster number and Client cluster number
  */
-#define SAMPLESWITCH_IN_CLUSTER_NUM		(sizeof(sampleSwitch_inClusterList)/sizeof(sampleSwitch_inClusterList[0]))
-#define SAMPLESWITCH_OUT_CLUSTER_NUM	(sizeof(sampleSwitch_outClusterList)/sizeof(sampleSwitch_outClusterList[0]))
+#define cloudsmets_IN_CLUSTER_NUM		(sizeof(cloudsmets_inClusterList)/sizeof(cloudsmets_inClusterList[0]))
+#define cloudsmets_OUT_CLUSTER_NUM	(sizeof(cloudsmets_outClusterList)/sizeof(cloudsmets_outClusterList[0]))
 
 /**
  *  @brief Definition for simple description for HA profile
  */
-const af_simple_descriptor_t sampleSwitch_simpleDesc =
+const af_simple_descriptor_t cloudsmets_simpleDesc =
 {
 	HA_PROFILE_ID,                      	/* Application profile identifier */
 	HA_DEV_ONOFF_SWITCH,                	/* Application device identifier */
 	SAMPLE_SWITCH_ENDPOINT,                 /* Endpoint */
 	2,                                  	/* Application device version */
 	0,										/* Reserved */
-	SAMPLESWITCH_IN_CLUSTER_NUM,           	/* Application input cluster count */
-	SAMPLESWITCH_OUT_CLUSTER_NUM,          	/* Application output cluster count */
-	(u16 *)sampleSwitch_inClusterList,    	/* Application input cluster list */
-	(u16 *)sampleSwitch_outClusterList,   	/* Application output cluster list */
+	cloudsmets_IN_CLUSTER_NUM,           	/* Application input cluster count */
+	cloudsmets_OUT_CLUSTER_NUM,          	/* Application output cluster count */
+	(u16 *)cloudsmets_inClusterList,    	/* Application input cluster list */
+	(u16 *)cloudsmets_outClusterList,   	/* Application output cluster list */
 };
 
 
@@ -188,22 +188,22 @@ const zclAttrInfo_t pollCtrl_attrTbl[] =
 /**
  *  @brief Definition for simple switch ZCL specific cluster
  */
-const zcl_specClusterInfo_t g_sampleSwitchClusterList[] =
+const zcl_specClusterInfo_t g_cloudsmetsClusterList[] =
 {
-	{ZCL_CLUSTER_GEN_BASIC,			MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		sampleSwitch_basicCb},
-	{ZCL_CLUSTER_GEN_IDENTIFY,		MANUFACTURER_CODE_NONE,	ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	sampleSwitch_identifyCb},
+	{ZCL_CLUSTER_GEN_BASIC,			MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		cloudsmets_basicCb},
+	{ZCL_CLUSTER_GEN_IDENTIFY,		MANUFACTURER_CODE_NONE,	ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	cloudsmets_identifyCb},
 #ifdef ZCL_GROUP
-	{ZCL_CLUSTER_GEN_GROUPS,		MANUFACTURER_CODE_NONE,	0, 						NULL,  				zcl_group_register,		sampleSwitch_groupCb},
+	{ZCL_CLUSTER_GEN_GROUPS,		MANUFACTURER_CODE_NONE,	0, 						NULL,  				zcl_group_register,		cloudsmets_groupCb},
 #endif
 #ifdef ZCL_SCENE
-	{ZCL_CLUSTER_GEN_SCENES,		MANUFACTURER_CODE_NONE,	0,						NULL,				zcl_scene_register,		sampleSwitch_sceneCb},
+	{ZCL_CLUSTER_GEN_SCENES,		MANUFACTURER_CODE_NONE,	0,						NULL,				zcl_scene_register,		cloudsmets_sceneCb},
 #endif
 #ifdef ZCL_POLL_CTRL
-	{ZCL_CLUSTER_GEN_POLL_CONTROL,	MANUFACTURER_CODE_NONE,	ZCL_POLLCTRL_ATTR_NUM,	pollCtrl_attrTbl, 	zcl_pollCtrl_register, 	sampleSwitch_pollCtrlCb},
+	{ZCL_CLUSTER_GEN_POLL_CONTROL,	MANUFACTURER_CODE_NONE,	ZCL_POLLCTRL_ATTR_NUM,	pollCtrl_attrTbl, 	zcl_pollCtrl_register, 	cloudsmets_pollCtrlCb},
 #endif
 };
 
-u8 SAMPLE_SWITCH_CB_CLUSTER_NUM = (sizeof(g_sampleSwitchClusterList)/sizeof(g_sampleSwitchClusterList[0]));
+u8 SAMPLE_SWITCH_CB_CLUSTER_NUM = (sizeof(g_cloudsmetsClusterList)/sizeof(g_cloudsmetsClusterList[0]));
 
 /**********************************************************************
  * FUNCTIONS

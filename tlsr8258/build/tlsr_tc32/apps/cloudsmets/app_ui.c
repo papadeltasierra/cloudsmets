@@ -31,7 +31,7 @@
 #include "tl_common.h"
 #include "zb_api.h"
 #include "zcl_include.h"
-#include "sampleSwitch.h"
+#include "cloudsmets.h"
 #include "app_ui.h"
 
 /**********************************************************************

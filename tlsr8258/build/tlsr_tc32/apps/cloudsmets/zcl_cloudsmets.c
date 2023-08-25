@@ -1,7 +1,7 @@
 /********************************************************************************************************
- * @file    zcl_sampleSwitchCb.c
+ * @file    zcl_cloudsmetsCb.c
  *
- * @brief   This is the source file for zcl_sampleSwitchCb
+ * @brief   This is the source file for zcl_cloudsmetsCb
  *
  * @author  Zigbee Group
  * @date    2021
@@ -31,7 +31,7 @@
 #include "tl_common.h"
 #include "zb_api.h"
 #include "zcl_include.h"
-#include "sampleSwitch.h"
+#include "cloudsmets.h"
 #include "app_ui.h"
 
 
@@ -49,18 +49,18 @@
  * LOCAL FUNCTIONS
  */
 #ifdef ZCL_READ
-static void sampleSwitch_zclReadRspCmd(u16 clusterId, zclReadRspCmd_t *pReadRspCmd);
+static void cloudsmets_zclReadRspCmd(u16 clusterId, zclReadRspCmd_t *pReadRspCmd);
 #endif
 #ifdef ZCL_WRITE
-static void sampleSwitch_zclWriteRspCmd(u16 clusterId, zclWriteRspCmd_t *pWriteRspCmd);
-static void sampleSwitch_zclWriteReqCmd(u16 clusterId, zclWriteCmd_t *pWriteReqCmd);
+static void cloudsmets_zclWriteRspCmd(u16 clusterId, zclWriteRspCmd_t *pWriteRspCmd);
+static void cloudsmets_zclWriteReqCmd(u16 clusterId, zclWriteCmd_t *pWriteReqCmd);
 #endif
 #ifdef ZCL_REPORT
-static void sampleSwitch_zclCfgReportCmd(u16 clusterId, zclCfgReportCmd_t *pCfgReportCmd);
-static void sampleSwitch_zclCfgReportRspCmd(u16 clusterId, zclCfgReportRspCmd_t *pCfgReportRspCmd);
-static void sampleSwitch_zclReportCmd(u16 clusterId, zclReportCmd_t *pReportCmd);
+static void cloudsmets_zclCfgReportCmd(u16 clusterId, zclCfgReportCmd_t *pCfgReportCmd);
+static void cloudsmets_zclCfgReportRspCmd(u16 clusterId, zclCfgReportRspCmd_t *pCfgReportRspCmd);
+static void cloudsmets_zclReportCmd(u16 clusterId, zclReportCmd_t *pReportCmd);
 #endif
-static void sampleSwitch_zclDfltRspCmd(u16 clusterId, zclDefaultRspCmd_t *pDftRspCmd);
+static void cloudsmets_zclDfltRspCmd(u16 clusterId, zclDefaultRspCmd_t *pDftRspCmd);
 
 
 /**********************************************************************
@@ -80,7 +80,7 @@ static ev_timer_event_t *identifyTimerEvt = NULL;
  */
 
 /*********************************************************************
- * @fn      sampleSwitch_zclProcessIncomingMsg
+ * @fn      cloudsmets_zclProcessIncomingMsg
  *
  * @brief   Process ZCL Foundation incoming message.
  *
@@ -88,39 +88,39 @@ static ev_timer_event_t *identifyTimerEvt = NULL;
  *
  * @return  None
  */
-void sampleSwitch_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg)
+void cloudsmets_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg)
 {
-	//printf("sampleSwitch_zclProcessIncomingMsg\n");
+	//printf("cloudsmets_zclProcessIncomingMsg\n");
 
 	u16 cluster = pInHdlrMsg->msg->indInfo.cluster_id;
 	switch(pInHdlrMsg->hdr.cmd)
 	{
 #ifdef ZCL_READ
 		case ZCL_CMD_READ_RSP:
-			sampleSwitch_zclReadRspCmd(cluster, pInHdlrMsg->attrCmd);
+			cloudsmets_zclReadRspCmd(cluster, pInHdlrMsg->attrCmd);
 			break;
 #endif
 #ifdef ZCL_WRITE
 		case ZCL_CMD_WRITE_RSP:
-			sampleSwitch_zclWriteRspCmd(cluster, pInHdlrMsg->attrCmd);
+			cloudsmets_zclWriteRspCmd(cluster, pInHdlrMsg->attrCmd);
 			break;
 		case ZCL_CMD_WRITE:
-			sampleSwitch_zclWriteReqCmd(cluster, pInHdlrMsg->attrCmd);
+			cloudsmets_zclWriteReqCmd(cluster, pInHdlrMsg->attrCmd);
 			break;
 #endif
 #ifdef ZCL_REPORT
 		case ZCL_CMD_CONFIG_REPORT:
-			sampleSwitch_zclCfgReportCmd(cluster, pInHdlrMsg->attrCmd);
+			cloudsmets_zclCfgReportCmd(cluster, pInHdlrMsg->attrCmd);
 			break;
 		case ZCL_CMD_CONFIG_REPORT_RSP:
-			sampleSwitch_zclCfgReportRspCmd(cluster, pInHdlrMsg->attrCmd);
+			cloudsmets_zclCfgReportRspCmd(cluster, pInHdlrMsg->attrCmd);
 			break;
 		case ZCL_CMD_REPORT:
-			sampleSwitch_zclReportCmd(cluster, pInHdlrMsg->attrCmd);
+			cloudsmets_zclReportCmd(cluster, pInHdlrMsg->attrCmd);
 			break;
 #endif
 		case ZCL_CMD_DEFAULT_RSP:
-			sampleSwitch_zclDfltRspCmd(cluster, pInHdlrMsg->attrCmd);
+			cloudsmets_zclDfltRspCmd(cluster, pInHdlrMsg->attrCmd);
 			break;
 		default:
 			break;
@@ -129,7 +129,7 @@ void sampleSwitch_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg)
 
 #ifdef ZCL_READ
 /*********************************************************************
- * @fn      sampleSwitch_zclReadRspCmd
+ * @fn      cloudsmets_zclReadRspCmd
  *
  * @brief   Handler for ZCL Read Response command.
  *
@@ -137,16 +137,16 @@ void sampleSwitch_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg)
  *
  * @return  None
  */
-static void sampleSwitch_zclReadRspCmd(u16 clusterId, zclReadRspCmd_t *pReadRspCmd)
+static void cloudsmets_zclReadRspCmd(u16 clusterId, zclReadRspCmd_t *pReadRspCmd)
 {
-    //printf("sampleSwitch_zclReadRspCmd\n");
+    //printf("cloudsmets_zclReadRspCmd\n");
 
 }
 #endif	/* ZCL_READ */
 
 #ifdef ZCL_WRITE
 /*********************************************************************
- * @fn      sampleSwitch_zclWriteRspCmd
+ * @fn      cloudsmets_zclWriteRspCmd
  *
  * @brief   Handler for ZCL Write Response command.
  *
@@ -154,14 +154,14 @@ static void sampleSwitch_zclReadRspCmd(u16 clusterId, zclReadRspCmd_t *pReadRspC
  *
  * @return  None
  */
-static void sampleSwitch_zclWriteRspCmd(u16 clusterId, zclWriteRspCmd_t *pWriteRspCmd)
+static void cloudsmets_zclWriteRspCmd(u16 clusterId, zclWriteRspCmd_t *pWriteRspCmd)
 {
-    //printf("sampleSwitch_zclWriteRspCmd\n");
+    //printf("cloudsmets_zclWriteRspCmd\n");
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclWriteReqCmd
+ * @fn      cloudsmets_zclWriteReqCmd
  *
  * @brief   Handler for ZCL Write Request command.
  *
@@ -169,7 +169,7 @@ static void sampleSwitch_zclWriteRspCmd(u16 clusterId, zclWriteRspCmd_t *pWriteR
  *
  * @return  None
  */
-static void sampleSwitch_zclWriteReqCmd(u16 clusterId, zclWriteCmd_t *pWriteReqCmd)
+static void cloudsmets_zclWriteReqCmd(u16 clusterId, zclWriteCmd_t *pWriteReqCmd)
 {
 #ifdef ZCL_POLL_CTRL
 	u8 numAttr = pWriteReqCmd->numAttr;
@@ -178,7 +178,7 @@ static void sampleSwitch_zclWriteReqCmd(u16 clusterId, zclWriteCmd_t *pWriteReqC
 	if(clusterId == ZCL_CLUSTER_GEN_POLL_CONTROL){
 		for(s32 i = 0; i < numAttr; i++){
 			if(attr[i].attrID == ZCL_ATTRID_CHK_IN_INTERVAL){
-				sampleSwitch_zclCheckInStart();
+				cloudsmets_zclCheckInStart();
 				return;
 			}
 		}
@@ -189,7 +189,7 @@ static void sampleSwitch_zclWriteReqCmd(u16 clusterId, zclWriteCmd_t *pWriteReqC
 
 
 /*********************************************************************
- * @fn      sampleSwitch_zclDfltRspCmd
+ * @fn      cloudsmets_zclDfltRspCmd
  *
  * @brief   Handler for ZCL Default Response command.
  *
@@ -197,15 +197,15 @@ static void sampleSwitch_zclWriteReqCmd(u16 clusterId, zclWriteCmd_t *pWriteReqC
  *
  * @return  None
  */
-static void sampleSwitch_zclDfltRspCmd(u16 clusterId, zclDefaultRspCmd_t *pDftRspCmd)
+static void cloudsmets_zclDfltRspCmd(u16 clusterId, zclDefaultRspCmd_t *pDftRspCmd)
 {
-    //printf("sampleSwitch_zclDfltRspCmd\n");
+    //printf("cloudsmets_zclDfltRspCmd\n");
 
 }
 
 #ifdef ZCL_REPORT
 /*********************************************************************
- * @fn      sampleSwitch_zclCfgReportCmd
+ * @fn      cloudsmets_zclCfgReportCmd
  *
  * @brief   Handler for ZCL Configure Report command.
  *
@@ -213,14 +213,14 @@ static void sampleSwitch_zclDfltRspCmd(u16 clusterId, zclDefaultRspCmd_t *pDftRs
  *
  * @return  None
  */
-static void sampleSwitch_zclCfgReportCmd(u16 clusterId, zclCfgReportCmd_t *pCfgReportCmd)
+static void cloudsmets_zclCfgReportCmd(u16 clusterId, zclCfgReportCmd_t *pCfgReportCmd)
 {
-    //printf("sampleSwitch_zclCfgReportCmd\n");
+    //printf("cloudsmets_zclCfgReportCmd\n");
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclCfgReportRspCmd
+ * @fn      cloudsmets_zclCfgReportRspCmd
  *
  * @brief   Handler for ZCL Configure Report Response command.
  *
@@ -228,14 +228,14 @@ static void sampleSwitch_zclCfgReportCmd(u16 clusterId, zclCfgReportCmd_t *pCfgR
  *
  * @return  None
  */
-static void sampleSwitch_zclCfgReportRspCmd(u16 clusterId, zclCfgReportRspCmd_t *pCfgReportRspCmd)
+static void cloudsmets_zclCfgReportRspCmd(u16 clusterId, zclCfgReportRspCmd_t *pCfgReportRspCmd)
 {
-    //printf("sampleSwitch_zclCfgReportRspCmd\n");
+    //printf("cloudsmets_zclCfgReportRspCmd\n");
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclReportCmd
+ * @fn      cloudsmets_zclReportCmd
  *
  * @brief   Handler for ZCL Report command.
  *
@@ -243,16 +243,16 @@ static void sampleSwitch_zclCfgReportRspCmd(u16 clusterId, zclCfgReportRspCmd_t 
  *
  * @return  None
  */
-static void sampleSwitch_zclReportCmd(u16 clusterId, zclReportCmd_t *pReportCmd)
+static void cloudsmets_zclReportCmd(u16 clusterId, zclReportCmd_t *pReportCmd)
 {
-    //printf("sampleSwitch_zclReportCmd\n");
+    //printf("cloudsmets_zclReportCmd\n");
 
 }
 #endif	/* ZCL_REPORT */
 
 #ifdef ZCL_BASIC
 /*********************************************************************
- * @fn      sampleSwitch_zclBasicResetCmdHandler
+ * @fn      cloudsmets_zclBasicResetCmdHandler
  *
  * @brief   Handler for ZCL Basic Reset command.
  *
@@ -262,7 +262,7 @@ static void sampleSwitch_zclReportCmd(u16 clusterId, zclReportCmd_t *pReportCmd)
  *
  * @return  status_t
  */
-status_t sampleSwitch_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(cmdId == ZCL_CMD_BASIC_RESET_FAC_DEFAULT){
 		//Reset all the attributes of all its clusters to factory defaults
@@ -274,7 +274,7 @@ status_t sampleSwitch_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *
 #endif	/* ZCL_BASIC */
 
 #ifdef ZCL_IDENTIFY
-s32 sampleSwitch_zclIdentifyTimerCb(void *arg)
+s32 cloudsmets_zclIdentifyTimerCb(void *arg)
 {
 	if(g_zcl_identifyAttrs.identifyTime <= 0){
 		identifyTimerEvt = NULL;
@@ -284,7 +284,7 @@ s32 sampleSwitch_zclIdentifyTimerCb(void *arg)
 	return 0;
 }
 
-void sampleSwitch_zclIdentifyTimerStop(void)
+void cloudsmets_zclIdentifyTimerStop(void)
 {
 	if(identifyTimerEvt){
 		TL_ZB_TIMER_CANCEL(&identifyTimerEvt);
@@ -292,7 +292,7 @@ void sampleSwitch_zclIdentifyTimerStop(void)
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclIdentifyCmdHandler
+ * @fn      cloudsmets_zclIdentifyCmdHandler
  *
  * @brief   Handler for ZCL Identify command. This function will set blink LED.
  *
@@ -302,23 +302,23 @@ void sampleSwitch_zclIdentifyTimerStop(void)
  *
  * @return  None
  */
-void sampleSwitch_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime)
+void cloudsmets_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime)
 {
 	g_zcl_identifyAttrs.identifyTime = identifyTime;
 
 	if(identifyTime == 0){
-		sampleSwitch_zclIdentifyTimerStop();
+		cloudsmets_zclIdentifyTimerStop();
 		light_blink_stop();
 	}else{
 		if(!identifyTimerEvt){
 			light_blink_start(identifyTime, 500, 500);
-			identifyTimerEvt = TL_ZB_TIMER_SCHEDULE(sampleSwitch_zclIdentifyTimerCb, NULL, 1000);
+			identifyTimerEvt = TL_ZB_TIMER_SCHEDULE(cloudsmets_zclIdentifyTimerCb, NULL, 1000);
 		}
 	}
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zcltriggerCmdHandler
+ * @fn      cloudsmets_zcltriggerCmdHandler
  *
  * @brief   Handler for ZCL trigger command.
  *
@@ -326,7 +326,7 @@ void sampleSwitch_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTi
  *
  * @return  None
  */
-static void sampleSwitch_zcltriggerCmdHandler(zcl_triggerEffect_t *pTriggerEffect)
+static void cloudsmets_zcltriggerCmdHandler(zcl_triggerEffect_t *pTriggerEffect)
 {
 	u8 effectId = pTriggerEffect->effectId;
 	//u8 effectVariant = pTriggerEffect->effectVariant;
@@ -356,7 +356,7 @@ static void sampleSwitch_zcltriggerCmdHandler(zcl_triggerEffect_t *pTriggerEffec
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclIdentifyQueryRspCmdHandler
+ * @fn      cloudsmets_zclIdentifyQueryRspCmdHandler
  *
  * @brief   Handler for ZCL Identify Query response command.
  *
@@ -366,7 +366,7 @@ static void sampleSwitch_zcltriggerCmdHandler(zcl_triggerEffect_t *pTriggerEffec
  *
  * @return  None
  */
-static void sampleSwitch_zclIdentifyQueryRspCmdHandler(u8 endpoint, u16 srcAddr, zcl_identifyRspCmd_t *identifyRsp)
+static void cloudsmets_zclIdentifyQueryRspCmdHandler(u8 endpoint, u16 srcAddr, zcl_identifyRspCmd_t *identifyRsp)
 {
 #if FIND_AND_BIND_SUPPORT
 	if(identifyRsp->timeout){
@@ -380,7 +380,7 @@ static void sampleSwitch_zclIdentifyQueryRspCmdHandler(u8 endpoint, u16 srcAddr,
 }
 
 /*********************************************************************
- * @fn      sampleLight_identifyCb
+ * @fn      cloudsmets_identifyCb
  *
  * @brief   Handler for ZCL Identify command.
  *
@@ -390,23 +390,23 @@ static void sampleSwitch_zclIdentifyQueryRspCmdHandler(u8 endpoint, u16 srcAddr,
  *
  * @return  status_t
  */
-status_t sampleSwitch_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(pAddrInfo->dstEp == SAMPLE_SWITCH_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
 			switch(cmdId){
 				case ZCL_CMD_IDENTIFY:
-					sampleSwitch_zclIdentifyCmdHandler(pAddrInfo->dstEp, pAddrInfo->srcAddr, ((zcl_identifyCmd_t *)cmdPayload)->identifyTime);
+					cloudsmets_zclIdentifyCmdHandler(pAddrInfo->dstEp, pAddrInfo->srcAddr, ((zcl_identifyCmd_t *)cmdPayload)->identifyTime);
 					break;
 				case ZCL_CMD_TRIGGER_EFFECT:
-					sampleSwitch_zcltriggerCmdHandler((zcl_triggerEffect_t *)cmdPayload);
+					cloudsmets_zcltriggerCmdHandler((zcl_triggerEffect_t *)cmdPayload);
 					break;
 				default:
 					break;
 			}
 		}else{
 			if(cmdId == ZCL_CMD_IDENTIFY_QUERY_RSP){
-				sampleSwitch_zclIdentifyQueryRspCmdHandler(pAddrInfo->dstEp, pAddrInfo->srcAddr, (zcl_identifyRspCmd_t *)cmdPayload);
+				cloudsmets_zclIdentifyQueryRspCmdHandler(pAddrInfo->dstEp, pAddrInfo->srcAddr, (zcl_identifyRspCmd_t *)cmdPayload);
 			}
 		}
 	}
@@ -417,7 +417,7 @@ status_t sampleSwitch_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, voi
 
 #ifdef ZCL_GROUP
 /*********************************************************************
- * @fn      sampleSwitch_zclAddGroupRspCmdHandler
+ * @fn      cloudsmets_zclAddGroupRspCmdHandler
  *
  * @brief   Handler for ZCL add group response command.
  *
@@ -425,13 +425,13 @@ status_t sampleSwitch_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, voi
  *
  * @return  None
  */
-static void sampleSwitch_zclAddGroupRspCmdHandler(zcl_addGroupRsp_t *pAddGroupRsp)
+static void cloudsmets_zclAddGroupRspCmdHandler(zcl_addGroupRsp_t *pAddGroupRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclViewGroupRspCmdHandler
+ * @fn      cloudsmets_zclViewGroupRspCmdHandler
  *
  * @brief   Handler for ZCL view group response command.
  *
@@ -439,13 +439,13 @@ static void sampleSwitch_zclAddGroupRspCmdHandler(zcl_addGroupRsp_t *pAddGroupRs
  *
  * @return  None
  */
-static void sampleSwitch_zclViewGroupRspCmdHandler(zcl_viewGroupRsp_t *pViewGroupRsp)
+static void cloudsmets_zclViewGroupRspCmdHandler(zcl_viewGroupRsp_t *pViewGroupRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclRemoveGroupRspCmdHandler
+ * @fn      cloudsmets_zclRemoveGroupRspCmdHandler
  *
  * @brief   Handler for ZCL remove group response command.
  *
@@ -453,13 +453,13 @@ static void sampleSwitch_zclViewGroupRspCmdHandler(zcl_viewGroupRsp_t *pViewGrou
  *
  * @return  None
  */
-static void sampleSwitch_zclRemoveGroupRspCmdHandler(zcl_removeGroupRsp_t *pRemoveGroupRsp)
+static void cloudsmets_zclRemoveGroupRspCmdHandler(zcl_removeGroupRsp_t *pRemoveGroupRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclGetGroupMembershipRspCmdHandler
+ * @fn      cloudsmets_zclGetGroupMembershipRspCmdHandler
  *
  * @brief   Handler for ZCL get group membership response command.
  *
@@ -467,13 +467,13 @@ static void sampleSwitch_zclRemoveGroupRspCmdHandler(zcl_removeGroupRsp_t *pRemo
  *
  * @return  None
  */
-static void sampleSwitch_zclGetGroupMembershipRspCmdHandler(zcl_getGroupMembershipRsp_t *pGetGroupMembershipRsp)
+static void cloudsmets_zclGetGroupMembershipRspCmdHandler(zcl_getGroupMembershipRsp_t *pGetGroupMembershipRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_groupCb
+ * @fn      cloudsmets_groupCb
  *
  * @brief   Handler for ZCL Group command.
  *
@@ -483,22 +483,22 @@ static void sampleSwitch_zclGetGroupMembershipRspCmdHandler(zcl_getGroupMembersh
  *
  * @return  status_t
  */
-status_t sampleSwitch_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(pAddrInfo->dstEp == SAMPLE_SWITCH_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_GROUP_ADD_GROUP_RSP:
-					sampleSwitch_zclAddGroupRspCmdHandler((zcl_addGroupRsp_t *)cmdPayload);
+					cloudsmets_zclAddGroupRspCmdHandler((zcl_addGroupRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_GROUP_VIEW_GROUP_RSP:
-					sampleSwitch_zclViewGroupRspCmdHandler((zcl_viewGroupRsp_t *)cmdPayload);
+					cloudsmets_zclViewGroupRspCmdHandler((zcl_viewGroupRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_GROUP_REMOVE_GROUP_RSP:
-					sampleSwitch_zclRemoveGroupRspCmdHandler((zcl_removeGroupRsp_t *)cmdPayload);
+					cloudsmets_zclRemoveGroupRspCmdHandler((zcl_removeGroupRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_GROUP_GET_MEMBERSHIP_RSP:
-					sampleSwitch_zclGetGroupMembershipRspCmdHandler((zcl_getGroupMembershipRsp_t *)cmdPayload);
+					cloudsmets_zclGetGroupMembershipRspCmdHandler((zcl_getGroupMembershipRsp_t *)cmdPayload);
 					break;
 				default:
 					break;
@@ -512,7 +512,7 @@ status_t sampleSwitch_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *
 
 #ifdef ZCL_SCENE
 /*********************************************************************
- * @fn      sampleSwitch_zclAddSceneRspCmdHandler
+ * @fn      cloudsmets_zclAddSceneRspCmdHandler
  *
  * @brief   Handler for ZCL add scene response command.
  *
@@ -521,13 +521,13 @@ status_t sampleSwitch_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *
  *
  * @return  None
  */
-static void sampleSwitch_zclAddSceneRspCmdHandler(u8 cmdId, addSceneRsp_t *pAddSceneRsp)
+static void cloudsmets_zclAddSceneRspCmdHandler(u8 cmdId, addSceneRsp_t *pAddSceneRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclViewSceneRspCmdHandler
+ * @fn      cloudsmets_zclViewSceneRspCmdHandler
  *
  * @brief   Handler for ZCL view scene response command.
  *
@@ -536,13 +536,13 @@ static void sampleSwitch_zclAddSceneRspCmdHandler(u8 cmdId, addSceneRsp_t *pAddS
  *
  * @return  None
  */
-static void sampleSwitch_zclViewSceneRspCmdHandler(u8 cmdId, viewSceneRsp_t *pViewSceneRsp)
+static void cloudsmets_zclViewSceneRspCmdHandler(u8 cmdId, viewSceneRsp_t *pViewSceneRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclRemoveSceneRspCmdHandler
+ * @fn      cloudsmets_zclRemoveSceneRspCmdHandler
  *
  * @brief   Handler for ZCL remove scene response command.
  *
@@ -550,13 +550,13 @@ static void sampleSwitch_zclViewSceneRspCmdHandler(u8 cmdId, viewSceneRsp_t *pVi
  *
  * @return  None
  */
-static void sampleSwitch_zclRemoveSceneRspCmdHandler(removeSceneRsp_t *pRemoveSceneRsp)
+static void cloudsmets_zclRemoveSceneRspCmdHandler(removeSceneRsp_t *pRemoveSceneRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclRemoveAllSceneRspCmdHandler
+ * @fn      cloudsmets_zclRemoveAllSceneRspCmdHandler
  *
  * @brief   Handler for ZCL remove all scene response command.
  *
@@ -564,13 +564,13 @@ static void sampleSwitch_zclRemoveSceneRspCmdHandler(removeSceneRsp_t *pRemoveSc
  *
  * @return  None
  */
-static void sampleSwitch_zclRemoveAllSceneRspCmdHandler(removeAllSceneRsp_t *pRemoveAllSceneRsp)
+static void cloudsmets_zclRemoveAllSceneRspCmdHandler(removeAllSceneRsp_t *pRemoveAllSceneRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclStoreSceneRspCmdHandler
+ * @fn      cloudsmets_zclStoreSceneRspCmdHandler
  *
  * @brief   Handler for ZCL store scene response command.
  *
@@ -578,13 +578,13 @@ static void sampleSwitch_zclRemoveAllSceneRspCmdHandler(removeAllSceneRsp_t *pRe
  *
  * @return  None
  */
-static void sampleSwitch_zclStoreSceneRspCmdHandler(storeSceneRsp_t *pStoreSceneRsp)
+static void cloudsmets_zclStoreSceneRspCmdHandler(storeSceneRsp_t *pStoreSceneRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_zclGetSceneMembershipRspCmdHandler
+ * @fn      cloudsmets_zclGetSceneMembershipRspCmdHandler
  *
  * @brief   Handler for ZCL get scene membership response command.
  *
@@ -592,13 +592,13 @@ static void sampleSwitch_zclStoreSceneRspCmdHandler(storeSceneRsp_t *pStoreScene
  *
  * @return  None
  */
-static void sampleSwitch_zclGetSceneMembershipRspCmdHandler(getSceneMemRsp_t *pGetSceneMembershipRsp)
+static void cloudsmets_zclGetSceneMembershipRspCmdHandler(getSceneMemRsp_t *pGetSceneMembershipRsp)
 {
 
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_sceneCb
+ * @fn      cloudsmets_sceneCb
  *
  * @brief   Handler for ZCL Scene command.
  *
@@ -608,30 +608,30 @@ static void sampleSwitch_zclGetSceneMembershipRspCmdHandler(getSceneMemRsp_t *pG
  *
  * @return  status_t
  */
-status_t sampleSwitch_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(pAddrInfo->dstEp == SAMPLE_SWITCH_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_SCENE_ADD_SCENE_RSP:
 				case ZCL_CMD_SCENE_ENHANCED_ADD_SCENE_RSP:
-					sampleSwitch_zclAddSceneRspCmdHandler(cmdId, (addSceneRsp_t *)cmdPayload);
+					cloudsmets_zclAddSceneRspCmdHandler(cmdId, (addSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_VIEW_SCENE_RSP:
 				case ZCL_CMD_SCENE_ENHANCED_VIEW_SCENE_RSP:
-					sampleSwitch_zclViewSceneRspCmdHandler(cmdId, (viewSceneRsp_t *)cmdPayload);
+					cloudsmets_zclViewSceneRspCmdHandler(cmdId, (viewSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_REMOVE_SCENE_RSP:
-					sampleSwitch_zclRemoveSceneRspCmdHandler((removeSceneRsp_t *)cmdPayload);
+					cloudsmets_zclRemoveSceneRspCmdHandler((removeSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_REMOVE_ALL_SCENE_RSP:
-					sampleSwitch_zclRemoveAllSceneRspCmdHandler((removeAllSceneRsp_t *)cmdPayload);
+					cloudsmets_zclRemoveAllSceneRspCmdHandler((removeAllSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_STORE_SCENE_RSP:
-					sampleSwitch_zclStoreSceneRspCmdHandler((storeSceneRsp_t *)cmdPayload);
+					cloudsmets_zclStoreSceneRspCmdHandler((storeSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_GET_SCENE_MEMSHIP_RSP:
-					sampleSwitch_zclGetSceneMembershipRspCmdHandler((getSceneMemRsp_t *)cmdPayload);
+					cloudsmets_zclGetSceneMembershipRspCmdHandler((getSceneMemRsp_t *)cmdPayload);
 					break;
 				default:
 					break;
@@ -648,7 +648,7 @@ static ev_timer_event_t *zclFastPollTimeoutTimerEvt = NULL;
 static ev_timer_event_t *zclCheckInTimerEvt = NULL;
 static bool isFastPollMode = FALSE;
 
-void sampleSwitch_zclCheckInCmdSend(void)
+void cloudsmets_zclCheckInCmdSend(void)
 {
 	epInfo_t dstEpInfo;
 	TL_SETSTRUCTCONTENT(dstEpInfo, 0);
@@ -660,7 +660,7 @@ void sampleSwitch_zclCheckInCmdSend(void)
 	zcl_pollCtrl_checkInCmd(SAMPLE_SWITCH_ENDPOINT, &dstEpInfo, TRUE);
 }
 
-s32 sampleSwitch_zclCheckInTimerCb(void *arg)
+s32 cloudsmets_zclCheckInTimerCb(void *arg)
 {
 	zcl_pollCtrlAttr_t *pPollCtrlAttr = zcl_pollCtrlAttrGet();
 
@@ -669,27 +669,27 @@ s32 sampleSwitch_zclCheckInTimerCb(void *arg)
 		return -1;
 	}
 
-	sampleSwitch_zclCheckInCmdSend();
+	cloudsmets_zclCheckInCmdSend();
 
 	return 0;
 }
 
-void sampleSwitch_zclCheckInStart(void)
+void cloudsmets_zclCheckInStart(void)
 {
 	if(zb_bindingTblSearched(ZCL_CLUSTER_GEN_POLL_CONTROL, SAMPLE_SWITCH_ENDPOINT)){
 		zcl_pollCtrlAttr_t *pPollCtrlAttr = zcl_pollCtrlAttrGet();
 
 		if(!zclCheckInTimerEvt){
-			zclCheckInTimerEvt = TL_ZB_TIMER_SCHEDULE(sampleSwitch_zclCheckInTimerCb, NULL, pPollCtrlAttr->chkInInterval * POLL_RATE_QUARTERSECONDS);
-			
+			zclCheckInTimerEvt = TL_ZB_TIMER_SCHEDULE(cloudsmets_zclCheckInTimerCb, NULL, pPollCtrlAttr->chkInInterval * POLL_RATE_QUARTERSECONDS);
+
 			if(pPollCtrlAttr->chkInInterval){
-				sampleSwitch_zclCheckInCmdSend();
+				cloudsmets_zclCheckInCmdSend();
 			}
 		}
 	}
 }
 
-void sampleSwitch_zclSetFastPollMode(bool fastPollMode)
+void cloudsmets_zclSetFastPollMode(bool fastPollMode)
 {
 	zcl_pollCtrlAttr_t *pPollCtrlAttr = zcl_pollCtrlAttrGet();
 
@@ -699,15 +699,15 @@ void sampleSwitch_zclSetFastPollMode(bool fastPollMode)
 	zb_setPollRate(pollRate  * POLL_RATE_QUARTERSECONDS);
 }
 
-s32 sampleSwitch_zclFastPollTimeoutCb(void *arg)
+s32 cloudsmets_zclFastPollTimeoutCb(void *arg)
 {
-	sampleSwitch_zclSetFastPollMode(FALSE);
+	cloudsmets_zclSetFastPollMode(FALSE);
 
 	zclFastPollTimeoutTimerEvt = NULL;
 	return -1;
 }
 
-static status_t sampleSwitch_zclPollCtrlChkInRspCmdHandler(zcl_chkInRsp_t *pCmd)
+static status_t cloudsmets_zclPollCtrlChkInRspCmdHandler(zcl_chkInRsp_t *pCmd)
 {
 	zcl_pollCtrlAttr_t *pPollCtrlAttr = zcl_pollCtrlAttrGet();
 
@@ -731,9 +731,9 @@ static status_t sampleSwitch_zclPollCtrlChkInRspCmdHandler(zcl_chkInRsp_t *pCmd)
 		}
 
 		if(!zclFastPollTimeoutTimerEvt && fastPollTimeoutCnt){
-			sampleSwitch_zclSetFastPollMode(TRUE);
-			
-			zclFastPollTimeoutTimerEvt = TL_ZB_TIMER_SCHEDULE(sampleSwitch_zclFastPollTimeoutCb, NULL, fastPollTimeoutCnt * POLL_RATE_QUARTERSECONDS);
+			cloudsmets_zclSetFastPollMode(TRUE);
+
+			zclFastPollTimeoutTimerEvt = TL_ZB_TIMER_SCHEDULE(cloudsmets_zclFastPollTimeoutCb, NULL, fastPollTimeoutCnt * POLL_RATE_QUARTERSECONDS);
 		}
 	}else{
 		//continue in normal operation and not required to go into fast poll mode.
@@ -742,7 +742,7 @@ static status_t sampleSwitch_zclPollCtrlChkInRspCmdHandler(zcl_chkInRsp_t *pCmd)
 	return ZCL_STA_SUCCESS;
 }
 
-static status_t sampleSwitch_zclPollCtrlFastPollStopCmdHandler(void)
+static status_t cloudsmets_zclPollCtrlFastPollStopCmdHandler(void)
 {
 	if(!isFastPollMode){
 		return ZCL_STA_ACTION_DENIED;
@@ -750,13 +750,13 @@ static status_t sampleSwitch_zclPollCtrlFastPollStopCmdHandler(void)
 		if(zclFastPollTimeoutTimerEvt){
 			TL_ZB_TIMER_CANCEL(&zclFastPollTimeoutTimerEvt);
 		}
-		sampleSwitch_zclSetFastPollMode(FALSE);
+		cloudsmets_zclSetFastPollMode(FALSE);
 	}
 
 	return ZCL_STA_SUCCESS;
 }
 
-static status_t sampleSwitch_zclPollCtrlSetLongPollIntervalCmdHandler(zcl_setLongPollInterval_t *pCmd)
+static status_t cloudsmets_zclPollCtrlSetLongPollIntervalCmdHandler(zcl_setLongPollInterval_t *pCmd)
 {
 	zcl_pollCtrlAttr_t *pPollCtrlAttr = zcl_pollCtrlAttrGet();
 
@@ -771,7 +771,7 @@ static status_t sampleSwitch_zclPollCtrlSetLongPollIntervalCmdHandler(zcl_setLon
 	return ZCL_STA_SUCCESS;
 }
 
-static status_t sampleSwitch_zclPollCtrlSetShortPollIntervalCmdHandler(zcl_setShortPollInterval_t *pCmd)
+static status_t cloudsmets_zclPollCtrlSetShortPollIntervalCmdHandler(zcl_setShortPollInterval_t *pCmd)
 {
 	zcl_pollCtrlAttr_t *pPollCtrlAttr = zcl_pollCtrlAttrGet();
 
@@ -787,7 +787,7 @@ static status_t sampleSwitch_zclPollCtrlSetShortPollIntervalCmdHandler(zcl_setSh
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_pollCtrlCb
+ * @fn      cloudsmets_pollCtrlCb
  *
  * @brief   Handler for ZCL Poll Control command.
  *
@@ -797,7 +797,7 @@ static status_t sampleSwitch_zclPollCtrlSetShortPollIntervalCmdHandler(zcl_setSh
  *
  * @return  status_t
  */
-status_t sampleSwitch_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	status_t status = ZCL_STA_SUCCESS;
 
@@ -805,16 +805,16 @@ status_t sampleSwitch_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, voi
 		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
 			switch(cmdId){
 				case ZCL_CMD_CHK_IN_RSP:
-					status = sampleSwitch_zclPollCtrlChkInRspCmdHandler((zcl_chkInRsp_t *)cmdPayload);
+					status = cloudsmets_zclPollCtrlChkInRspCmdHandler((zcl_chkInRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_FAST_POLL_STOP:
-					status = sampleSwitch_zclPollCtrlFastPollStopCmdHandler();
+					status = cloudsmets_zclPollCtrlFastPollStopCmdHandler();
 					break;
 				case ZCL_CMD_SET_LONG_POLL_INTERVAL:
-					status = sampleSwitch_zclPollCtrlSetLongPollIntervalCmdHandler((zcl_setLongPollInterval_t *)cmdPayload);
+					status = cloudsmets_zclPollCtrlSetLongPollIntervalCmdHandler((zcl_setLongPollInterval_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SET_SHORT_POLL_INTERVAL:
-					status = sampleSwitch_zclPollCtrlSetShortPollIntervalCmdHandler((zcl_setShortPollInterval_t *)cmdPayload);
+					status = cloudsmets_zclPollCtrlSetShortPollIntervalCmdHandler((zcl_setShortPollInterval_t *)cmdPayload);
 					break;
 				default:
 					break;

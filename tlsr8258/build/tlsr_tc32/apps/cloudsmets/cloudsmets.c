@@ -1,7 +1,7 @@
 /********************************************************************************************************
- * @file    sampleSwitch.c
+ * @file    cloudsmets.c
  *
- * @brief   This is the source file for sampleSwitch
+ * @brief   This is the source file for cloudsmets
  *
  * @author  Zigbee Group
  * @date    2021
@@ -33,7 +33,7 @@
 #include "zcl_include.h"
 #include "bdb.h"
 #include "ota.h"
-#include "sampleSwitch.h"
+#include "cloudsmets.h"
 #include "app_ui.h"
 #if ZBHCI_EN
 #include "zbhci.h"
@@ -57,10 +57,10 @@ app_ctx_t g_switchAppCtx;
 
 
 #ifdef ZCL_OTA
-extern ota_callBack_t sampleSwitch_otaCb;
+extern ota_callBack_t cloudsmets_otaCb;
 
 //running code firmware information
-ota_preamble_t sampleSwitch_otaInfo = {
+ota_preamble_t cloudsmets_otaInfo = {
 	.fileVer 			= FILE_VERSION,
 	.imageType 			= IMAGE_TYPE,
 	.manufacturerCode 	= MANUFACTURER_CODE_TELINK,
@@ -73,8 +73,8 @@ const zdo_appIndCb_t appCbLst = {
 	bdb_zdoStartDevCnf,//start device cnf cb
 	NULL,//reset cnf cb
 	NULL,//device announce indication cb
-	sampleSwitch_leaveIndHandler,//leave ind cb
-	sampleSwitch_leaveCnfHandler,//leave cnf cb
+	cloudsmets_leaveIndHandler,//leave ind cb
+	cloudsmets_leaveCnfHandler,//leave cnf cb
 	NULL,//nwk update ind cb
 	NULL,//permit join ind cb
 	NULL,//nlme sync cnf cb
@@ -180,16 +180,16 @@ void user_app_init(void)
 
     /* Initialize ZCL layer */
 	/* Register Incoming ZCL Foundation command/response messages */
-	zcl_init(sampleSwitch_zclProcessIncomingMsg);
+	zcl_init(cloudsmets_zclProcessIncomingMsg);
 
 	/* register endPoint */
-	af_endpointRegister(SAMPLE_SWITCH_ENDPOINT, (af_simple_descriptor_t *)&sampleSwitch_simpleDesc, zcl_rx_handler, NULL);
+	af_endpointRegister(SAMPLE_SWITCH_ENDPOINT, (af_simple_descriptor_t *)&cloudsmets_simpleDesc, zcl_rx_handler, NULL);
 
 	/* Register ZCL specific cluster information */
-	zcl_register(SAMPLE_SWITCH_ENDPOINT, SAMPLE_SWITCH_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_sampleSwitchClusterList);
+	zcl_register(SAMPLE_SWITCH_ENDPOINT, SAMPLE_SWITCH_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_cloudsmetsClusterList);
 
 #if ZCL_OTA_SUPPORT
-    ota_init(OTA_TYPE_CLIENT, (af_simple_descriptor_t *)&sampleSwitch_simpleDesc, &sampleSwitch_otaInfo, &sampleSwitch_otaCb);
+    ota_init(OTA_TYPE_CLIENT, (af_simple_descriptor_t *)&cloudsmets_simpleDesc, &cloudsmets_otaInfo, &cloudsmets_otaCb);
 #endif
 }
 
@@ -213,7 +213,7 @@ void app_task(void)
 	}
 }
 
-static void sampleSwitchSysException(void)
+static void cloudsmetsSysException(void)
 {
 #if 1
 	SYSTEM_RESET();
@@ -257,7 +257,7 @@ void user_init(bool isRetention)
 		user_app_init();
 
 		/* Register except handler for test */
-		sys_exceptHandlerRegister(sampleSwitchSysException);
+		sys_exceptHandlerRegister(cloudsmetsSysException);
 
 		/* User's Task */
 #if ZBHCI_EN
@@ -275,7 +275,7 @@ void user_init(bool isRetention)
 
 		/* Initialize BDB */
 		u8 repower = drv_pm_deepSleep_flag_get() ? 0 : 1;
-		bdb_init((af_simple_descriptor_t *)&sampleSwitch_simpleDesc, &g_bdbCommissionSetting, &g_zbDemoBdbCb, repower);
+		bdb_init((af_simple_descriptor_t *)&cloudsmets_simpleDesc, &g_bdbCommissionSetting, &g_zbDemoBdbCb, repower);
 	}else{
 		/* Re-config phy when system recovery from deep sleep with retention */
 		mac_phyReconfig();

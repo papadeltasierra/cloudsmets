@@ -1,7 +1,7 @@
 /********************************************************************************************************
- * @file    sampleSwitch.h
+ * @file    cloudsmets.h
  *
- * @brief   This is the header file for sampleSwitch
+ * @brief   This is the header file for cloudsmets
  *
  * @author  Zigbee Group
  * @date    2021
@@ -103,8 +103,8 @@ extern bdb_appCb_t g_zbDemoBdbCb;
 extern bdb_commissionSetting_t g_bdbCommissionSetting;
 
 extern u8 SAMPLE_SWITCH_CB_CLUSTER_NUM;
-extern const zcl_specClusterInfo_t g_sampleSwitchClusterList[];
-extern const af_simple_descriptor_t sampleSwitch_simpleDesc;
+extern const zcl_specClusterInfo_t g_cloudsmetsClusterList[];
+extern const af_simple_descriptor_t cloudsmets_simpleDesc;
 
 /* Attributes */
 extern zcl_basicAttr_t g_zcl_basicAttrs;
@@ -115,16 +115,16 @@ extern zcl_pollCtrlAttr_t g_zcl_pollCtrlAttrs;
 /**********************************************************************
  * FUNCTIONS
  */
-void sampleSwitch_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg);
+void cloudsmets_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg);
 
-status_t sampleSwitch_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleSwitch_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleSwitch_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleSwitch_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleSwitch_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t cloudsmets_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t cloudsmets_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t cloudsmets_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t cloudsmets_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t cloudsmets_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 
-void sampleSwitch_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf);
-void sampleSwitch_leaveIndHandler(nlme_leave_ind_t *pLeaveInd);
-void sampleSwitch_otaProcessMsgHandler(u8 evt, u8 status);
+void cloudsmets_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf);
+void cloudsmets_leaveIndHandler(nlme_leave_ind_t *pLeaveInd);
+void cloudsmets_otaProcessMsgHandler(u8 evt, u8 status);
 
 #endif /* _SAMPLE_SWITCH_H_ */

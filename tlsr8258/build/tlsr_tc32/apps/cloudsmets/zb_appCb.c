@@ -33,7 +33,7 @@
 #include "zcl_include.h"
 #include "bdb.h"
 #include "ota.h"
-#include "sampleSwitch.h"
+#include "cloudsmets.h"
 #include "app_ui.h"
 
 /**********************************************************************
@@ -67,9 +67,9 @@ bdb_appCb_t g_zbDemoBdbCb =
 };
 
 #ifdef ZCL_OTA
-ota_callBack_t sampleSwitch_otaCb =
+ota_callBack_t cloudsmets_otaCb =
 {
-	sampleSwitch_otaProcessMsgHandler,
+	cloudsmets_otaProcessMsgHandler,
 };
 #endif
 
@@ -77,14 +77,14 @@ ota_callBack_t sampleSwitch_otaCb =
 /**********************************************************************
  * FUNCTIONS
  */
-s32 sampleSwitch_bdbNetworkSteerStart(void *arg){
+s32 cloudsmets_bdbNetworkSteerStart(void *arg){
 	bdb_networkSteerStart();
 
 	return -1;
 }
 
 #if FIND_AND_BIND_SUPPORT
-s32 sampleSwitch_bdbFindAndBindStart(void *arg){
+s32 cloudsmets_bdbFindAndBindStart(void *arg){
 	BDB_ATTR_GROUP_ID_SET(0x1234);//only for initiator
 	bdb_findAndBindStart(BDB_COMMISSIONING_ROLE_INITIATOR);
 
@@ -94,7 +94,7 @@ s32 sampleSwitch_bdbFindAndBindStart(void *arg){
 #endif
 
 ev_timer_event_t *switchRejoinBackoffTimerEvt = NULL;
-s32 sampleSwitch_rejoinBacckoff(void *arg){
+s32 cloudsmets_rejoinBacckoff(void *arg){
 	if(zb_isDeviceFactoryNew()){
 		switchRejoinBackoffTimerEvt = NULL;
 		return -1;
@@ -135,20 +135,20 @@ void zbdemo_bdbInitCb(u8 status, u8 joinedNetwork){
 #endif
 
 #ifdef ZCL_POLL_CTRL
-			sampleSwitch_zclCheckInStart();
+			cloudsmets_zclCheckInStart();
 #endif
 		}else{
 			u16 jitter = 0;
 			do{
 				jitter = zb_random() % 0x0fff;
 			}while(jitter == 0);
-			TL_ZB_TIMER_SCHEDULE(sampleSwitch_bdbNetworkSteerStart, NULL, jitter);
+			TL_ZB_TIMER_SCHEDULE(cloudsmets_bdbNetworkSteerStart, NULL, jitter);
 		}
 	}else{
 		if(joinedNetwork){
 //			zb_rejoinReqWithBackOff(zb_apsChannelMaskGet(), g_bdbAttrs.scanDuration);
 			if(!switchRejoinBackoffTimerEvt){
-				switchRejoinBackoffTimerEvt = TL_ZB_TIMER_SCHEDULE(sampleSwitch_rejoinBacckoff, NULL, 60 * 1000);
+				switchRejoinBackoffTimerEvt = TL_ZB_TIMER_SCHEDULE(cloudsmets_rejoinBacckoff, NULL, 60 * 1000);
 			}
 		}
 	}
@@ -175,7 +175,7 @@ void zbdemo_bdbCommissioningCb(u8 status, void *arg){
 			zb_setPollRate(POLL_RATE * 3);
 
 #ifdef ZCL_POLL_CTRL
-			sampleSwitch_zclCheckInStart();
+			cloudsmets_zclCheckInStart();
 #endif
 #ifdef ZCL_OTA
 			ota_queryStart(OTA_PERIODIC_QUERY_INTERVAL);
@@ -183,7 +183,7 @@ void zbdemo_bdbCommissioningCb(u8 status, void *arg){
 #if FIND_AND_BIND_SUPPORT
 			//start Finding & Binding
 			if(!g_switchAppCtx.bdbFBTimerEvt){
-				g_switchAppCtx.bdbFBTimerEvt = TL_ZB_TIMER_SCHEDULE(sampleSwitch_bdbFindAndBindStart, NULL, 50);
+				g_switchAppCtx.bdbFBTimerEvt = TL_ZB_TIMER_SCHEDULE(cloudsmets_bdbFindAndBindStart, NULL, 50);
 			}
 #endif
 			if(switchRejoinBackoffTimerEvt){
@@ -202,7 +202,7 @@ void zbdemo_bdbCommissioningCb(u8 status, void *arg){
 				do{
 					jitter = zb_random() % 0x0fff;
 				}while(jitter == 0);
-				TL_ZB_TIMER_SCHEDULE(sampleSwitch_bdbNetworkSteerStart, NULL, jitter);
+				TL_ZB_TIMER_SCHEDULE(cloudsmets_bdbNetworkSteerStart, NULL, jitter);
 			}
 			break;
 		case BDB_COMMISSION_STA_FORMATION_FAILURE:
@@ -222,7 +222,7 @@ void zbdemo_bdbCommissioningCb(u8 status, void *arg){
 			break;
 		case BDB_COMMISSION_STA_REJOIN_FAILURE:
 			if(!switchRejoinBackoffTimerEvt){
-				switchRejoinBackoffTimerEvt = TL_ZB_TIMER_SCHEDULE(sampleSwitch_rejoinBacckoff, NULL, 60 * 1000);
+				switchRejoinBackoffTimerEvt = TL_ZB_TIMER_SCHEDULE(cloudsmets_rejoinBacckoff, NULL, 60 * 1000);
 			}
 			break;
 		default:
@@ -231,10 +231,10 @@ void zbdemo_bdbCommissioningCb(u8 status, void *arg){
 }
 
 
-extern void sampleSwitch_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime);
+extern void cloudsmets_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime);
 void zbdemo_bdbIdentifyCb(u8 endpoint, u16 srcAddr, u16 identifyTime){
 #if FIND_AND_BIND_SUPPORT
-	sampleSwitch_zclIdentifyCmdHandler(endpoint, srcAddr, identifyTime);
+	cloudsmets_zclIdentifyCmdHandler(endpoint, srcAddr, identifyTime);
 #endif
 }
 
@@ -264,9 +264,9 @@ void zbdemo_bdbFindBindSuccessCb(findBindDst_t *pDstInfo){
 
 
 #ifdef ZCL_OTA
-void sampleSwitch_otaProcessMsgHandler(u8 evt, u8 status)
+void cloudsmets_otaProcessMsgHandler(u8 evt, u8 status)
 {
-	//printf("sampleSwitch_otaProcessMsgHandler: status = %x\n", status);
+	//printf("cloudsmets_otaProcessMsgHandler: status = %x\n", status);
 	if(evt == OTA_EVT_START){
 		if(status == ZCL_STA_SUCCESS){
 			zb_setPollRate(QUEUE_POLL_RATE);
@@ -286,7 +286,7 @@ void sampleSwitch_otaProcessMsgHandler(u8 evt, u8 status)
 #endif
 
 /*********************************************************************
- * @fn      sampleSwitch_leaveCnfHandler
+ * @fn      cloudsmets_leaveCnfHandler
  *
  * @brief   Handler for ZDO Leave Confirm message.
  *
@@ -294,7 +294,7 @@ void sampleSwitch_otaProcessMsgHandler(u8 evt, u8 status)
  *
  * @return  None
  */
-void sampleSwitch_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf)
+void cloudsmets_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf)
 {
     if(pLeaveCnf->status == SUCCESS){
     	//SYSTEM_RESET();
@@ -306,7 +306,7 @@ void sampleSwitch_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf)
 }
 
 /*********************************************************************
- * @fn      sampleSwitch_leaveIndHandler
+ * @fn      cloudsmets_leaveIndHandler
  *
  * @brief   Handler for ZDO leave indication message.
  *
@@ -314,9 +314,9 @@ void sampleSwitch_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf)
  *
  * @return  None
  */
-void sampleSwitch_leaveIndHandler(nlme_leave_ind_t *pLeaveInd)
+void cloudsmets_leaveIndHandler(nlme_leave_ind_t *pLeaveInd)
 {
-    //printf("sampleSwitch_leaveIndHandler, rejoin = %d\n", pLeaveInd->rejoin);
+    //printf("cloudsmets_leaveIndHandler, rejoin = %d\n", pLeaveInd->rejoin);
     //printfArray(pLeaveInd->device_address, 8);
 }
 
