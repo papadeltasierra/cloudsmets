@@ -43,12 +43,11 @@ extern "C" {
 #define	UART_PRINTF_MODE				0
 #define USB_PRINTF_MODE         		0
 
-/* HCI interface */
-#define	ZBHCI_UART						0
+/* PM */
+#define PM_ENABLE						1
 
-/* RGB or CCT */
-#define COLOR_RGB_SUPPORT				0
-#define COLOR_CCT_SUPPORT				1
+/* PA */
+#define PA_ENABLE						0
 
 /* BDB */
 #define TOUCHLINK_SUPPORT				1
@@ -57,17 +56,22 @@ extern "C" {
 /* Board ID */
 #define BOARD_826x_EVK					0
 #define BOARD_826x_DONGLE				1
-#define BOARD_8258_EVK					2
-#define BOARD_8258_EVK_V1P2				3//C1T139A30_V1.2
-#define BOARD_8258_DONGLE				4
-#define BOARD_8278_EVK					5
-#define BOARD_8278_DONGLE				6
-#define BOARD_B91_EVK					7
-#define BOARD_B91_DONGLE				8
+#define BOARD_826x_DONGLE_PA			2
+#define BOARD_8258_EVK					3
+#define BOARD_8258_EVK_V1P2				4//C1T139A30_V1.2
+#define BOARD_8258_DONGLE				5
+#define BOARD_8278_EVK					6
+#define BOARD_8278_DONGLE				7
+#define BOARD_B91_EVK					8
+#define BOARD_B91_DONGLE				9
 
 /* Board define */
 #if defined(MCU_CORE_826x)
+#if !PA_ENABLE
 	#define BOARD						BOARD_826x_DONGLE
+#else
+	#define BOARD						BOARD_826x_DONGLE_PA
+#endif
 	#define CLOCK_SYS_CLOCK_HZ  		32000000
 #elif defined(MCU_CORE_8258)
 #if (CHIP_TYPE == TLSR_8258_1M)
@@ -90,17 +94,19 @@ extern "C" {
 /* Board include */
 #if (BOARD == BOARD_826x_EVK)
 	#include "board_826x_evk.h"
-#elif(BOARD == BOARD_826x_DONGLE)
+#elif (BOARD == BOARD_826x_DONGLE)
 	#include "board_826x_dongle.h"
-#elif(BOARD == BOARD_8258_DONGLE)
+#elif (BOARD == BOARD_826x_DONGLE_PA)
+	#include "board_826x_dongle_pa.h"
+#elif (BOARD == BOARD_8258_DONGLE)
 	#include "board_8258_dongle.h"
-#elif(BOARD == BOARD_8258_EVK)
+#elif (BOARD == BOARD_8258_EVK)
 	#include "board_8258_evk.h"
 #elif (BOARD == BOARD_8258_EVK_V1P2)
 	#include "board_8258_evk_v1p2.h"
-#elif(BOARD == BOARD_8278_EVK)
+#elif (BOARD == BOARD_8278_EVK)
 	#include "board_8278_evk.h"
-#elif(BOARD == BOARD_8278_DONGLE)
+#elif (BOARD == BOARD_8278_DONGLE)
 	#include "board_8278_dongle.h"
 #elif (BOARD == BOARD_B91_EVK)
 	#include "board_b91_evk.h"
@@ -133,9 +139,7 @@ extern "C" {
 #define MODULE_WATCHDOG_ENABLE						0
 
 /* UART module */
-#if ZBHCI_UART
-#define	MODULE_UART_ENABLE							1
-#endif
+#define	MODULE_UART_ENABLE							0
 
 #if (ZBHCI_USB_PRINT || ZBHCI_USB_CDC || ZBHCI_USB_HID || ZBHCI_UART)
 	#define ZBHCI_EN								1
@@ -147,19 +151,12 @@ extern "C" {
  */
 #define ZCL_ON_OFF_SUPPORT							1
 #define ZCL_LEVEL_CTRL_SUPPORT						1
-#if (COLOR_RGB_SUPPORT || COLOR_CCT_SUPPORT)
 #define ZCL_LIGHT_COLOR_CONTROL_SUPPORT				1
-#endif
 #define ZCL_GROUP_SUPPORT							1
-#define ZCL_SCENE_SUPPORT							1
 #define ZCL_OTA_SUPPORT								1
-#define ZCL_GP_SUPPORT								1
-#define ZCL_WWAH_SUPPORT							0
 #if TOUCHLINK_SUPPORT
 #define ZCL_ZLL_COMMISSIONING_SUPPORT				1
 #endif
-
-#define AF_TEST_ENABLE								0
 
 
 /**********************************************************************

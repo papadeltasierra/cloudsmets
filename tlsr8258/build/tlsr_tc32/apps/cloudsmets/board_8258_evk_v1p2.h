@@ -43,101 +43,29 @@ extern "C" {
 #define PB3_INPUT_ENABLE	  		1
 #define	PULL_WAKEUP_SRC_PB3	  		PM_PIN_PULLDOWN_100K
 
-#define BUTTON3               		GPIO_PB4
+
 #define PB4_FUNC			  		AS_GPIO
 #define PB4_OUTPUT_ENABLE	  		0
 #define PB4_INPUT_ENABLE	  		1
 #define	PULL_WAKEUP_SRC_PB4	  		PM_PIN_PULLUP_10K
 
-#define BUTTON4               		GPIO_PB5
 #define PB5_FUNC			  		AS_GPIO
 #define PB5_OUTPUT_ENABLE	  		0
 #define PB5_INPUT_ENABLE	  		1
 #define	PULL_WAKEUP_SRC_PB5	  		PM_PIN_PULLUP_10K
 
 // LED
-/***************************************************************
-* LED_R			GPIO_PD5	//D4 -- red			PWM0
-* LED_G			GPIO_PD3	//D2 -- green		PWM1_N
-* LED_B			GPIO_PD2	//D1 -- blue		PWM3
-* LED_W			GPIO_PD4	//D3 -- white		PWM2_N
-****************************************************************/
-#if defined COLOR_RGB_SUPPORT && (COLOR_RGB_SUPPORT == 1)
-
-#define LED_R						GPIO_PD5	//D4 -- red			PWM0
-#define LED_G						GPIO_PD3	//D2 -- green		PWM1_N
-#define LED_B						GPIO_PD2	//D1 -- blue		PWM3
-
-#define PWM_R_CHANNEL				0//PWM0
-#define PWM_R_CHANNEL_SET()			do{	\
-										gpio_set_func(LED_R, AS_PWM0); 		\
-									}while(0)
-
-#define PWM_G_CHANNEL				1//PWM1_N
-#define PWM_G_CHANNEL_SET()			do{	\
-										gpio_set_func(LED_G, AS_PWM1_N); 	\
-										drv_pwm_n_invert(PWM_G_CHANNEL); 	\
-									}while(0)
-
-#define PWM_B_CHANNEL				3//PWM3
-#define PWM_B_CHANNEL_SET()			do{	\
-										gpio_set_func(LED_B, AS_PWM3); 		\
-									}while(0)
-
-#define R_LIGHT_PWM_CHANNEL			PWM_R_CHANNEL
-#define G_LIGHT_PWM_CHANNEL			PWM_G_CHANNEL
-#define B_LIGHT_PWM_CHANNEL			PWM_B_CHANNEL
-#define R_LIGHT_PWM_SET()			PWM_R_CHANNEL_SET()
-#define G_LIGHT_PWM_SET()			PWM_G_CHANNEL_SET()
-#define B_LIGHT_PWM_SET()			PWM_B_CHANNEL_SET()
-
-#define LED_W						GPIO_PD4
-
-#define PD4_FUNC					AS_GPIO
-#define PD4_OUTPUT_ENABLE			1
-#define PD4_INPUT_ENABLE			0
-
-#define LED_POWER					NULL
-#define LED_PERMIT					LED_W
-
-#else
-
-//PWM configuration, LED_B as warm light, LED_W as cool light.
-#define LED_B						GPIO_PD2	//D1 -- blue		PWM3
-#define LED_W						GPIO_PD4	//D3 -- white		PWM2_N
-
-#define PWM_B_CHANNEL				3//PWM3
-#define PWM_B_CHANNEL_SET()			do{	\
-										gpio_set_func(LED_B, AS_PWM3); 		\
-									}while(0)
-
-#define PWM_W_CHANNEL				2//PWM2_N
-#define PWM_W_CHANNEL_SET()			do{	\
-										gpio_set_func(LED_W, AS_PWM2_N); 	\
-										drv_pwm_n_invert(PWM_W_CHANNEL); 	\
-									}while(0)
-
-#define WARM_LIGHT_PWM_CHANNEL		PWM_B_CHANNEL
-#define COOL_LIGHT_PWM_CHANNEL		PWM_W_CHANNEL
-#define WARM_LIGHT_PWM_SET()		PWM_B_CHANNEL_SET()
-#define COOL_LIGHT_PWM_SET()		PWM_W_CHANNEL_SET()
-
-//LED_R and LED_G as GPIO.
-#define LED_R						GPIO_PD5
-#define LED_G						GPIO_PD3
-
+#define LED1     					GPIO_PD5
 #define PD5_FUNC					AS_GPIO
 #define PD5_OUTPUT_ENABLE			1
 #define PD5_INPUT_ENABLE			0
 
+#define LED3     					GPIO_PD3
 #define PD3_FUNC					AS_GPIO
 #define PD3_OUTPUT_ENABLE			1
 #define PD3_INPUT_ENABLE			0
 
-#define LED_POWER					LED_R
-#define LED_PERMIT					LED_G
-
-#endif
+#define	PM_WAKEUP_LEVEL		  		PM_WAKEUP_LEVEL_HIGH
 
 // UART
 #if ZBHCI_UART

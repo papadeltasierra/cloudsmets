@@ -30,67 +30,31 @@
 extern "C" {
 #endif
 
-
 // BUTTON
-#define BUTTON1               GPIO_PD1
-#define PD1_FUNC			  AS_GPIO
-#define PD1_OUTPUT_ENABLE	  0
-#define PD1_INPUT_ENABLE	  1
-#define	PULL_WAKEUP_SRC_PD1	  PM_PIN_PULLUP_10K
+#define BUTTON1               		GPIO_PD1
+#define PD1_FUNC			  		AS_GPIO
+#define PD1_OUTPUT_ENABLE	  		0
+#define PD1_INPUT_ENABLE	  		1
+#define	PULL_WAKEUP_SRC_PD1	  		PM_PIN_PULLUP_10K
 
-#define BUTTON2               GPIO_PD2
-#define PD2_FUNC			  AS_GPIO
-#define PD2_OUTPUT_ENABLE	  0
-#define PD2_INPUT_ENABLE	  1
-#define	PULL_WAKEUP_SRC_PD2	  PM_PIN_PULLUP_10K
+#define BUTTON2               		GPIO_PD2
+#define PD2_FUNC			  		AS_GPIO
+#define PD2_OUTPUT_ENABLE	  		0
+#define PD2_INPUT_ENABLE	  		1
+#define	PULL_WAKEUP_SRC_PD2	  		PM_PIN_PULLUP_10K
 
 // LED
-/***************************************************************
-* LED_R			GPIO_PD0	//D5 -- red
-* LED_G			GPIO_PD4	//D3 -- green
-* LED_B			GPIO_PD5	//D2 -- blue
-* LED_W			GPIO_PD3	//D4 -- yellow
-****************************************************************/
-#if defined COLOR_RGB_SUPPORT && (COLOR_RGB_SUPPORT == 1)
-	#error "GPIO_PD0 can't be configured as PWM!"
-#else
+#define LED1     					GPIO_PD3
+#define PD3_FUNC					AS_GPIO
+#define PD3_OUTPUT_ENABLE			1
+#define PD3_INPUT_ENABLE			0
 
-//PWM configuration, LED_B as warm light, LED_W as cool light.
-#define LED_B						GPIO_PD5	//D2 -- blue		PWM0
-#define LED_W						GPIO_PD3	//D4 -- yellow		PWM1_N
-
-#define PWM_W_CHANNEL				1	//PWM1_N
-#define PWM_W_CHANNEL_SET()			do{ \
-										gpio_set_func(LED_W, AS_PWM1_N); \
-										drv_pwm_n_invert(PWM_W_CHANNEL); \
-									}while(0)
-
-#define PWM_B_CHANNEL				0	//PWM0
-#define PWM_B_CHANNEL_SET()			do{ \
-										gpio_set_func(LED_B, AS_PWM0); \
-									}while(0)
-
-#define WARM_LIGHT_PWM_CHANNEL		PWM_B_CHANNEL
-#define COOL_LIGHT_PWM_CHANNEL		PWM_W_CHANNEL
-#define WARM_LIGHT_PWM_SET()		PWM_B_CHANNEL_SET()
-#define COOL_LIGHT_PWM_SET()		PWM_W_CHANNEL_SET()
-
-//LED_R and LED_G as GPIO.
-#define LED_R						GPIO_PD0
-#define LED_G						GPIO_PD4
-
+#define LED3     					GPIO_PD4
 #define PD4_FUNC					AS_GPIO
 #define PD4_OUTPUT_ENABLE			1
 #define PD4_INPUT_ENABLE			0
 
-#define PD0_FUNC					AS_GPIO
-#define PD0_OUTPUT_ENABLE			1
-#define PD0_INPUT_ENABLE			0
-
-#define LED_POWER					LED_R
-#define LED_PERMIT					LED_G
-
-#endif
+#define	PM_WAKEUP_LEVEL		  		PM_WAKEUP_LEVEL_LOW
 
 // UART
 #if ZBHCI_UART
