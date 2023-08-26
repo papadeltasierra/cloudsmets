@@ -58,6 +58,7 @@
  */
 #define ZCL_REPORTING_TABLE_NUM					4
 
+//!!PDS: What are scenes?  Do we need something else for SMETS?
 /**
  *  @brief  ZCL: maximum number for zcl scene table
  *

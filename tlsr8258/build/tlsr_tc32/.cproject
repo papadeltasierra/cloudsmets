@@ -51,7 +51,7 @@
 								<option id="com.telink.tc32eclipse.compiler.option.def.880911247" name="Define Syms (-D)" superClass="com.telink.tc32eclipse.compiler.option.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="END_DEVICE=1"/>
 									<listOptionValue builtIn="false" value="MCU_CORE_8258=1"/>
-									<listOptionValue builtIn="false" value="__PROJECT_TL_SWITCH__=1"/>
+									<listOptionValue builtIn="false" value="__PROJECT_CLOUDSMETS__=1"/>
 								</option>
 								<option id="com.telink.tc32eclipse.compiler.option.optimize.packstruct.1323014162" name="Pack structs (-fpack-struct)" superClass="com.telink.tc32eclipse.compiler.option.optimize.packstruct" value="true" valueType="boolean"/>
 								<option id="com.telink.tc32eclipse.compiler.option.optimize.shortenums.209104600" name="Short enums (-fshort-enums)" superClass="com.telink.tc32eclipse.compiler.option.optimize.shortenums" value="true" valueType="boolean"/>
@@ -118,7 +118,7 @@
 								<option id="com.telink.tc32eclipse.compiler.option.def.1922970608" name="Define Syms (-D)" superClass="com.telink.tc32eclipse.compiler.option.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="END_DEVICE=1"/>
 									<listOptionValue builtIn="false" value="MCU_CORE_8258=1"/>
-									<listOptionValue builtIn="false" value="__PROJECT_TL_SWITCH__=1"/>
+									<listOptionValue builtIn="false" value="__PROJECT_CLOUDSMETS__=1"/>
 								</option>
 								<option id="com.telink.tc32eclipse.compiler.option.optimize.1094931664" name="Optimization Level" superClass="com.telink.tc32eclipse.compiler.option.optimize" value="com.telink.tc32eclipse.compiler.optimize.two" valueType="enumerated"/>
 								<option id="com.telink.tc32eclipse.compiler.option.optimize.packstruct.1026186730" name="Pack structs (-fpack-struct)" superClass="com.telink.tc32eclipse.compiler.option.optimize.packstruct" value="true" valueType="boolean"/>
@@ -152,7 +152,7 @@
 								<option id="com.telink.tc32eclipse.compiler.option.def.1811691539" name="Define Syms (-D)" superClass="com.telink.tc32eclipse.compiler.option.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="END_DEVICE=1"/>
 									<listOptionValue builtIn="false" value="MCU_CORE_8258=1"/>
-									<listOptionValue builtIn="false" value="__PROJECT_TL_SWITCH__=1"/>
+									<listOptionValue builtIn="false" value="__PROJECT_CLOUDSMETS__=1"/>
 								</option>
 								<option id="com.telink.tc32eclipse.compiler.option.optimize.other.103184015" name="Other Optimization Flags" superClass="com.telink.tc32eclipse.compiler.option.optimize.other" value="-finline-small-functions" valueType="string"/>
 								<option id="com.telink.tc32eclipse.compiler.option.incpath.120836870" superClass="com.telink.tc32eclipse.compiler.option.incpath" valueType="includePath">

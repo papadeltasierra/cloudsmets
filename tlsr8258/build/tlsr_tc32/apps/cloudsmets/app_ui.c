@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_SWITCH__)
+#if (__PROJECT_CLOUDSMETS__)
 
 /**********************************************************************
  * INCLUDES
@@ -281,4 +281,4 @@ void app_key_handler(void){
 }
 #endif  /* CLOUDSMETS */
 
-#endif  /* __PROJECT_TL_SWITCH__ */
+#endif  /* __PROJECT_CLOUDSMETS__ */

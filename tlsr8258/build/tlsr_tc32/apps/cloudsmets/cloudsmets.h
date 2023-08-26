@@ -23,9 +23,12 @@
  *
  *******************************************************************************************************/
 
-#ifndef _SAMPLE_SWITCH_H_
-#define _SAMPLE_SWITCH_H_
+#ifndef _CLOUDSMETS_H_
+#define _CLOUDSMETS_H_
 
+
+#ifndef (__PROJECT_CLOUDSMETS__)
+//!!PDS: Not required for Cloudsmets.
 
 /**********************************************************************
  * CONSTANT
@@ -58,6 +61,7 @@ typedef struct{
 
 	app_linkKey_info_t tcLinkKey;
 }app_ctx_t;
+#endif /* __PROJECT_CLOUDSMETS__ */
 
 /**
  *  @brief Defined for basic cluster attributes
@@ -80,6 +84,8 @@ typedef struct{
 	u16	identifyTime;
 }zcl_identifyAttr_t;
 
+#ifndef __PROJECT_CLOUDSMETS__
+//!!PDS: Not required.
 /**
  *  @brief  Defined for poll control cluster attributes
  */
@@ -92,6 +98,8 @@ typedef struct{
 	u16	fastPollTimeout;
 	u16	fastPollTimeoutMax;
 }zcl_pollCtrlAttr_t;
+
+#endif /* __PROJECT_CLOUDSMETS__ */
 
 /**********************************************************************
  * GLOBAL VARIABLES
@@ -127,4 +135,4 @@ void cloudsmets_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf);
 void cloudsmets_leaveIndHandler(nlme_leave_ind_t *pLeaveInd);
 void cloudsmets_otaProcessMsgHandler(u8 evt, u8 status);
 
-#endif /* _SAMPLE_SWITCH_H_ */
+#endif /* _CLOUDSMETS_H_ */

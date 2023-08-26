@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_SWITCH__)
+#if (__PROJECT_CLOUDSMETS__)
 
 /**********************************************************************
  * INCLUDES
@@ -285,4 +285,4 @@ void user_init(bool isRetention)
 	}
 }
 
-#endif  /* __PROJECT_TL_SWITCH__ */
+#endif  /* __PROJECT_CLOUDSMETS__ */

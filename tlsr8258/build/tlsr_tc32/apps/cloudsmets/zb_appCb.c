@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_SWITCH__)
+#if (__PROJECT_CLOUDSMETS__)
 
 /**********************************************************************
  * INCLUDES
@@ -321,4 +321,4 @@ void cloudsmets_leaveIndHandler(nlme_leave_ind_t *pLeaveInd)
 }
 
 
-#endif  /* __PROJECT_TL_SWITCH__ */
+#endif  /* __PROJECT_CLOUDSMETS__ */

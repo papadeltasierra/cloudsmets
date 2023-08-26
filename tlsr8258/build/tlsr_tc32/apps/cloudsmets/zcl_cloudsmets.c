@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_SWITCH__)
+#if (__PROJECT_CLOUDSMETS__)
 
 /**********************************************************************
  * INCLUDES
@@ -827,4 +827,4 @@ status_t cloudsmets_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void 
 #endif	/* ZCL_POLL_CTRL */
 
 
-#endif  /* __PROJECT_TL_SWITCH__ */
+#endif  /* __PROJECT_CLOUDSMETS__ */

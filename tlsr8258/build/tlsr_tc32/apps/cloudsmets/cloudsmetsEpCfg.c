@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_SWITCH__)
+#if (__PROJECT_CLOUDSMETS__)
 
 /**********************************************************************
  * INCLUDES
@@ -35,12 +35,21 @@
 /**********************************************************************
  * LOCAL CONSTANTS
  */
+#if (__PROJECT_CLOUDSMETS__)
 #ifndef ZCL_BASIC_MFG_NAME
 #define ZCL_BASIC_MFG_NAME     {6,'T','E','L','I','N','K'}
 #endif
 #ifndef ZCL_BASIC_MODEL_ID
 #define ZCL_BASIC_MODEL_ID	   {8,'T','L','S','R','8','2','x','x'}
 #endif
+#else
+#ifndef ZCL_BASIC_MFG_NAME
+#define ZCL_BASIC_MFG_NAME     {10,'C','L','O','U','D','S','M','E','T','S'}
+#endif
+#ifndef ZCL_BASIC_MODEL_ID
+#define ZCL_BASIC_MODEL_ID	   {3,'1','0','0'}
+#endif
+#endif /* __PROJECT_CLOUDSMETS__ */
 
 
 /**********************************************************************
@@ -63,6 +72,7 @@ const u16 cloudsmets_inClusterList[] =
 #endif
 };
 
+//!!PDS: These have to change for SMETS.
 /**
  *  @brief Definition for Outgoing cluster / Client Cluster
  */
@@ -94,6 +104,7 @@ const u16 cloudsmets_outClusterList[] =
 #define cloudsmets_IN_CLUSTER_NUM		(sizeof(cloudsmets_inClusterList)/sizeof(cloudsmets_inClusterList[0]))
 #define cloudsmets_OUT_CLUSTER_NUM	(sizeof(cloudsmets_outClusterList)/sizeof(cloudsmets_outClusterList[0]))
 
+//!!PDS: what is this?
 /**
  *  @brief Definition for simple description for HA profile
  */
@@ -185,6 +196,7 @@ const zclAttrInfo_t pollCtrl_attrTbl[] =
 #define	ZCL_POLLCTRL_ATTR_NUM			sizeof(pollCtrl_attrTbl) / sizeof(zclAttrInfo_t)
 #endif
 
+//!!PDS: will need to change.
 /**
  *  @brief Definition for simple switch ZCL specific cluster
  */
@@ -212,4 +224,4 @@ u8 SAMPLE_SWITCH_CB_CLUSTER_NUM = (sizeof(g_cloudsmetsClusterList)/sizeof(g_clou
 
 
 
-#endif	/* __PROJECT_TL_SWITCH__ */
+#endif	/* __PROJECT_CLOUDSMETS__ */
