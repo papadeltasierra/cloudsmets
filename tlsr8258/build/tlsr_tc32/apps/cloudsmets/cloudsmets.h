@@ -27,7 +27,7 @@
 #define _CLOUDSMETS_H_
 
 
-#ifndef (__PROJECT_CLOUDSMETS__)
+#ifndef __PROJECT_CLOUDSMETS__
 //!!PDS: Not required for Cloudsmets.
 
 /**********************************************************************
