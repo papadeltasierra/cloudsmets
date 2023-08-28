@@ -20,11 +20,20 @@ Bottom (sending over serial port) downwards...
 
 #### Using Time as an Example...
 > This works differently to _Scenes_ - why
+- `time_attrTbl[]` defines time attributes and the location of storage varialbles
+    - Type is `zclAttrInfo_t`
+- `zcl_time_attrNum` defines the number of time attributes
 
+> There appears to be no references to these variables!
+>
+> **But see `g_sampleGwClusterList[]` which seems to use one, or the other, ways of relating to the attributes.  Compare `Time` to `Scene`.**
 
-??????????????????
+- `zcl_specClusterInfo_t`
+    - Uses **either** of:
+        - `zclAttrInfo_t *attrTbl`, table of attributes (`Time` uses this)
+        - `cluster_forAppCb_t clusterAppCb`, cluster processing commands (`Scene` uses this)
 
-
+> If we want CloudSMETS to send the UTC time (and BST?) to the ESP32-C3 then we probably want to use a `cluster_forAppCb_t` instead of the attribute table.
 
 #### Using Scenes as an Example...
 > This works differently to _Time_ - why?
