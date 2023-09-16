@@ -196,12 +196,31 @@ const zclAttrInfo_t pollCtrl_attrTbl[] =
 #define	ZCL_POLLCTRL_ATTR_NUM			sizeof(pollCtrl_attrTbl) / sizeof(zclAttrInfo_t)
 #endif
 
-//!!PDS: will need to change.
+/* Basic */
+zcl_timeAttr_t g_zcl_timeAttrs =
+{
+	.time		= 0,
+	.localTime 	= 0,
+};
+
+const zclAttrInfo_t time_attrTbl[] =
+{
+	{ ZCL_ATTRID_TIME,      		ZCL_DATA_TYPE_UTC,    ACCESS_CONTROL_READ,	(u32*)&g_zcl_timeAttrs.time},
+	{ ZCL_ATTRID_LOCAL_TIME,      	ZCL_DATA_TYPE_UTC,    ACCESS_CONTROL_READ,  (u32*)&g_zcl_timeAttrs.localTime}
+};
+
+#define ZCL_TIME_ATTR_NUM	  sizeof(time_attrTbl) / sizeof(zclAttrInfo_t)
+
 /**
- *  @brief Definition for simple switch ZCL specific cluster
+ *  @brief Definition for CloudSMETS specific cluster
  */
 const zcl_specClusterInfo_t g_cloudsmetsClusterList[] =
 {
+#if 1
+	{ZCL_CLUSTER_GEN_TIME,			MANUFACTURER_CODE_NONE,	ZCL_TIME_ATTR_NUM, 	time_attrTbl,  	zcl_time_register,		cloudsmets_timeCb},
+	{ZCL_CLUSTER_SE_METERING,		MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		NULL},
+#else
+//!!PDS: Remove this and referenced code.
 	{ZCL_CLUSTER_GEN_BASIC,			MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		cloudsmets_basicCb},
 	{ZCL_CLUSTER_GEN_IDENTIFY,		MANUFACTURER_CODE_NONE,	ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	cloudsmets_identifyCb},
 #ifdef ZCL_GROUP
@@ -212,6 +231,7 @@ const zcl_specClusterInfo_t g_cloudsmetsClusterList[] =
 #endif
 #ifdef ZCL_POLL_CTRL
 	{ZCL_CLUSTER_GEN_POLL_CONTROL,	MANUFACTURER_CODE_NONE,	ZCL_POLLCTRL_ATTR_NUM,	pollCtrl_attrTbl, 	zcl_pollCtrl_register, 	cloudsmets_pollCtrlCb},
+#endif
 #endif
 };
 

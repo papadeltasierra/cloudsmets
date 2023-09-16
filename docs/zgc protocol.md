@@ -1,7 +1,23 @@
 # Zigbee Gateway Controller (ZGC) Protocol
+## One of Two Ways!
+The ZGC processing either:
+1. Processes attrbutes directly into variables or
+1. Processes attributes into structures that can then be serialized and passed over the zhci interface.
 
-## Following Scene processing
-Bottom (sending over serial port) downwards...
+Standard processing ot `time` attributes is an example of _straight to variable_ whilst processing of `scene` attributes is an example of _process to structure then serialize_.
+
+## Time Processing from the bottom up
+- There are no example of using the time attributes in the [Telink ZigBee SDK].
+- 10 attributes are defined in `zcl_time.h`.
+- Refer to the [ZigBee Cluster Library], section 3.12, Time.
+    - Attributes are defined in 3.12.2.2, Attributes.
+
+Since `time` only has attributes and no commands, it appears that the processing used by `scene` is not required as only a single attribute is ever requested or received.
+
+> It is not clear how we might be expected to pass this information over the `zbhci`.
+
+## Scheme Processing from the bottom up
+`zbhciTx` sends the serialized `scene` information to the `zbhci` client over a serial port.
 
 - zbhciTx(ZBHCI_CMD_ZCL_SCENE_REMOVE_ALL_RSP, pBuf - array, array);
     - sampleGW_zclRemoveAllSceneRspCmdHandler
@@ -20,7 +36,7 @@ Bottom (sending over serial port) downwards...
 
 #### Using Time as an Example...
 > This works differently to _Scenes_ - why
-- `time_attrTbl[]` defines time attributes and the location of storage varialbles
+- `time_attrTbl[]` defines time attributes and the location of storage variables
     - Type is `zclAttrInfo_t`
 - `zcl_time_attrNum` defines the number of time attributes
 
@@ -95,5 +111,4 @@ Bottom (sending over serial port) downwards...
 
 [ZigBee Cluster Library]: https://zigbeealliance.org/wp-content/uploads/2021/10/07-5123-08-Zigbee-Cluster-Library.pdf
 [Telink ZigBee SDK]: http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip
-
-
+[ESP-C3]: ??? insert ref here ???

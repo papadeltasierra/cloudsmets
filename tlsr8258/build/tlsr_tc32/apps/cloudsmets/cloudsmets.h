@@ -125,11 +125,7 @@ extern zcl_pollCtrlAttr_t g_zcl_pollCtrlAttrs;
  */
 void cloudsmets_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg);
 
-status_t cloudsmets_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t cloudsmets_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t cloudsmets_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t cloudsmets_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t cloudsmets_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t cloudsmets_timeCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 
 void cloudsmets_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf);
 void cloudsmets_leaveIndHandler(nlme_leave_ind_t *pLeaveInd);
