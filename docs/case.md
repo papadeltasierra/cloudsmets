@@ -12,6 +12,8 @@ There is a section on the logic of the design process and some notes on elements
 The final case has these characteristics:
 - It is a snug fit for the LilyGo T-Zigbee board
 - It consists of a base and a cover
+- The base and cover sccrew together using 3.0mm self-tapping screws
+- The PCB is clamped between the base and cover when the two are screwed together
 - There are `cut-outs` for:
     - The USB charger port
     - The (ESP-C3) `Key` button
@@ -76,11 +78,33 @@ It is important that we know the dimensions of the LilyGo T-ZigBee PCB before we
 [Fusion 360] is used to design case using the following logical steps.
 1. A (body), herby referred to as the "PCB", is created which minics the LilyGo T-ZigBee board.  The PCB is then used to provide reference points around which the base and cover can be designed.  For example the USB socket is designed as part of this box, then the cover is extruded around the USB socket.
 
-### Create the Base
-x
+> Note that we do not always use the PCB to do things like cut the holes into the top-cover but at the end we can put all three objects (base, cover, PCB) together and prove that they "fit".
 
-### Crease the Cover
-x
+### Create the Base
+The base consists of:
+- Walls of width 2.0 mm with 0.5mm clearence from the PCB all around
+- Wall depth ?.?mm down
+- A base of thickness 2.0mm
+- Mount points (level with the mounting holes) of height ???
+    - !!PDS: It is not clear why this is not just ?.?mm.  Is this somehow from the bottom of the box so 2.0mm short?
+    - Note that these need to leave room for the PCB to be clamped between the top and the base
+- Holes for mounting screws in the mounting points
+    - Head width 6.0mm, 80deg chamfer, width 3.1mm (expected threads + 0.1mm)
+- A guide 1.0mm around on the inside (cut) so that the top-cover fits in nicely
+
+### Create the Top-Cover
+- Walls of width 2.0 mm with 0.5mm clearence from the PCB all around
+- Wall depth ?.?mm down
+- A top of thickness 2.0mm
+- A guide 1.0mm around on the inside (cut) so that the top-cover fits in nicely
+- Screw mounting blocks from the top with holes upwars for the screws (but not fully to the top of the case)
+- Connector fittings have to be defined, and cut with 0.5mm clearance
+- "CloudSMETS" can be indented into the surface
+- 3 holes are present to allow visibility for the LEDs.
+    - We can make the fittings for the light pipe if we want and add them later.
+    - Hole with chamfer for glue to be added later.
+- Maybe add some chamfered ribs for ventilation.
+    - Have to add ribs, then chamfers, then remove ribs, then add chamfers!
 
 ## Fusion 360 Notes
 The following are things learnt about how to use [Fusion 360] as I was creating the box.  They relate to [Fusion 360] version `(v.2.0.16985 ) – August 24, 2023` so things might have changed if you are using a newer version.
