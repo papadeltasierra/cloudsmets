@@ -6,6 +6,7 @@ There is a section on the logic of the design process and some notes on elements
 
 > Questions: Answer these before completing this document
 > - Is the _ESP-C3_ `Red` LED actually for the ESP-C3 or is it a generic power LED?
+> - Can we make a case that also allows for the pins to be soldered on?
 
 ## Design Overview
 ### Target Design
