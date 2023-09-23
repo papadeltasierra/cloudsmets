@@ -1,76 +1,77 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-S2 | ESP32-S3 |
-| ----------------- | ----- | -------- | -------- | -------- | -------- |
+# UART Relay - testing tool
 
-# UART Echo Example
+## IMPORTANT STUFF
+1. You will still need at least on [LilyGo T-U2T] in order to load applications onto your [LilyGo T-ZigBee] boards.
+2. You will need a 3.3V TTL-to-Serial/USB (aka FTDI) board to complete the connection from the [ESP32-C3] to your computer.
+3. You cannot use a simple _two terminals, relay back-and-force_ test to prove this UART relay works on the T-ZigBee because of _interesting_ wiring of the T-ZigBee board.  Basically it does some off switching of the UART ports when you are uploading ESP32-C3 firmware and the UART relay will only work properly when the ESP32-C3 iss connected through to the tlsr8258 chip
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+The UART Relay is a simple [ESP32-C3] UART relay that can used when testing Telink tlsr8258 applications on the LilyGo T-ZigBee board.  The UART relay allows a UART (serial) connection be be created to the [Telink tlsr8258] board via the [ESP32-C3] for testing purposes.  The two connectivities are:
 
-This example demonstrates how to utilize UART interfaces by echoing back to the sender any data received on
-configured UART.
+```mermaid
+---
+title: With LilyGo T-U2T
+---
+flowchart LR;
 
-## How to use example
+    tlsr8258[tlsr8258]
+    u2t[LilyGo T-U2T]
+    usb[USB cable]
+    computer[Computer]
 
-### Hardware Required
-
-The example can be run on any ESP32, ESP32-S and ESP32-C series based development board connected to a computer with a single USB cable for flashing and
-monitoring. The external interface should have 3.3V outputs. You may use e.g. 3.3V compatible USB-to-Serial dongle.
-
-### Setup the Hardware
-
-Connect the external serial interface to the board as follows.
-
+    tlsr8258<-->u2t
+    u2t<-->usb
+    usb<-->computer
 ```
-  -----------------------------------------------------------------------------------------
-  | Target chip Interface | Kconfig Option     | Default ESP Pin      | External UART Pin |
-  | ----------------------|--------------------|----------------------|--------------------
-  | Transmit Data (TxD)   | EXAMPLE_UART_TXD   | GPIO4                | RxD               |
-  | Receive Data (RxD)    | EXAMPLE_UART_RXD   | GPIO5                | TxD               |
-  | Ground                | n/a                | GND                  | GND               |
-  -----------------------------------------------------------------------------------------
-```
-Note: Some GPIOs can not be used with certain chips because they are reserved for internal use. Please refer to UART documentation for selected target.
+```mermaid
+---
+title: With UART Relay
+---
+flowchart LR;
 
-Optionally, you can set-up and use a serial interface that has RTS and CTS signals in order to verify that the
-hardware control flow works. Connect the extra signals according to the following table, configure both extra pins in
-the example code `uart_echo_example_main.c` by replacing existing `UART_PIN_NO_CHANGE` macros with the appropriate pin
-numbers and configure UART1 driver to use the hardware flow control by setting `.flow_ctrl = UART_HW_FLOWCTRL_CTS_RTS`
-and adding `.rx_flow_ctrl_thresh = 122` to the `uart_config` structure.
+    tlsr8258[tlsr8258]
+    internal[serial on<br/>the board]
+    esp32[ESP32-C3]
+    ftdi[TTL-to-<br/>serial/USB]
+    com1[serial/USB<br/>cable]
+    computer[Computer]
 
-```
-  ---------------------------------------------------------------
-  | Target chip Interface | Macro           | External UART Pin |
-  | ----------------------|-----------------|--------------------
-  | Transmit Data (TxD)   | ECHO_TEST_RTS   | CTS               |
-  | Receive Data (RxD)    | ECHO_TEST_CTS   | RTS               |
-  | Ground                | n/a             | GND               |
-  ---------------------------------------------------------------
+    tlsr8258<-->internal
+    internal<-->esp32
+    esp32<-->ftdi
+    ftdi<-->com1
+    com1<-->computer
 ```
 
-### Configure the project
+## Function
+The UART relay does the following:
+- Enables the [ESP32-C3]'s GPIO0 (XTAL_OUT) as an output and sets it high; this is the line that the T-ZigBee board uses to enable power to the tlsr8258.
+- Enables the [ESP32-C3]'s GPIO0 (XTAL_OUT) as an output and sets it high; this turns on the blue LED on the far end of the T-ZigBee board.  The other blue LED in the centre of the board simply indicates that there is power available to the T-ZigBee board's power circuits.
+- Opens two UARTs, UART1 (GPIO18 and GPIO19) which the T-ZigBee has internally connected to the DIP switches and UART0 which is exposed as the GPIO20 and GPIO21 pins on the board.
+- Sits forever, checking the two UART RX lines, receiving anything found and relaying it to the other UARTs TX line.
 
-Use the command below to configure project using Kconfig menu as showed in the table above.
-The default Kconfig values can be changed such as: EXAMPLE_TASK_STACK_SIZE, EXAMPLE_UART_BAUD_RATE, EXAMPLE_UART_PORT_NUM (Refer to Kconfig file).
+## Building
+### Preparation
+Install the [Espressif] [ESP-IDF] build environment.
+
+### Configuration
+The default configuration for the UART relay should be sufficient but you do need to run the cnofiguration step to save the configuration.
+
+```bash
+$ cd git/cloudsmets/esp32/uartrelay
+$ idf.py set-target esp32c3
+$ idf.py menuconfig
 ```
-idf.py menuconfig
+
+### Compilation & Linking
+```bash
+$ idf.py build
 ```
 
-### Build and Flash
+### Upload
+> Note that the latest `esptool.py` is a Python package that has to be installed.  Older instances of `esptool.py` cannot install to the pESP32-C3].
+$ ...follow instructions...
 
-Build the project and flash it to the board, then run monitor tool to view serial output:
-
-```
-idf.py -p PORT flash monitor
-```
-
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the Getting Started Guide for full steps to configure and use ESP-IDF to build projects.
-
-## Example Output
-
-Type some characters in the terminal connected to the external serial interface. As result you should see echo in the same terminal which you used for typing the characters. You can verify if the echo indeed comes from ESP board by
-disconnecting either `TxD` or `RxD` pin: no characters will appear when typing.
-
-## Troubleshooting
-
-You are not supposed to see the echo in the terminal which is used for flashing and monitoring, but in the other UART configured through Kconfig can be used.
+[Espressif]: https://www.espressif.com/
+[ESP32-C3]: https://www.espressif.com/en/products/socs/esp32-c3
+[LilyGo]: https://www.lilygo.cc
+[T-U2T]: https://www.lilygo.cc/products/t-u2t

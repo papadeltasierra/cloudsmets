@@ -1,0 +1,5 @@
+# Ignore ESP32 build configuration files, which may contain secrets!
+sdkconfig*
+
+# Ignore ESP32 build output
+build/

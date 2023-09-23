@@ -1,9 +1,14 @@
-menu "Echo Example Configuration"
+menu "UART Relay Configuration"
 
     orsource "$IDF_PATH/examples/common_components/env_caps/$IDF_TARGET/Kconfig.env_caps"
 
-    config EXAMPLE_UART_PORT0_NUM
-        int "UART port 0 number"
+    config ENV_UART_GPIO_RANGE_MAX
+        int
+        default 21
+        # GPIOs 20/21 are always used by UART in examples
+
+    config EXAMPLE_UART0_PORT_NUM
+        int "UART port A number"
         range 0 2 if IDF_TARGET_ESP32 || IDF_TARGET_ESP32S3
         default 1 if IDF_TARGET_ESP32 || IDF_TARGET_ESP32S3
         range 0 1 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32C3 || IDF_TARGET_ESP32C2 || IDF_TARGET_ESP32H2
@@ -12,8 +17,8 @@ menu "Echo Example Configuration"
             UART communication port number for the example.
             See UART documentation for available port numbers.
 
-    config EXAMPLE_UART_PORT1_NUM
-        int "UART port 1 number"
+    config EXAMPLE_UART1_PORT_NUM
+        int "UART port B number"
         range 0 2 if IDF_TARGET_ESP32 || IDF_TARGET_ESP32S3
         default 2 if IDF_TARGET_ESP32 || IDF_TARGET_ESP32S3
         range 0 1 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32C3 || IDF_TARGET_ESP32C2 || IDF_TARGET_ESP32H2
@@ -30,41 +35,41 @@ menu "Echo Example Configuration"
             UART communication speed for Modbus example.
 
     config EXAMPLE_UART0_RXD
-        int "UART RXD pin number"
-        range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
+        int "UART RXD A pin number"
+        range ENV_GPIO_RANGE_MIN ENV_UART_GPIO_RANGE_MAX
         default 20
         help
-            GPIO number for UART RX pin. See UART documentation for more information
+            GPIO number for UART A RX pin. See UART documentation for more information
             about available pin numbers for UART.
 
     config EXAMPLE_UART0_TXD
-        int "UART TXD pin number"
-        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        int "UART TXD A pin number"
+        range ENV_GPIO_RANGE_MIN ENV_UART_GPIO_RANGE_MAX
         default 21
         help
-            GPIO number for UART TX pin. See UART documentation for more information
+            GPIO number for UART A TX pin. See UART documentation for more information
             about available pin numbers for UART.
 
     config EXAMPLE_UART1_RXD
-        int "UART RXD pin number"
-        range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
+        int "UART RXD B pin number"
+        range ENV_GPIO_RANGE_MIN ENV_UART_GPIO_RANGE_MAX
         default 18
         help
-            GPIO number for UART RX pin. See UART documentation for more information
+            GPIO number for UART B RX pin. See UART documentation for more information
             about available pin numbers for UART.
 
     config EXAMPLE_UART1_TXD
-        int "UART TXD pin number"
-        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        int "UART TXD B pin number"
+        range ENV_GPIO_RANGE_MIN ENV_UART_GPIO_RANGE_MAX
         default 19
         help
-            GPIO number for UART TX pin. See UART documentation for more information
+            GPIO number for UART B TX pin. See UART documentation for more information
             about available pin numbers for UART.
 
     config EXAMPLE_TASK_STACK_SIZE
         int "UART echo example task stack size"
         range 1024 16384
-        default 16384
+        default 4096
         help
             Defines stack size for UART echo example. Insufficient stack size can cause crash.
 
