@@ -20,9 +20,11 @@
 
 |Board|Address|
 |-|-|
-|1|1122334455667788|
-|2|1122334455667788|
-|3|1122334455667788|
+|1|`C8 22 1E 0E 0A 0E A1 0C`|
+|2|`1C FE 82 82 4D 21 4C 4F`|
+|3|`22 E9 4B F9 EB F9 AB OC`|
+
+> Strange, none of these contain the Telink vendor ID `A4 C1 C8`!
 
 5. Flip the DIP switches on the T-ZigBee boards to enable [ESP-C3]/[tlsr8258] serial connections.
     - We could, for amusement, see if we can install [tlsr8258] images over this bridge!
