@@ -13,7 +13,9 @@
 ## Testing
 ### Initial Connection and Sniffing
 1. Install the [ESP-C3] serial port passthrough on all boards; this is required so that we can _talk_ to all thr boars without needing three of the [LilyGo T-U2T] adapters.
-    - Note that board #1 is considered my target board so we do very little with it here.
+    - Remember to turn up the tlsr8258 power line in the sketch!
+    - Note that board #1 is considered my target board so we do very little with it here
+    - Install the Arduino version for now; would like an ESP-IDF version but might have to do this later.
 1. Install the `sampleGW` application (a ZigBee Controller) on the second T-ZigBee board (#2)
 1. Install the `sampleSwitch` (a Zigbee Endpoint) on the third T-ZigBee board (#3)
 1. Query the (probable) ZigBee (MAC) addresses on each board and note down here:
@@ -26,7 +28,8 @@
 
 > Strange, none of these contain the Telink vendor ID `A4 C1 C8`!
 
-5. Flip the DIP switches on the T-ZigBee boards to enable [ESP-C3]/[tlsr8258] serial connections.
+5. Update the MAC addresses so that all are unique and note down new ones here.
+1. Flip the DIP switches on the T-ZigBee boards to enable [ESP-C3]/[tlsr8258] serial connections.
     - We could, for amusement, see if we can install [tlsr8258] images over this bridge!
 1. Install the `zgc` application on two PCs (using `poetry`)
 1. Install the [ZigBee sniffer]
