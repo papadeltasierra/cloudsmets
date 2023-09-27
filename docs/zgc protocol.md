@@ -1,10 +1,26 @@
 # Zigbee Gateway Controller (ZGC) Protocol
+
+See the documentation at [zbhci].
+
 ## One of Two Ways!
 The ZGC processing either:
 1. Processes attrbutes directly into variables or
 1. Processes attributes into structures that can then be serialized and passed over the zhci interface.
 
 Standard processing ot `time` attributes is an example of _straight to variable_ whilst processing of `scene` attributes is an example of _process to structure then serialize_.
+
+## zbhci Processing From Top-Down
+- `zbhci` requests are received over the UART via `hci_uart.c` and method `uart_data_handler()`
+- A bad request results in an error acknowledgement back over the UART
+- A good request is passed to method `zbhciCmdHandler()`
+- `zbhciCmdHandler()` is defined in `zbhciCmdHandler.c` and the message types can be see, `ZBHCI_CMD_...`
+
+### Notes
+- `zbhci_ZcLLocalAttrWrite()` looks interesting
+
+> Local link secret is hard coded at firmware address 0x78000 and cannot be read or changed over the zbhci unless we extend it somehow.
+
+
 
 ## Time Processing from the bottom up
 - There are no example of using the time attributes in the [Telink ZigBee SDK].
@@ -111,4 +127,5 @@ Since `time` only has attributes and no commands, it appears that the processing
 
 [ZigBee Cluster Library]: https://zigbeealliance.org/wp-content/uploads/2021/10/07-5123-08-Zigbee-Cluster-Library.pdf
 [Telink ZigBee SDK]: http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip
-[ESP-C3]: ??? insert ref here ???
+[ESP-C3]: https://somewhere
+[zbhci]: https://zbhci.readthedocs.io/en/latest/developer-guide/index.html
