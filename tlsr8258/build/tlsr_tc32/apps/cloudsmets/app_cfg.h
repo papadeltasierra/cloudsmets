@@ -46,20 +46,17 @@ extern "C" {
 #define USB_PRINTF_MODE         		0
 
 /* PM */
-#if (__PROJECT_CLOUDSMETS)
 #define PM_ENABLE						0
-#else
-#define PM_ENABLE						1
-#endif /* __PROJECT_CLOUDSMETS__ */
 
 /* PA */
 #define PA_ENABLE						0
 
 /* BDB */
-#define TOUCHLINK_SUPPORT				1
+#define TOUCHLINK_SUPPORT				0
 #define FIND_AND_BIND_SUPPORT			0
 
 /* Board ID */
+/* The LilyGo T-ZigBee board is basically am 8258 dongle without the switches. */
 #define BOARD_826x_EVK					0
 #define BOARD_826x_DONGLE				1
 #define BOARD_826x_DONGLE_PA			2
@@ -145,12 +142,11 @@ extern "C" {
 #define MODULE_WATCHDOG_ENABLE						0
 
 /* UART module */
-// !!PDS: Expect to have UART wupport to talk to the ESP32-C3.
-#if (__PROJECT_CLOUDSMETS__)
+/* CloudSMETS uses the UART to talk to the ESP32-C3 */
 #define	MODULE_UART_ENABLE							1
-#else
-#define	MODULE_UART_ENABLE							0
-#endif
+
+/* The ESP32-C3 drives the tlsr8253 over the zbhci interface over the UART. */
+#define ZBHCI_UART									1
 
 #if (ZBHCI_USB_PRINT || ZBHCI_USB_CDC || ZBHCI_USB_HID || ZBHCI_UART)
 	#define ZBHCI_EN								1
@@ -159,24 +155,18 @@ extern "C" {
 
 /**********************************************************************
  * ZCL cluster support setting
+ * CloudSMETS uses the Smart Energy metering support, the Time support and
+ * the Basic cluster which we get "for free".
  */
-// !!PDS: Expect to enable just ZCL_METERING_SUPPORT
-#if (__PROJECT_CLOUDSMETS__)
+#define ZCL_TIME									1
 #define ZCL_METERING_SUPPORT						1
-#else
-#define ZCL_ON_OFF_SUPPORT							1
-#define ZCL_LEVEL_CTRL_SUPPORT						1
-#define ZCL_LIGHT_COLOR_CONTROL_SUPPORT				1
-#define ZCL_GROUP_SUPPORT							1
-#define ZCL_OTA_SUPPORT								1
-#if TOUCHLINK_SUPPORT
-#define ZCL_ZLL_COMMISSIONING_SUPPORT				1
-#endif
-#endif
-
 
 /**********************************************************************
- * Metering attributes
+ * Time attributes used by CloudSMETS do not need to be defined.
+ */
+
+/**********************************************************************
+ * Metering attributes used by CloudSMETS
  */
 //Reading Information Set
 #define ZCL_ATTRID_CURRENT_SUMMATION_DELIVERD_ENABLE 1

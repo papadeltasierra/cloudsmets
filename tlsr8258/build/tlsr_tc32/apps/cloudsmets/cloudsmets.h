@@ -9,6 +9,8 @@
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
  *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
+ *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
  *          You may obtain a copy of the License at
@@ -28,12 +30,11 @@
 
 
 #ifndef __PROJECT_CLOUDSMETS__
-//!!PDS: Not required for Cloudsmets.
 
 /**********************************************************************
  * CONSTANT
  */
-#define SAMPLE_SWITCH_ENDPOINT  0x01
+#define CLOUDSMETS_ENDPOINT  0x01
 
 /**********************************************************************
  * TYPEDEFS

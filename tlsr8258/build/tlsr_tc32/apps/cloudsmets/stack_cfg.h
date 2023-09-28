@@ -58,13 +58,6 @@
  */
 #define ZCL_REPORTING_TABLE_NUM					4
 
-//!!PDS: What are scenes?  Do we need something else for SMETS?
-/**
- *  @brief  ZCL: maximum number for zcl scene table
- *
- */
-#define	ZCL_SCENE_TABLE_NUM						8
-
 /**
  *  @brief  APS: MAX number of groups size in the group table
  *          In each group entry, there is 8 endpoints existed.
@@ -79,6 +72,7 @@
 
 /**********************************************************************
  * Following configuration will calculated automatically
+ * CloudSMETS should always be an endpoint.
  */
 
 /**

@@ -79,6 +79,8 @@ static ev_timer_event_t *identifyTimerEvt = NULL;
  * FUNCTIONS
  */
 
+// !!PDS: What Smart energy commands do we want to handle?
+
 /*********************************************************************
  * @fn      cloudsmets_zclProcessIncomingMsg
  *
@@ -392,7 +394,7 @@ static void cloudsmets_zclIdentifyQueryRspCmdHandler(u8 endpoint, u16 srcAddr, z
  */
 status_t cloudsmets_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	if(pAddrInfo->dstEp == SAMPLE_SWITCH_ENDPOINT){
+	if(pAddrInfo->dstEp == CLOUDSMETS_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
 			switch(cmdId){
 				case ZCL_CMD_IDENTIFY:
@@ -485,7 +487,7 @@ static void cloudsmets_zclGetGroupMembershipRspCmdHandler(zcl_getGroupMembership
  */
 status_t cloudsmets_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	if(pAddrInfo->dstEp == SAMPLE_SWITCH_ENDPOINT){
+	if(pAddrInfo->dstEp == CLOUDSMETS_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_GROUP_ADD_GROUP_RSP:
@@ -610,7 +612,7 @@ static void cloudsmets_zclGetSceneMembershipRspCmdHandler(getSceneMemRsp_t *pGet
  */
 status_t cloudsmets_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	if(pAddrInfo->dstEp == SAMPLE_SWITCH_ENDPOINT){
+	if(pAddrInfo->dstEp == CLOUDSMETS_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_SCENE_ADD_SCENE_RSP:
@@ -654,10 +656,10 @@ void cloudsmets_zclCheckInCmdSend(void)
 	TL_SETSTRUCTCONTENT(dstEpInfo, 0);
 
 	dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
-	dstEpInfo.dstEp = SAMPLE_SWITCH_ENDPOINT;
+	dstEpInfo.dstEp = CLOUDSMETS_ENDPOINT;
 	dstEpInfo.profileId = HA_PROFILE_ID;
 
-	zcl_pollCtrl_checkInCmd(SAMPLE_SWITCH_ENDPOINT, &dstEpInfo, TRUE);
+	zcl_pollCtrl_checkInCmd(CLOUDSMETS_ENDPOINT, &dstEpInfo, TRUE);
 }
 
 s32 cloudsmets_zclCheckInTimerCb(void *arg)
@@ -676,7 +678,7 @@ s32 cloudsmets_zclCheckInTimerCb(void *arg)
 
 void cloudsmets_zclCheckInStart(void)
 {
-	if(zb_bindingTblSearched(ZCL_CLUSTER_GEN_POLL_CONTROL, SAMPLE_SWITCH_ENDPOINT)){
+	if(zb_bindingTblSearched(ZCL_CLUSTER_GEN_POLL_CONTROL, CLOUDSMETS_ENDPOINT)){
 		zcl_pollCtrlAttr_t *pPollCtrlAttr = zcl_pollCtrlAttrGet();
 
 		if(!zclCheckInTimerEvt){
@@ -801,7 +803,7 @@ status_t cloudsmets_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void 
 {
 	status_t status = ZCL_STA_SUCCESS;
 
-	if(pAddrInfo->dstEp == SAMPLE_SWITCH_ENDPOINT){
+	if(pAddrInfo->dstEp == CLOUDSMETS_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
 			switch(cmdId){
 				case ZCL_CMD_CHK_IN_RSP:

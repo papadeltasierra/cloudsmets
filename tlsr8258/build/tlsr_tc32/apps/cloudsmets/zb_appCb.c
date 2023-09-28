@@ -257,7 +257,7 @@ void zbdemo_bdbFindBindSuccessCb(findBindDst_t *pDstInfo){
 	dstEpInfo.dstEp = pDstInfo->endpoint;
 	dstEpInfo.profileId = HA_PROFILE_ID;
 
-	zcl_identify_identifyCmd(SAMPLE_SWITCH_ENDPOINT, &dstEpInfo, FALSE, 0, 0);
+	zcl_identify_identifyCmd(CLOUDSMETS_ENDPOINT, &dstEpInfo, FALSE, 0, 0);
 #endif
 }
 

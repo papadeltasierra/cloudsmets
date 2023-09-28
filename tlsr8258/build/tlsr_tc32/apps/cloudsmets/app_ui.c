@@ -9,6 +9,8 @@
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
  *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
+ *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
  *          You may obtain a copy of the License at
@@ -57,23 +59,8 @@ void led_off(u32 pin)
 	drv_gpio_write(pin, LED_OFF);
 }
 
-void light_on(void)
-{
-	led_on(LED1);
-}
 
-void light_off(void)
-{
-	led_off(LED1);
-}
-
-void light_init(void)
-{
-	led_off(LED1);
-
-}
-
-s32 zclLightTimerCb(void *arg)
+s32 zclLEDTimerCb(void *arg)
 {
 	u32 interval = 0;
 
@@ -97,7 +84,7 @@ s32 zclLightTimerCb(void *arg)
 	return interval;
 }
 
-void light_blink_start(u8 times, u16 ledOnTime, u16 ledOffTime)
+void led_blink_start(u32 pin, u8 times, u16 ledOnTime, u16 ledOffTime)
 {
 	u32 interval = 0;
 	g_switchAppCtx.times = times;
@@ -108,55 +95,34 @@ void light_blink_start(u8 times, u16 ledOnTime, u16 ledOffTime)
 			g_switchAppCtx.sta = 0;
 			interval = ledOffTime;
 		}else{
-			light_on();
+			led_on(pin);
 			g_switchAppCtx.sta = 1;
 			interval = ledOnTime;
 		}
 		g_switchAppCtx.ledOnTime = ledOnTime;
 		g_switchAppCtx.ledOffTime = ledOffTime;
 
-		g_switchAppCtx.timerLedEvt = TL_ZB_TIMER_SCHEDULE(zclLightTimerCb, NULL, interval);
+		g_switchAppCtx.timerLedEvt = TL_ZB_TIMER_SCHEDULE(zclLightTimerCb, pin, interval);
 	}
 }
 
-void light_blink_stop(void)
+void led_blink_stop(u32 pin)
 {
 	if(g_switchAppCtx.timerLedEvt){
 		TL_ZB_TIMER_CANCEL(&g_switchAppCtx.timerLedEvt);
 
 		g_switchAppCtx.times = 0;
 		if(g_switchAppCtx.oriSta){
-			light_on();
+			led_on(pin);
 		}else{
-			light_off();
+			led_off(pin);
 		}
 	}
 }
 
-// !!PDS: The LilyGo board has no buttons associated with the tlsr8258.
-#ifndef CLOUDSMETS
-/*******************************************************************
- * @brief	Button click detect:
- * 			SW1. keep press button1 5s === factory reset
- * 			SW1. short press button1   === send level step with OnOff command (Up)
- * 			SW2. keep press button2 5s === invoke EZ-Mode
- * 			SW2. short press button2   === send level step with OnOff command (Down)
- *
- */
-void buttonKeepPressed(u8 btNum){
-	if(btNum == VK_SW1){
-		g_switchAppCtx.state = APP_FACTORY_NEW_DOING;
-		zb_factoryReset();
-	}else if(btNum == VK_SW2){
-
-	}
-}
-
-void set_detect_voltage(s32 v){
-    g_switchAppCtx.Vbat = v;
-}
-
 ev_timer_event_t *brc_toggleEvt = NULL;
+
+????? below here ????
 
 s32 brc_toggleCb(void *arg)
 {
@@ -164,11 +130,11 @@ s32 brc_toggleCb(void *arg)
 	TL_SETSTRUCTCONTENT(dstEpInfo, 0);
 
 	dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
-	dstEpInfo.dstEp = SAMPLE_SWITCH_ENDPOINT;
+	dstEpInfo.dstEp = CLOUDSMETS_ENDPOINT;
 	dstEpInfo.dstAddr.shortAddr = 0xfffc;
 	dstEpInfo.profileId = HA_PROFILE_ID;
 
-	zcl_onOff_toggleCmd(SAMPLE_SWITCH_ENDPOINT, &dstEpInfo, FALSE);
+	zcl_onOff_toggleCmd(CLOUDSMETS_ENDPOINT, &dstEpInfo, FALSE);
 
 	return 0;
 }
@@ -195,10 +161,10 @@ void buttonShortPressed(u8 btNum){
 			dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
 #else
 			dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
-			dstEpInfo.dstEp = SAMPLE_SWITCH_ENDPOINT;
+			dstEpInfo.dstEp = CLOUDSMETS_ENDPOINT;
 			dstEpInfo.dstAddr.shortAddr = 0xfffc;
 #endif
-			zcl_onOff_toggleCmd(SAMPLE_SWITCH_ENDPOINT, &dstEpInfo, FALSE);
+			zcl_onOff_toggleCmd(CLOUDSMETS_ENDPOINT, &dstEpInfo, FALSE);
 #else
 			brc_toggle();
 #endif
@@ -212,7 +178,7 @@ void buttonShortPressed(u8 btNum){
 			TL_SETSTRUCTCONTENT(dstEpInfo, 0);
 
 			dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
-			dstEpInfo.dstEp = SAMPLE_SWITCH_ENDPOINT;
+			dstEpInfo.dstEp = CLOUDSMETS_ENDPOINT;
 			dstEpInfo.dstAddr.shortAddr = 0xfffc;
 			dstEpInfo.profileId = HA_PROFILE_ID;
 
@@ -222,7 +188,7 @@ void buttonShortPressed(u8 btNum){
 			move2Level.transitionTime = 0x0A;
 			move2Level.level = lvl;
 
-			zcl_level_move2levelCmd(SAMPLE_SWITCH_ENDPOINT, &dstEpInfo, FALSE, &move2Level);
+			zcl_level_move2levelCmd(CLOUDSMETS_ENDPOINT, &dstEpInfo, FALSE, &move2Level);
 
 			if(dir){
 				lvl += 50;

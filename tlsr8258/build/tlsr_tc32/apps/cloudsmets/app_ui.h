@@ -29,6 +29,8 @@
 /**********************************************************************
  * CONSTANT
  */
+#define LED_GREEN					LED1
+#define LED_RED						LED3
 #define LED_ON						1
 #define LED_OFF						0
 

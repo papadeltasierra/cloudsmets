@@ -9,6 +9,8 @@
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
  *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
+ *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
  *          You may obtain a copy of the License at
@@ -37,13 +39,6 @@
  */
 #if (__PROJECT_CLOUDSMETS__)
 #ifndef ZCL_BASIC_MFG_NAME
-#define ZCL_BASIC_MFG_NAME     {6,'T','E','L','I','N','K'}
-#endif
-#ifndef ZCL_BASIC_MODEL_ID
-#define ZCL_BASIC_MODEL_ID	   {8,'T','L','S','R','8','2','x','x'}
-#endif
-#else
-#ifndef ZCL_BASIC_MFG_NAME
 #define ZCL_BASIC_MFG_NAME     {10,'C','L','O','U','D','S','M','E','T','S'}
 #endif
 #ifndef ZCL_BASIC_MODEL_ID
@@ -67,35 +62,17 @@ const u16 cloudsmets_inClusterList[] =
 {
 	ZCL_CLUSTER_GEN_BASIC,
 	ZCL_CLUSTER_GEN_IDENTIFY,
-#ifdef ZCL_POLL_CTRL
-	ZCL_CLUSTER_GEN_POLL_CONTROL,
-#endif
 };
 
-//!!PDS: These have to change for SMETS.
 /**
  *  @brief Definition for Outgoing cluster / Client Cluster
  */
 const u16 cloudsmets_outClusterList[] =
 {
-#ifdef ZCL_GROUP
-	ZCL_CLUSTER_GEN_GROUPS,
-#endif
-#ifdef ZCL_SCENE
-	ZCL_CLUSTER_GEN_SCENES,
-#endif
-#ifdef ZCL_ON_OFF
-	ZCL_CLUSTER_GEN_ON_OFF,
-#endif
-#ifdef ZCL_LEVEL_CTRL
-	ZCL_CLUSTER_GEN_LEVEL_CONTROL,
-#endif
-#ifdef ZCL_OTA
-    ZCL_CLUSTER_OTA,
-#endif
-#ifdef ZCL_ZLL_COMMISSIONING
-	ZCL_CLUSTER_TOUCHLINK_COMMISSIONING,
-#endif
+	ZCL_CLUSTER_GEN_BASIC,
+	ZCL_CLUSTER_GEN_TIME,
+	ZCL_CLUSTER_SE_PRICE,
+	ZCL_CLUSTER_SE_METERING
 };
 
 /**
@@ -104,7 +81,6 @@ const u16 cloudsmets_outClusterList[] =
 #define cloudsmets_IN_CLUSTER_NUM		(sizeof(cloudsmets_inClusterList)/sizeof(cloudsmets_inClusterList[0]))
 #define cloudsmets_OUT_CLUSTER_NUM	(sizeof(cloudsmets_outClusterList)/sizeof(cloudsmets_outClusterList[0]))
 
-//!!PDS: what is this?
 /**
  *  @brief Definition for simple description for HA profile
  */
@@ -112,7 +88,7 @@ const af_simple_descriptor_t cloudsmets_simpleDesc =
 {
 	HA_PROFILE_ID,                      	/* Application profile identifier */
 	HA_DEV_ONOFF_SWITCH,                	/* Application device identifier */
-	SAMPLE_SWITCH_ENDPOINT,                 /* Endpoint */
+	CLOUDSMETS_ENDPOINT,                 /* Endpoint */
 	2,                                  	/* Application device version */
 	0,										/* Reserved */
 	cloudsmets_IN_CLUSTER_NUM,           	/* Application input cluster count */
@@ -167,6 +143,8 @@ const zclAttrInfo_t identify_attrTbl[] =
 
 #define	ZCL_IDENTIFY_ATTR_NUM			sizeof(identify_attrTbl) / sizeof(zclAttrInfo_t)
 
+// !!PDS: Don't believe we require this.
+#if 0
 #ifdef ZCL_POLL_CTRL
 /* Poll Control */
 zcl_pollCtrlAttr_t g_zcl_pollCtrlAttrs =
@@ -195,6 +173,7 @@ const zclAttrInfo_t pollCtrl_attrTbl[] =
 
 #define	ZCL_POLLCTRL_ATTR_NUM			sizeof(pollCtrl_attrTbl) / sizeof(zclAttrInfo_t)
 #endif
+#endif
 
 /* Basic */
 zcl_timeAttr_t g_zcl_timeAttrs =
@@ -216,9 +195,10 @@ const zclAttrInfo_t time_attrTbl[] =
  */
 const zcl_specClusterInfo_t g_cloudsmetsClusterList[] =
 {
+	// !!PDS:
 #if 1
-	{ZCL_CLUSTER_GEN_TIME,			MANUFACTURER_CODE_NONE,	ZCL_TIME_ATTR_NUM, 	time_attrTbl,  	zcl_time_register,		cloudsmets_timeCb},
-	{ZCL_CLUSTER_SE_METERING,		MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		NULL},
+	{ZCL_CLUSTER_GEN_TIME,			MANUFACTURER_CODE_NONE,	ZCL_TIME_ATTR_NUM, 		time_attrTbl,  		zcl_time_register,		cloudsmets_timeCb},
+	{ZCL_CLUSTER_SE_METERING,		MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_metering_register,	NULL},
 #else
 //!!PDS: Remove this and referenced code.
 	{ZCL_CLUSTER_GEN_BASIC,			MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		cloudsmets_basicCb},
@@ -235,13 +215,10 @@ const zcl_specClusterInfo_t g_cloudsmetsClusterList[] =
 #endif
 };
 
-u8 SAMPLE_SWITCH_CB_CLUSTER_NUM = (sizeof(g_cloudsmetsClusterList)/sizeof(g_cloudsmetsClusterList[0]));
+u8 CLOUDSMETS_CB_CLUSTER_NUM = (sizeof(g_cloudsmetsClusterList)/sizeof(g_cloudsmetsClusterList[0]));
 
 /**********************************************************************
  * FUNCTIONS
  */
-
-
-
 
 #endif	/* __PROJECT_CLOUDSMETS__ */

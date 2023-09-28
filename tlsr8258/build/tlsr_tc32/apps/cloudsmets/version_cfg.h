@@ -9,6 +9,8 @@
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
  *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
+ *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
  *          You may obtain a copy of the License at
@@ -46,6 +48,8 @@
 #define STACK_RELEASE						0x30//stack release 3.0
 #define STACK_BUILD							0x01//stack build 01
 
+#if 0
+//!!PDS: No OTA upgrade for CloudSMETS.
 /*********************************************************************************************
  * During OTA upgrade, the upgraded device will check the rules of the following three fields.
  * Refer to ZCL OTA specification for details.
@@ -53,6 +57,7 @@
 #define MANUFACTURER_CODE_TELINK           	0x1141//Telink ID
 #define	IMAGE_TYPE							((CHIP_TYPE << 8) | IMAGE_TYPE_SWITCH)
 #define	FILE_VERSION					  	((APP_RELEASE << 24) | (APP_BUILD << 16) | (STACK_RELEASE << 8) | STACK_BUILD)
+#endif
 
 /* Pre-compiled link configuration. */
 #define IS_BOOT_LOADER_IMAGE				0

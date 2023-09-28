@@ -9,6 +9,8 @@
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
  *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
+ *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
  *          You may obtain a copy of the License at
@@ -56,19 +58,10 @@
 app_ctx_t g_switchAppCtx;
 
 
-#ifdef ZCL_OTA
-extern ota_callBack_t cloudsmets_otaCb;
-
-//running code firmware information
-ota_preamble_t cloudsmets_otaInfo = {
-	.fileVer 			= FILE_VERSION,
-	.imageType 			= IMAGE_TYPE,
-	.manufacturerCode 	= MANUFACTURER_CODE_TELINK,
-};
-#endif
-
-
-//Must declare the application call back function which used by ZDO layer
+/**********************************************************************
+ * We need callbacks for the ZigBee network functions so that we can learn
+ * the IEEE address of the ESME/gas proxy so we can query it.
+ */
 const zdo_appIndCb_t appCbLst = {
 	bdb_zdoStartDevCnf,//start device cnf cb
 	NULL,//reset cnf cb
@@ -96,6 +89,8 @@ u16 bdb_findBindClusterList[] =
  */
 #define FIND_AND_BIND_CLUSTER_NUM		(sizeof(bdb_findBindClusterList)/sizeof(bdb_findBindClusterList[0]))
 
+??? Not sure  we need this
+
 /**
  *  @brief Definition for bdb commissioning setting
  */
@@ -118,21 +113,6 @@ bdb_commissionSetting_t g_bdbCommissionSetting = {
 	.touchlinkLqiThreshold = 0xA0,			   							/* threshold for touch-link scan req/resp command */
 };
 
-#if PM_ENABLE
-/**
- *  @brief Definition for wakeup source and level for PM
- */
-drv_pm_pinCfg_t g_switchPmCfg[] = {
-	{
-		BUTTON1,
-		PM_WAKEUP_LEVEL
-	},
-	{
-		BUTTON2,
-		PM_WAKEUP_LEVEL
-	}
-};
-#endif
 /**********************************************************************
  * LOCAL VARIABLES
  */
@@ -183,45 +163,25 @@ void user_app_init(void)
 	zcl_init(cloudsmets_zclProcessIncomingMsg);
 
 	/* register endPoint */
-	af_endpointRegister(SAMPLE_SWITCH_ENDPOINT, (af_simple_descriptor_t *)&cloudsmets_simpleDesc, zcl_rx_handler, NULL);
+	af_endpointRegister(CLOUDSMETS_ENDPOINT, (af_simple_descriptor_t *)&cloudsmets_simpleDesc, zcl_rx_handler, NULL);
 
 	/* Register ZCL specific cluster information */
-	zcl_register(SAMPLE_SWITCH_ENDPOINT, SAMPLE_SWITCH_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_cloudsmetsClusterList);
+	zcl_register(CLOUDSMETS_ENDPOINT, SAMPLE_SWITCH_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_cloudsmetsClusterList);
 
-// !!PDS: Upgrade will never be OTA, which means "over ZigBee"
-#if ZCL_OTA_SUPPORT
-    ota_init(OTA_TYPE_CLIENT, (af_simple_descriptor_t *)&cloudsmets_simpleDesc, &cloudsmets_otaInfo, &cloudsmets_otaCb);
-#endif
 }
 
 
 
 void led_init(void)
 {
-	light_init();
-}
-
-void app_task(void)
-{
-	app_key_handler();
-
-	if(bdb_isIdle()){
-#if PM_ENABLE
-		if(!g_switchAppCtx.keyPressed){
-			drv_pm_lowPowerEnter();
-		}
-#endif
-	}
+	led_off(LED_GREEN);
+	led_off(LED_RED);
 }
 
 static void cloudsmetsSysException(void)
 {
-#if 1
+	/* Always peform full reset if something goes wrong. */
 	SYSTEM_RESET();
-#else
-	light_on();
-	while(1);
-#endif
 }
 
 /*********************************************************************
@@ -238,20 +198,11 @@ void user_init(bool isRetention)
 	/* Initialize LEDs*/
 	led_init();
 
-#if PA_ENABLE
-	rf_paInit(PA_TX, PA_RX);
-#endif
-
-// !!PDS: The tlsr8258 is controlled via the ESP32-C3 using the zbhci.
-#if ZBHCI_EN
+	/*****************************************************************
+	 * CloudSMETS controls the tlsr8258 from the ESP32-C3 over the zbhci interface.
+	 */
 	zbhciInit();
-#endif
 
-#if PM_ENABLE
-	drv_pm_wakeupPinConfig(g_switchPmCfg, sizeof(g_switchPmCfg)/sizeof(drv_pm_pinCfg_t));
-#endif
-
-    // !!PDS: What is retention ?????
 	if(!isRetention){
 		/* Initialize Stack */
 		stack_init();
@@ -259,20 +210,21 @@ void user_init(bool isRetention)
 		/* Initialize user application */
 		user_app_init();
 
-		/* Register except handler for test */
+		/* Register exception handler. */
 		sys_exceptHandlerRegister(cloudsmetsSysException);
 
 		/* User's Task */
-#if ZBHCI_EN
 		ev_on_poll(EV_POLL_HCI, zbhciTask);
-#endif
-		ev_on_poll(EV_POLL_IDLE, app_task);
+
+		/* There are not keys etc so no need for an app_task. */
 
 		/* Load the pre-install code from flash */
 		if(bdb_preInstallCodeLoad(&g_switchAppCtx.tcLinkKey.keyType, g_switchAppCtx.tcLinkKey.key) == RET_OK){
 			g_bdbCommissionSetting.linkKey.tcLinkKey.keyType = g_switchAppCtx.tcLinkKey.keyType;
 			g_bdbCommissionSetting.linkKey.tcLinkKey.key = g_switchAppCtx.tcLinkKey.key;
 		}
+
+		??? What is all of this?  What is BDB?
 
 		bdb_findBindMatchClusterSet(FIND_AND_BIND_CLUSTER_NUM, bdb_findBindClusterList);
 
