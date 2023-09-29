@@ -9,6 +9,8 @@
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
  *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
+ *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
  *          You may obtain a copy of the License at
@@ -48,16 +50,10 @@ enum{
 /**********************************************************************
  * FUNCTIONS
  */
-void light_blink_start(u8 times, u16 ledOnTime, u16 ledOffTime);
-void light_blink_stop(void);
-
-void light_init(void);
-void light_on(void);
-void light_off(void);
+void led_blink_start(u32 pin, u8 times, u16 ledOnTime, u16 ledOffTime);
+void led_blink_stop(void);
 
 void led_on(u32 pin);
 void led_off(u32 pin);
-
-void app_key_handler(void);
 
 #endif	/* _APP_UI_H_ */

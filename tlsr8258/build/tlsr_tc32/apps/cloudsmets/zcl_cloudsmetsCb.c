@@ -1,13 +1,15 @@
 /********************************************************************************************************
- * @file    zcl_sampleGatewayCb.c
+ * @file    zcl_cloudsmetsCb.c
  *
- * @brief   This is the source file for zcl_sampleGatewayCb
+ * @brief   This is the source file for zcl_cloudsmetsCb
  *
  * @author  Zigbee Group
  * @date    2021
  *
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
+ *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
  *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
@@ -23,7 +25,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_GW__)
+#if (__PROJECT_CLOUDSMETS__)
 
 /**********************************************************************
  * INCLUDES
@@ -31,7 +33,7 @@
 #include "tl_common.h"
 #include "zb_api.h"
 #include "zcl_include.h"
-#include "sampleGateway.h"
+#include "cloudsmets.h"
 #include "app_ui.h"
 #if ZBHCI_EN
 #include "zbhci.h"
@@ -1190,6 +1192,6 @@ status_t sampleGW_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *c
 }
 #endif	/* ZCL_POLL_CTRL */
 
-#endif  /* __PROJECT_TL_GW__ */
+#endif  /* __PROJECT_CLOUDSMETS__ */
 
 

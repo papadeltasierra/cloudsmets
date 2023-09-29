@@ -42,7 +42,7 @@
 #define ZCL_BASIC_MFG_NAME     {10,'C','L','O','U','D','S','M','E','T','S'}
 #endif
 #ifndef ZCL_BASIC_MODEL_ID
-#define ZCL_BASIC_MODEL_ID	   {3,'1','0','0'}
+#define ZCL_BASIC_MODEL_ID	   {5,'0','.','0','.','1'}
 #endif
 #endif /* __PROJECT_CLOUDSMETS__ */
 
@@ -56,7 +56,7 @@
  * GLOBAL VARIABLES
  */
 /**
- *  @brief Definition for Incoming cluster / Sever Cluster
+ *  @brief Definition for Incoming cluster / Server Cluster
  */
 const u16 cloudsmets_inClusterList[] =
 {
@@ -78,8 +78,8 @@ const u16 cloudsmets_outClusterList[] =
 /**
  *  @brief Definition for Server cluster number and Client cluster number
  */
-#define cloudsmets_IN_CLUSTER_NUM		(sizeof(cloudsmets_inClusterList)/sizeof(cloudsmets_inClusterList[0]))
-#define cloudsmets_OUT_CLUSTER_NUM	(sizeof(cloudsmets_outClusterList)/sizeof(cloudsmets_outClusterList[0]))
+#define CLOUDSMETS_IN_CLUSTER_NUM		(sizeof(cloudsmets_inClusterList)/sizeof(cloudsmets_inClusterList[0]))
+#define CLOUDSMETS_OUT_CLUSTER_NUM	(sizeof(cloudsmets_outClusterList)/sizeof(cloudsmets_outClusterList[0]))
 
 /**
  *  @brief Definition for simple description for HA profile
@@ -91,8 +91,8 @@ const af_simple_descriptor_t cloudsmets_simpleDesc =
 	CLOUDSMETS_ENDPOINT,                 /* Endpoint */
 	2,                                  	/* Application device version */
 	0,										/* Reserved */
-	cloudsmets_IN_CLUSTER_NUM,           	/* Application input cluster count */
-	cloudsmets_OUT_CLUSTER_NUM,          	/* Application output cluster count */
+	CLOUDSMETS_IN_CLUSTER_NUM,           	/* Application input cluster count */
+	CLOUDSMETS_OUT_CLUSTER_NUM,          	/* Application output cluster count */
 	(u16 *)cloudsmets_inClusterList,    	/* Application input cluster list */
 	(u16 *)cloudsmets_outClusterList,   	/* Application output cluster list */
 };
@@ -143,76 +143,15 @@ const zclAttrInfo_t identify_attrTbl[] =
 
 #define	ZCL_IDENTIFY_ATTR_NUM			sizeof(identify_attrTbl) / sizeof(zclAttrInfo_t)
 
-// !!PDS: Don't believe we require this.
-#if 0
-#ifdef ZCL_POLL_CTRL
-/* Poll Control */
-zcl_pollCtrlAttr_t g_zcl_pollCtrlAttrs =
-{
-	.chkInInterval			= 0x3840,
-	.longPollInterval		= 0x14,
-	.shortPollInterval		= 0x02,
-	.fastPollTimeout		= 0x28,
-	.chkInIntervalMin		= 0x00,
-	.longPollIntervalMin	= 0x00,
-	.fastPollTimeoutMax		= 0x00,
-};
-
-const zclAttrInfo_t pollCtrl_attrTbl[] =
-{
-	{ ZCL_ATTRID_CHK_IN_INTERVAL,  		ZCL_DATA_TYPE_UINT32, ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_pollCtrlAttrs.chkInInterval },
-	{ ZCL_ATTRID_LONG_POLL_INTERVAL, 	ZCL_DATA_TYPE_UINT32, ACCESS_CONTROL_READ, 						  (u8*)&g_zcl_pollCtrlAttrs.longPollInterval },
-	{ ZCL_ATTRID_SHORT_POLL_INTERVAL, 	ZCL_DATA_TYPE_UINT16, ACCESS_CONTROL_READ, 						  (u8*)&g_zcl_pollCtrlAttrs.shortPollInterval },
-	{ ZCL_ATTRID_FAST_POLL_TIMEOUT, 	ZCL_DATA_TYPE_UINT16, ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_pollCtrlAttrs.fastPollTimeout },
-	{ ZCL_ATTRID_CHK_IN_INTERVAL_MIN, 	ZCL_DATA_TYPE_UINT32, ACCESS_CONTROL_READ, 						  (u8*)&g_zcl_pollCtrlAttrs.chkInIntervalMin},
-	{ ZCL_ATTRID_LONG_POLL_INTERVAL_MIN,ZCL_DATA_TYPE_UINT32, ACCESS_CONTROL_READ, 						  (u8*)&g_zcl_pollCtrlAttrs.longPollIntervalMin },
-	{ ZCL_ATTRID_FAST_POLL_TIMEOUT_MAX, ZCL_DATA_TYPE_UINT16, ACCESS_CONTROL_READ, 						  (u8*)&g_zcl_pollCtrlAttrs.fastPollTimeoutMax},
-
-	{ ZCL_ATTRID_GLOBAL_CLUSTER_REVISION, ZCL_DATA_TYPE_UINT16,  ACCESS_CONTROL_READ,  					  (u8*)&zcl_attr_global_clusterRevision},
-};
-
-#define	ZCL_POLLCTRL_ATTR_NUM			sizeof(pollCtrl_attrTbl) / sizeof(zclAttrInfo_t)
 #endif
-#endif
-
-/* Basic */
-zcl_timeAttr_t g_zcl_timeAttrs =
-{
-	.time		= 0,
-	.localTime 	= 0,
-};
-
-const zclAttrInfo_t time_attrTbl[] =
-{
-	{ ZCL_ATTRID_TIME,      		ZCL_DATA_TYPE_UTC,    ACCESS_CONTROL_READ,	(u32*)&g_zcl_timeAttrs.time},
-	{ ZCL_ATTRID_LOCAL_TIME,      	ZCL_DATA_TYPE_UTC,    ACCESS_CONTROL_READ,  (u32*)&g_zcl_timeAttrs.localTime}
-};
-
-#define ZCL_TIME_ATTR_NUM	  sizeof(time_attrTbl) / sizeof(zclAttrInfo_t)
 
 /**
- *  @brief Definition for CloudSMETS specific cluster
+ *  @brief Definition for CloudSMETS specific (server) clusters
  */
 const zcl_specClusterInfo_t g_cloudsmetsClusterList[] =
 {
-	// !!PDS:
-#if 1
-	{ZCL_CLUSTER_GEN_TIME,			MANUFACTURER_CODE_NONE,	ZCL_TIME_ATTR_NUM, 		time_attrTbl,  		zcl_time_register,		cloudsmets_timeCb},
-	{ZCL_CLUSTER_SE_METERING,		MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_metering_register,	NULL},
-#else
-//!!PDS: Remove this and referenced code.
 	{ZCL_CLUSTER_GEN_BASIC,			MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		cloudsmets_basicCb},
 	{ZCL_CLUSTER_GEN_IDENTIFY,		MANUFACTURER_CODE_NONE,	ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	cloudsmets_identifyCb},
-#ifdef ZCL_GROUP
-	{ZCL_CLUSTER_GEN_GROUPS,		MANUFACTURER_CODE_NONE,	0, 						NULL,  				zcl_group_register,		cloudsmets_groupCb},
-#endif
-#ifdef ZCL_SCENE
-	{ZCL_CLUSTER_GEN_SCENES,		MANUFACTURER_CODE_NONE,	0,						NULL,				zcl_scene_register,		cloudsmets_sceneCb},
-#endif
-#ifdef ZCL_POLL_CTRL
-	{ZCL_CLUSTER_GEN_POLL_CONTROL,	MANUFACTURER_CODE_NONE,	ZCL_POLLCTRL_ATTR_NUM,	pollCtrl_attrTbl, 	zcl_pollCtrl_register, 	cloudsmets_pollCtrlCb},
-#endif
-#endif
 };
 
 u8 CLOUDSMETS_CB_CLUSTER_NUM = (sizeof(g_cloudsmetsClusterList)/sizeof(g_cloudsmetsClusterList[0]));

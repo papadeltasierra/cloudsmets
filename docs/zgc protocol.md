@@ -22,6 +22,35 @@ Standard processing ot `time` attributes is an example of _straight to variable_
 
 
 
+
+## Reading Attributes
+Apparently in Zigbee you can request a read of multiple attributes at once so how might we do this?  Well we need this information:
+
+|Info|Example|Purpose|
+|-|-|-|
+|Server address|11:22:33:44:55:66:77:88|The address to read from|
+|Cluster ID|0x0702|Metering (Smart Energy)|
+|Attr Id|0x0000|Current Summation Delivered|
+|Attr Id|0x0001|Current Summation Received|
+
+Note that there is no reason why you cannot read attributes from different information sets at the same time; they have distinct attribute IDs.
+
+It appears that CloudSMETS will need to learn the address of two devices so it can read the gas and electricy seperately.  These should operate slightly differently because gas info is only available at around 30min granularity.
+
+Use "Service Discovery" to find the endpoints.
+
+Recommended [ZigBee Base Device Behavior Specification, v1.0] to start with :
+- ZBHCI_CMD_MGMT_LQI_REQ to find the neighbours
+- Match_Desc_req, ZBHCI_CMD_DISCOVERY_MATCH_DESC_REQ
+- Looks like we can send this to the coordinator and it will respond with matches
+- So we ask for a time server...
+- ...and then we ask for all metering servers, which probably results in the ESME and the gas proxy.
+- We care about clusters in and clusters out, although not clear which and in
+which order!
+
+Implies that it should be possible to define "we support the metering cluster as a client" and then everything else works from the `zbhci`.
+
+
 ## Time Processing from the bottom up
 - There are no example of using the time attributes in the [Telink ZigBee SDK].
 - 10 attributes are defined in `zcl_time.h`.

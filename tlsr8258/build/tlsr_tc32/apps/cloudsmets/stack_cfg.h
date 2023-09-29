@@ -75,6 +75,10 @@
  * CloudSMETS should always be an endpoint.
  */
 
+#ifndef END_DEVICE
+#error "CloudSMETS is always a ZigBee End Device."
+#endif
+
 /**
    Auto definition for the role
  */

@@ -85,21 +85,6 @@ typedef struct{
 	u16	identifyTime;
 }zcl_identifyAttr_t;
 
-#ifndef __PROJECT_CLOUDSMETS__
-//!!PDS: Not required.
-/**
- *  @brief  Defined for poll control cluster attributes
- */
-typedef struct{
-	u32	chkInInterval;
-	u32	longPollInterval;
-	u32	chkInIntervalMin;
-	u32	longPollIntervalMin;
-	u16	shortPollInterval;
-	u16	fastPollTimeout;
-	u16	fastPollTimeoutMax;
-}zcl_pollCtrlAttr_t;
-
 #endif /* __PROJECT_CLOUDSMETS__ */
 
 /**********************************************************************

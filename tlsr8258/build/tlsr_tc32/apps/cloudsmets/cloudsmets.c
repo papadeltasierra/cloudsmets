@@ -78,18 +78,20 @@ const zdo_appIndCb_t appCbLst = {
 
 /**
  *  @brief Definition for BDB finding and binding cluster
+ *  These are the clusters that we want to find so that we can query current
+ *  time and the Amsert metering pricing and usage niformation.
  */
 u16 bdb_findBindClusterList[] =
 {
-	ZCL_CLUSTER_GEN_ON_OFF,
+	ZCL_CLUSTER_GEN_TIME,
+	ZCL_CLUSTER_SE_PRICE,
+	ZCL_CLUSTER_SE_METERING
 };
 
 /**
  *  @brief Definition for BDB finding and binding cluster number
  */
 #define FIND_AND_BIND_CLUSTER_NUM		(sizeof(bdb_findBindClusterList)/sizeof(bdb_findBindClusterList[0]))
-
-??? Not sure  we need this
 
 /**
  *  @brief Definition for bdb commissioning setting
@@ -216,16 +218,13 @@ void user_init(bool isRetention)
 		/* User's Task */
 		ev_on_poll(EV_POLL_HCI, zbhciTask);
 
-		/* There are not keys etc so no need for an app_task. */
-
 		/* Load the pre-install code from flash */
 		if(bdb_preInstallCodeLoad(&g_switchAppCtx.tcLinkKey.keyType, g_switchAppCtx.tcLinkKey.key) == RET_OK){
 			g_bdbCommissionSetting.linkKey.tcLinkKey.keyType = g_switchAppCtx.tcLinkKey.keyType;
 			g_bdbCommissionSetting.linkKey.tcLinkKey.key = g_switchAppCtx.tcLinkKey.key;
 		}
 
-		??? What is all of this?  What is BDB?
-
+		/* !!PDS: This seems to be config for the search for maching cluster servers. */
 		bdb_findBindMatchClusterSet(FIND_AND_BIND_CLUSTER_NUM, bdb_findBindClusterList);
 
 		/* Initialize BDB */
