@@ -57,6 +57,17 @@ extern "C" {
 //        unless "binding" means connecting with the coordinator.
 #define FIND_AND_BIND_SUPPORT			1
 
+/* UART module */
+/* CloudSMETS uses the UART to talk to the ESP32-C3 */
+#define	MODULE_UART_ENABLE							1
+
+/* The ESP32-C3 drives the tlsr8253 over the zbhci interface over the UART. */
+#define ZBHCI_UART									1
+
+#if (ZBHCI_USB_PRINT || ZBHCI_USB_CDC || ZBHCI_USB_HID || ZBHCI_UART)
+	#define ZBHCI_EN								1
+#endif
+
 /* Board ID */
 #define BOARD_826x_EVK					0
 #define BOARD_826x_DONGLE				1
@@ -73,7 +84,7 @@ extern "C" {
 #ifndef MCU_CORE_8258
 #error "LilyGo T-ZigBee iuses a Telink tlsr8258."
 #endif
-#ifdef TLSR_8258_1M
+#if (CHIP_TYPE == TLSR_8258_1M)
 #error "LilyGo T-ZigBee uses a 512kB Telink tlsr8258."
 #endif
 
@@ -149,17 +160,6 @@ extern "C" {
 
 /* Watch dog module */
 #define MODULE_WATCHDOG_ENABLE						0
-
-/* UART module */
-/* CloudSMETS uses the UART to talk to the ESP32-C3 */
-#define	MODULE_UART_ENABLE							1
-
-/* The ESP32-C3 drives the tlsr8253 over the zbhci interface over the UART. */
-#define ZBHCI_UART									1
-
-#if (ZBHCI_USB_PRINT || ZBHCI_USB_CDC || ZBHCI_USB_HID || ZBHCI_UART)
-	#define ZBHCI_EN								1
-#endif
 
 
 /**********************************************************************

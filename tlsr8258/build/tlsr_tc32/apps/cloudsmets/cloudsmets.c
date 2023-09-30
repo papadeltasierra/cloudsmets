@@ -168,7 +168,7 @@ void user_app_init(void)
 	af_endpointRegister(CLOUDSMETS_ENDPOINT, (af_simple_descriptor_t *)&cloudsmets_simpleDesc, zcl_rx_handler, NULL);
 
 	/* Register ZCL specific cluster information */
-	zcl_register(CLOUDSMETS_ENDPOINT, SAMPLE_SWITCH_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_cloudsmetsClusterList);
+	zcl_register(CLOUDSMETS_ENDPOINT, CLOUDSMETS_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_cloudsmetsClusterList);
 
 }
 
@@ -176,8 +176,8 @@ void user_app_init(void)
 
 void led_init(void)
 {
-	led_off(LED_GREEN);
-	led_off(LED_RED);
+	led_off(LED_G);
+	led_off(LED_R);
 }
 
 static void cloudsmetsSysException(void)

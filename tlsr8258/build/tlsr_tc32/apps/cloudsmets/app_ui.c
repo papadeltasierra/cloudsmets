@@ -59,10 +59,12 @@ void led_off(u32 pin)
 	drv_gpio_write(pin, LED_OFF);
 }
 
-
+#if 0
+//!!PDS: If we wan tflashing LEDs, we have to sort this.
 s32 zclLEDTimerCb(void *arg)
 {
 	u32 interval = 0;
+	u32 pin = (u32)arg;
 
 	if(g_switchAppCtx.sta == g_switchAppCtx.oriSta){
 		g_switchAppCtx.times--;
@@ -74,10 +76,10 @@ s32 zclLEDTimerCb(void *arg)
 
 	g_switchAppCtx.sta = !g_switchAppCtx.sta;
 	if(g_switchAppCtx.sta){
-		light_on();
+		led_on(pin);
 		interval = g_switchAppCtx.ledOnTime;
 	}else{
-		light_off();
+		led_off(pin);
 		interval = g_switchAppCtx.ledOffTime;
 	}
 
@@ -119,6 +121,7 @@ void led_blink_stop(u32 pin)
 		}
 	}
 }
+#endif
 
 
 #endif  /* __PROJECT_CLOUDSMETS__ */

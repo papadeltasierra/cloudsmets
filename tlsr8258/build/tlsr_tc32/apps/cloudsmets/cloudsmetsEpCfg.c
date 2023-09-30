@@ -88,7 +88,7 @@ const af_simple_descriptor_t cloudsmets_simpleDesc =
 {
 	HA_PROFILE_ID,                      	/* Application profile identifier */
 	HA_DEV_ONOFF_SWITCH,                	/* Application device identifier */
-	CLOUDSMETS_ENDPOINT,                 /* Endpoint */
+	CLOUDSMETS_ENDPOINT,                 	/* Endpoint */
 	2,                                  	/* Application device version */
 	0,										/* Reserved */
 	CLOUDSMETS_IN_CLUSTER_NUM,           	/* Application input cluster count */
@@ -142,8 +142,6 @@ const zclAttrInfo_t identify_attrTbl[] =
 };
 
 #define	ZCL_IDENTIFY_ATTR_NUM			sizeof(identify_attrTbl) / sizeof(zclAttrInfo_t)
-
-#endif
 
 /**
  *  @brief Definition for CloudSMETS specific (server) clusters

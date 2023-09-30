@@ -1697,11 +1697,6 @@
 			<locationURI>TELINK_ZIGBEE_SDK/zigbee/zcl/general/zcl_time.h</locationURI>
 		</link>
 		<link>
-			<name>zigbee/zcl/general/zcl_time_attr.c</name>
-			<type>1</type>
-			<locationURI>TELINK_ZIGBEE_SDK/zigbee/zcl/general/zcl_time_attr.c</locationURI>
-		</link>
-		<link>
 			<name>zigbee/zcl/hvac/zcl_thermostat.c</name>
 			<type>1</type>
 			<locationURI>TELINK_ZIGBEE_SDK/zigbee/zcl/hvac/zcl_thermostat.c</locationURI>

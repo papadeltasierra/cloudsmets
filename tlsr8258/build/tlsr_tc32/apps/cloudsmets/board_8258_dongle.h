@@ -30,9 +30,9 @@
 extern "C" {
 #endif
 
-
-#define DONGLE_8258_32				0
-#define	DONGLE_8258_48				1
+//!!PDS: document is a 32-pin dongle.
+#define DONGLE_8258_32				1
+#define	DONGLE_8258_48				0
 
 #if defined DONGLE_8258_32 && (DONGLE_8258_32 == 1)
 /*******************************************************************************************************
@@ -52,12 +52,12 @@ extern "C" {
 #define	PULL_WAKEUP_SRC_PA1			PM_PIN_PULLUP_10K
 
 //LED
-#define LED1						GPIO_PA0
+#define LED_G						GPIO_PA0
 #define PA0_FUNC					AS_GPIO
 #define PA0_OUTPUT_ENABLE			1
 #define PA0_INPUT_ENABLE			0
 
-#define LED3						GPIO_PD4
+#define LED_R						GPIO_PD4
 #define PD4_FUNC					AS_GPIO
 #define PD4_OUTPUT_ENABLE			1
 #define PD4_INPUT_ENABLE			0
@@ -66,7 +66,9 @@ extern "C" {
 
 // UART
 #if ZBHCI_UART
-	#error please configurate uart PIN!!!!!!
+	#define UART_TX_PIN         	UART_TX_PB1
+	#define UART_RX_PIN         	UART_RX_PB7
+	#define UART_PIN_CFG()			uart_gpio_set(UART_TX_PIN, UART_RX_PIN);// uart tx/rx pin set
 #endif
 
 // DEBUG

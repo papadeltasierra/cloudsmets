@@ -88,7 +88,7 @@ s32 cloudsmets_bdbFindAndBindStart(void *arg){
 	BDB_ATTR_GROUP_ID_SET(0x1234);//only for initiator
 	bdb_findAndBindStart(BDB_COMMISSIONING_ROLE_INITIATOR);
 
-	g_switchAppCtx.bdbFBTimerEvt = NULL;
+	// !!PDS: Not yet used. g_switchAppCtx.bdbFBTimerEvt = NULL;
 	return -1;
 }
 #endif
@@ -170,7 +170,7 @@ void zbdemo_bdbCommissioningCb(u8 status, void *arg){
 
 	switch(status){
 		case BDB_COMMISSION_STA_SUCCESS:
-			light_blink_start(2, 200, 200);
+			// !!PDS: No LEDs yet. light_blink_start(2, 200, 200);
 
 			zb_setPollRate(POLL_RATE * 3);
 
@@ -180,11 +180,13 @@ void zbdemo_bdbCommissioningCb(u8 status, void *arg){
 #ifdef ZCL_OTA
 			ota_queryStart(OTA_PERIODIC_QUERY_INTERVAL);
 #endif
+#if 0 // !!PDS: Want to enable LED blinking...
 #if FIND_AND_BIND_SUPPORT
 			//start Finding & Binding
 			if(!g_switchAppCtx.bdbFBTimerEvt){
 				g_switchAppCtx.bdbFBTimerEvt = TL_ZB_TIMER_SCHEDULE(cloudsmets_bdbFindAndBindStart, NULL, 50);
 			}
+#endif
 #endif
 			if(switchRejoinBackoffTimerEvt){
 				TL_ZB_TIMER_CANCEL(&switchRejoinBackoffTimerEvt);

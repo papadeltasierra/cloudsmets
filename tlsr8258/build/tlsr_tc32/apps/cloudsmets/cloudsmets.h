@@ -28,9 +28,6 @@
 #ifndef _CLOUDSMETS_H_
 #define _CLOUDSMETS_H_
 
-
-#ifndef __PROJECT_CLOUDSMETS__
-
 /**********************************************************************
  * CONSTANT
  */
@@ -62,7 +59,6 @@ typedef struct{
 
 	app_linkKey_info_t tcLinkKey;
 }app_ctx_t;
-#endif /* __PROJECT_CLOUDSMETS__ */
 
 /**
  *  @brief Defined for basic cluster attributes
@@ -85,30 +81,29 @@ typedef struct{
 	u16	identifyTime;
 }zcl_identifyAttr_t;
 
-#endif /* __PROJECT_CLOUDSMETS__ */
-
 /**********************************************************************
  * GLOBAL VARIABLES
  */
-extern app_ctx_t g_switchAppCtx;
+// !!PDS: not used.  extern app_ctx_t g_switchAppCtx;
 
 extern bdb_appCb_t g_zbDemoBdbCb;
 
 extern bdb_commissionSetting_t g_bdbCommissionSetting;
 
-extern u8 SAMPLE_SWITCH_CB_CLUSTER_NUM;
+extern u8 CLOUDSMETS_CB_CLUSTER_NUM;
 extern const zcl_specClusterInfo_t g_cloudsmetsClusterList[];
 extern const af_simple_descriptor_t cloudsmets_simpleDesc;
 
 /* Attributes */
 extern zcl_basicAttr_t g_zcl_basicAttrs;
 extern zcl_identifyAttr_t g_zcl_identifyAttrs;
-extern zcl_pollCtrlAttr_t g_zcl_pollCtrlAttrs;
 
 #define zcl_pollCtrlAttrGet()	&g_zcl_pollCtrlAttrs
 /**********************************************************************
  * FUNCTIONS
  */
+status_t cloudsmets_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t cloudsmets_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 void cloudsmets_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg);
 
 status_t cloudsmets_timeCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);

@@ -85,60 +85,6 @@
 							<tool id="com.telink.tc32eclipse.tool.size.TC32Win.app.release.315462239" name="Print Size" superClass="com.telink.tc32eclipse.tool.size.TC32Win.app.release"/>
 						</toolChain>
 					</folderInfo>
-					<folderInfo id="com.telink.tc32eclipse.configuration.app.release.435527967.1878166267" name="/" resourcePath="cloudsmets-8258">
-						<toolChain id="com.telink.tc32eclipse.toolchain.TC32Win.app.release.264868698" name="TC32-GCC Toolchain" superClass="com.telink.tc32eclipse.toolchain.TC32Win.app.release" unusedChildren="">
-							<option id="com.telink.tc32eclipse.toolchain.options.toolchain.objcopy.flash.app.release.1844060999.278142148" name="Generate binary file for Flash memory" superClass="com.telink.tc32eclipse.toolchain.options.toolchain.objcopy.flash.app.release.1844060999"/>
-							<option id="com.telink.tc32eclipse.toolchain.options.toolchain.objdump.app.release.1799615154.761759843" name="Generate Extended Listing (Source + generated Assembler)" superClass="com.telink.tc32eclipse.toolchain.options.toolchain.objdump.app.release.1799615154"/>
-							<option id="com.telink.tc32eclipse.toolchain.options.toolchain.size.app.release.40691439.302983043" name="Print Size" superClass="com.telink.tc32eclipse.toolchain.options.toolchain.size.app.release.40691439"/>
-							<targetPlatform id="com.telink.tc32eclipse.targetplatform.TC32Win.app.release" name="TC32 Cross-Target" superClass="com.telink.tc32eclipse.targetplatform.TC32Win.app.release"/>
-							<tool id="com.telink.tc32eclipse.tool.assembler.TC32Win.app.release.169946931" name="TC32 CC/Assembler" superClass="com.telink.tc32eclipse.tool.assembler.TC32Win.app.release.382737320">
-								<option id="com.telink.tc32eclipse.asm.option.flags.1617345938" name="Other GCC Flags" superClass="com.telink.tc32eclipse.asm.option.flags" value="-DMCU_CORE_8258 -DMCU_STARTUP_8258" valueType="string"/>
-								<option id="com.telink.tc32eclipse.asm.option.include.paths.575836638" name="#include paths for preprocessor(-I)" superClass="com.telink.tc32eclipse.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="../apps/cloudsmets"/>
-								</option>
-								<option id="com.telink.tc32eclipse.assembler.option.debug.level.857257443" name="Generate Debugging Info" superClass="com.telink.tc32eclipse.assembler.option.debug.level" value="com.telink.tc32eclipse.assembler.option.debug.level.none" valueType="enumerated"/>
-								<inputType id="com.telink.tc32eclipse.tool.assembler.input.418456" superClass="com.telink.tc32eclipse.tool.assembler.input"/>
-							</tool>
-							<tool command="tc32-elf-gcc" id="com.telink.tc32eclipse.tool.compiler.TC32Win.app.release.2010787662" name="TC32 Compiler" superClass="com.telink.tc32eclipse.tool.compiler.TC32Win.app.release.1974945843">
-								<option id="com.telink.tc32eclipse.compiler.option.incpath.685325852" name="Include Paths (-I)" superClass="com.telink.tc32eclipse.compiler.option.incpath" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/apps/common&quot;"/>
-									<listOptionValue builtIn="false" value="../apps/cloudsmets"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/platform&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/proj/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/proj&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zigbee/common/includes&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zigbee/zbapi&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zigbee/bdb/includes&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zigbee/gp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zigbee/zcl&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zigbee/ota&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zigbee/wwah&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zbhci&quot;"/>
-								</option>
-								<option id="com.telink.tc32eclipse.compiler.option.def.1922970608" name="Define Syms (-D)" superClass="com.telink.tc32eclipse.compiler.option.def" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="END_DEVICE=1"/>
-									<listOptionValue builtIn="false" value="MCU_CORE_8258=1"/>
-									<listOptionValue builtIn="false" value="__PROJECT_CLOUDSMETS__=1"/>
-								</option>
-								<option id="com.telink.tc32eclipse.compiler.option.optimize.1094931664" name="Optimization Level" superClass="com.telink.tc32eclipse.compiler.option.optimize" value="com.telink.tc32eclipse.compiler.optimize.two" valueType="enumerated"/>
-								<option id="com.telink.tc32eclipse.compiler.option.optimize.packstruct.1026186730" name="Pack structs (-fpack-struct)" superClass="com.telink.tc32eclipse.compiler.option.optimize.packstruct" value="true" valueType="boolean"/>
-								<option id="com.telink.tc32eclipse.compiler.option.optimize.shortenums.1758817653" name="Short enums (-fshort-enums)" superClass="com.telink.tc32eclipse.compiler.option.optimize.shortenums" value="true" valueType="boolean"/>
-								<option id="com.telink.tc32eclipse.compiler.option.std.141635558" name="Language Standard" superClass="com.telink.tc32eclipse.compiler.option.std" value="com.telink.tc32eclipse.compiler.option.std.gnu99" valueType="enumerated"/>
-								<option id="com.telink.tc32eclipse.compiler.option.otherflags.1713338845" name="Other flags" superClass="com.telink.tc32eclipse.compiler.option.otherflags" value="-fshort-wchar -fms-extensions" valueType="string"/>
-								<option id="com.telink.tc32eclipse.compiler.option.optimize.other.1043538908" name="Other Optimization Flags" superClass="com.telink.tc32eclipse.compiler.option.optimize.other" value="-fshort-wchar -fms-extensions -finline-small-functions -ffunction-sections -fdata-sections" valueType="string"/>
-								<inputType id="com.telink.tc32eclipse.compiler.TC32Win.input.839778202" name="C Source Files" superClass="com.telink.tc32eclipse.compiler.TC32Win.input"/>
-							</tool>
-							<tool id="com.telink.tc32eclipse.tool.linker.TC32Win.app.release.1372692249" name="TC32 C Linker" superClass="com.telink.tc32eclipse.tool.linker.TC32Win.app.release.1457669315"/>
-							<tool id="com.telink.tc32eclipse.tool.archiver.TC32Win.base.576910521" name="TC32 Archiver" superClass="com.telink.tc32eclipse.tool.archiver.TC32Win.base.490125511"/>
-							<tool id="com.telink.tc32eclipse.tool.objdump.TC32Win.app.release.1543469690" name="TC32 Create Extended Listing" superClass="com.telink.tc32eclipse.tool.objdump.TC32Win.app.release.431946371">
-								<option id="com.telink.tc32eclipse.objdump.option.output.1689574284" name="Output Filename" superClass="com.telink.tc32eclipse.objdump.option.output" value="${ConfigName}.lst" valueType="string"/>
-							</tool>
-							<tool id="com.telink.tc32eclipse.tool.objcopy.flash.TC32Win.app.release.1442262845" name="TC32 Create Flash image" superClass="com.telink.tc32eclipse.tool.objcopy.flash.TC32Win.app.release.1180062000">
-								<option id="com.telink.tc32eclipse.objcopy.flash.option.output.1448821846" name="Output Filename" superClass="com.telink.tc32eclipse.objcopy.flash.option.output" value="" valueType="string"/>
-							</tool>
-							<tool id="com.telink.tc32eclipse.tool.size.TC32Win.app.release.2061317211" name="Print Size" superClass="com.telink.tc32eclipse.tool.size.TC32Win.app.release.315462239"/>
-						</toolChain>
-					</folderInfo>
 					<folderInfo id="com.telink.tc32eclipse.configuration.app.release.435527967.532415909" name="/" resourcePath="apps/cloudsmets">
 						<toolChain id="com.telink.tc32eclipse.toolchain.TC32Win.app.release.448995818" name="TC32-GCC Toolchain" superClass="com.telink.tc32eclipse.toolchain.TC32Win.app.release" unusedChildren="">
 							<option id="com.telink.tc32eclipse.toolchain.options.toolchain.objcopy.flash.app.release.1844060999.2018286112" name="Generate binary file for Flash memory" superClass="com.telink.tc32eclipse.toolchain.options.toolchain.objcopy.flash.app.release.1844060999"/>
@@ -155,7 +101,7 @@
 									<listOptionValue builtIn="false" value="__PROJECT_CLOUDSMETS__=1"/>
 								</option>
 								<option id="com.telink.tc32eclipse.compiler.option.optimize.other.103184015" name="Other Optimization Flags" superClass="com.telink.tc32eclipse.compiler.option.optimize.other" value="-finline-small-functions" valueType="string"/>
-								<option id="com.telink.tc32eclipse.compiler.option.incpath.120836870" superClass="com.telink.tc32eclipse.compiler.option.incpath" valueType="includePath">
+								<option id="com.telink.tc32eclipse.compiler.option.incpath.120836870" name="Include Paths (-I)" superClass="com.telink.tc32eclipse.compiler.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/apps/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${GITHUB_WORKSPACE}/tlsr8258/build/tlsr_tc32/apps/cloudsmets&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/platform&quot;"/>
@@ -168,7 +114,7 @@
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zigbee/ota&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zbhci&quot;"/>
 								</option>
-								<option id="com.telink.tc32eclipse.compiler.option.otherflags.298570386" superClass="com.telink.tc32eclipse.compiler.option.otherflags" value="-fshort-wchar -fms-extensions" valueType="string"/>
+								<option id="com.telink.tc32eclipse.compiler.option.otherflags.298570386" name="Other flags" superClass="com.telink.tc32eclipse.compiler.option.otherflags" value="-fshort-wchar -fms-extensions" valueType="string"/>
 								<inputType id="com.telink.tc32eclipse.compiler.TC32Win.input.650444706" name="C Source Files" superClass="com.telink.tc32eclipse.compiler.TC32Win.input"/>
 							</tool>
 							<tool id="com.telink.tc32eclipse.tool.linker.TC32Win.app.release.476773638" name="TC32 C Linker" superClass="com.telink.tc32eclipse.tool.linker.TC32Win.app.release.1457669315"/>

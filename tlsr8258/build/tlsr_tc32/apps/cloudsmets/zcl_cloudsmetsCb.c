@@ -54,18 +54,18 @@
  * LOCAL FUNCTIONS
  */
 #ifdef ZCL_READ
-static void sampleGW_zclReadRspCmd(zclIncoming_t *pInMsg);
+static void cloudsmets_zclReadRspCmd(zclIncoming_t *pInMsg);
 #endif
 #ifdef ZCL_WRITE
-static void sampleGW_zclWriteRspCmd(zclIncoming_t *pInMsg);
+static void cloudsmets_zclWriteRspCmd(zclIncoming_t *pInMsg);
 #endif
 #ifdef ZCL_REPORT
-static void sampleGW_zclCfgReportCmd(zclCfgReportCmd_t *pCfgReportCmd);
-static void sampleGW_zclCfgReportRspCmd(zclIncoming_t *pInMsg);
-static void sampleGW_zclReportCmd(zclIncoming_t *pInMsg);
-static void sampleGW_zclCfgReadRspCmd(zclIncoming_t *pInMsg);
+static void cloudsmets_zclCfgReportCmd(zclCfgReportCmd_t *pCfgReportCmd);
+static void cloudsmets_zclCfgReportRspCmd(zclIncoming_t *pInMsg);
+static void cloudsmets_zclReportCmd(zclIncoming_t *pInMsg);
+static void cloudsmets_zclCfgReadRspCmd(zclIncoming_t *pInMsg);
 #endif
-static void sampleGW_zclDfltRspCmd(zclIncoming_t *pInMsg);
+static void cloudsmets_zclDfltRspCmd(zclIncoming_t *pInMsg);
 
 /**********************************************************************
  * GLOBAL VARIABLES
@@ -85,7 +85,7 @@ static ev_timer_event_t *identifyTimerEvt = NULL;
  */
 
 /*********************************************************************
- * @fn      sampleGW_zclProcessIncomingMsg
+ * @fn      cloudsmets_zclProcessIncomingMsg
  *
  * @brief   Process ZCL Foundation incoming message.
  *
@@ -93,38 +93,38 @@ static ev_timer_event_t *identifyTimerEvt = NULL;
  *
  * @return  None
  */
-void sampleGW_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg)
+void cloudsmets_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg)
 {
-//	printf("sampleGW_zclProcessIncomingMsg\n");
+//	printf("cloudsmets_zclProcessIncomingMsg\n");
 
 	switch(pInHdlrMsg->hdr.cmd)
 	{
 #ifdef ZCL_READ
 		case ZCL_CMD_READ_RSP:
-			sampleGW_zclReadRspCmd(pInHdlrMsg);
+			cloudsmets_zclReadRspCmd(pInHdlrMsg);
 			break;
 #endif
 #ifdef ZCL_WRITE
 		case ZCL_CMD_WRITE_RSP:
-			sampleGW_zclWriteRspCmd(pInHdlrMsg);
+			cloudsmets_zclWriteRspCmd(pInHdlrMsg);
 			break;
 #endif
 #ifdef ZCL_REPORT
 		case ZCL_CMD_CONFIG_REPORT:
-			sampleGW_zclCfgReportCmd(pInHdlrMsg->attrCmd);
+			cloudsmets_zclCfgReportCmd(pInHdlrMsg->attrCmd);
 			break;
 		case ZCL_CMD_CONFIG_REPORT_RSP:
-			sampleGW_zclCfgReportRspCmd(pInHdlrMsg);
+			cloudsmets_zclCfgReportRspCmd(pInHdlrMsg);
 			break;
 		case ZCL_CMD_READ_REPORT_CFG_RSP:
-			sampleGW_zclCfgReadRspCmd(pInHdlrMsg);
+			cloudsmets_zclCfgReadRspCmd(pInHdlrMsg);
 			break;
 		case ZCL_CMD_REPORT:
-			sampleGW_zclReportCmd(pInHdlrMsg);
+			cloudsmets_zclReportCmd(pInHdlrMsg);
 			break;
 #endif
 		case ZCL_CMD_DEFAULT_RSP:
-			sampleGW_zclDfltRspCmd(pInHdlrMsg);
+			cloudsmets_zclDfltRspCmd(pInHdlrMsg);
 			break;
 		default:
 			break;
@@ -133,7 +133,7 @@ void sampleGW_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg)
 
 #ifdef ZCL_READ
 /*********************************************************************
- * @fn      sampleGW_zclReadRspCmd
+ * @fn      cloudsmets_zclReadRspCmd
  *
  * @brief   Handler for ZCL Read Response command.
  *
@@ -141,7 +141,7 @@ void sampleGW_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg)
  *
  * @return  None
  */
-static void sampleGW_zclReadRspCmd(zclIncoming_t *pInMsg)
+static void cloudsmets_zclReadRspCmd(zclIncoming_t *pInMsg)
 {
 #if ZBHCI_EN
 	u8 array[64];
@@ -187,7 +187,7 @@ static void sampleGW_zclReadRspCmd(zclIncoming_t *pInMsg)
 
 #ifdef ZCL_WRITE
 /*********************************************************************
- * @fn      sampleGW_zclWriteRspCmd
+ * @fn      cloudsmets_zclWriteRspCmd
  *
  * @brief   Handler for ZCL Write Response command.
  *
@@ -195,7 +195,7 @@ static void sampleGW_zclReadRspCmd(zclIncoming_t *pInMsg)
  *
  * @return  None
  */
-static void sampleGW_zclWriteRspCmd(zclIncoming_t *pInMsg)
+static void cloudsmets_zclWriteRspCmd(zclIncoming_t *pInMsg)
 {
 #if ZBHCI_EN
 	u8 array[64];
@@ -233,7 +233,7 @@ static void sampleGW_zclWriteRspCmd(zclIncoming_t *pInMsg)
 #endif	/* ZCL_WRITE */
 
 /*********************************************************************
- * @fn      sampleGW_zclDfltRspCmd
+ * @fn      cloudsmets_zclDfltRspCmd
  *
  * @brief   Handler for ZCL Default Response command.
  *
@@ -241,9 +241,9 @@ static void sampleGW_zclWriteRspCmd(zclIncoming_t *pInMsg)
  *
  * @return  None
  */
-static void sampleGW_zclDfltRspCmd(zclIncoming_t *pInMsg)
+static void cloudsmets_zclDfltRspCmd(zclIncoming_t *pInMsg)
 {
-//    printf("sampleGW_zclDfltRspCmd\n");
+//    printf("cloudsmets_zclDfltRspCmd\n");
 #if 0
 	u8 array[16];
 	memset(array, 0, 16);
@@ -271,7 +271,7 @@ static void sampleGW_zclDfltRspCmd(zclIncoming_t *pInMsg)
 
 #ifdef ZCL_REPORT
 /*********************************************************************
- * @fn      sampleGW_zclCfgReportCmd
+ * @fn      cloudsmets_zclCfgReportCmd
  *
  * @brief   Handler for ZCL Configure Report command.
  *
@@ -279,13 +279,13 @@ static void sampleGW_zclDfltRspCmd(zclIncoming_t *pInMsg)
  *
  * @return  None
  */
-static void sampleGW_zclCfgReportCmd(zclCfgReportCmd_t *pCfgReportCmd)
+static void cloudsmets_zclCfgReportCmd(zclCfgReportCmd_t *pCfgReportCmd)
 {
-//    printf("sampleGW_zclCfgReportCmd\n");
+//    printf("cloudsmets_zclCfgReportCmd\n");
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclCfgReportRspCmd
+ * @fn      cloudsmets_zclCfgReportRspCmd
  *
  * @brief   Handler for ZCL Configure Report Response command.
  *
@@ -293,9 +293,9 @@ static void sampleGW_zclCfgReportCmd(zclCfgReportCmd_t *pCfgReportCmd)
  *
  * @return  None
  */
-static void sampleGW_zclCfgReportRspCmd(zclIncoming_t *pInMsg)
+static void cloudsmets_zclCfgReportRspCmd(zclIncoming_t *pInMsg)
 {
-//    printf("sampleGW_zclCfgReportRspCmd\n");
+//    printf("cloudsmets_zclCfgReportRspCmd\n");
 #if ZBHCI_EN
 	zclCfgReportRspCmd_t *pCfgReportRspCmd = (zclCfgReportRspCmd_t*)pInMsg->attrCmd;
 	u8 array[64];
@@ -327,7 +327,7 @@ static void sampleGW_zclCfgReportRspCmd(zclIncoming_t *pInMsg)
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclReportCmd
+ * @fn      cloudsmets_zclReportCmd
  *
  * @brief   Handler for ZCL Report command.
  *
@@ -335,9 +335,9 @@ static void sampleGW_zclCfgReportRspCmd(zclIncoming_t *pInMsg)
  *
  * @return  None
  */
-static void sampleGW_zclReportCmd(zclIncoming_t *pInMsg)
+static void cloudsmets_zclReportCmd(zclIncoming_t *pInMsg)
 {
-//    printf("sampleGW_zclReportCmd\n");
+//    printf("cloudsmets_zclReportCmd\n");
 #if ZBHCI_EN
 	zclReportCmd_t *pReportCmd = (zclReportCmd_t *)pInMsg->attrCmd;
 	u16 dataLen = 0;
@@ -390,7 +390,7 @@ static void sampleGW_zclReportCmd(zclIncoming_t *pInMsg)
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclCfgReadRspCmd
+ * @fn      cloudsmets_zclCfgReadRspCmd
  *
  * @brief   Handler for ZCL Report Configure Read command.
  *
@@ -399,7 +399,7 @@ static void sampleGW_zclReportCmd(zclIncoming_t *pInMsg)
  * @return  None
  */
 
-static void sampleGW_zclCfgReadRspCmd(zclIncoming_t *pInMsg)
+static void cloudsmets_zclCfgReadRspCmd(zclIncoming_t *pInMsg)
 {
 #if ZBHCI_EN
 	zclReadReportCfgRspCmd_t *pReadCfgRspCmd = (zclReadReportCfgRspCmd_t *)pInMsg->attrCmd;
@@ -453,7 +453,7 @@ static void sampleGW_zclCfgReadRspCmd(zclIncoming_t *pInMsg)
 
 #ifdef ZCL_BASIC
 /*********************************************************************
- * @fn      sampleGW_basicCb
+ * @fn      cloudsmets_basicCb
  *
  * @brief   Handler for ZCL Basic Reset command.
  *
@@ -463,7 +463,7 @@ static void sampleGW_zclCfgReadRspCmd(zclIncoming_t *pInMsg)
  *
  * @return  status_t
  */
-status_t sampleGW_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(cmdId == ZCL_CMD_BASIC_RESET_FAC_DEFAULT){
 		//Reset all the attributes of all its clusters to factory defaults
@@ -475,7 +475,7 @@ status_t sampleGW_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdP
 #endif	/* ZCL_BASIC */
 
 #ifdef ZCL_IDENTIFY
-s32 sampleGW_zclIdentifyTimerCb(void *arg)
+s32 cloudsmets_zclIdentifyTimerCb(void *arg)
 {
 	if(g_zcl_identifyAttrs.identifyTime <= 0){
 		identifyTimerEvt = NULL;
@@ -485,7 +485,7 @@ s32 sampleGW_zclIdentifyTimerCb(void *arg)
 	return 0;
 }
 
-void sampleGW_zclIdentifyTimerStop(void)
+void cloudsmets_zclIdentifyTimerStop(void)
 {
 	if(identifyTimerEvt){
 		TL_ZB_TIMER_CANCEL(&identifyTimerEvt);
@@ -493,7 +493,7 @@ void sampleGW_zclIdentifyTimerStop(void)
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclIdentifyCmdHandler
+ * @fn      cloudsmets_zclIdentifyCmdHandler
  *
  * @brief   Handler for ZCL Identify command. This function will set blink LED.
  *
@@ -503,23 +503,25 @@ void sampleGW_zclIdentifyTimerStop(void)
  *
  * @return  None
  */
-void sampleGW_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime)
+void cloudsmets_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime)
 {
 	g_zcl_identifyAttrs.identifyTime = identifyTime;
 
+#if 0 //!!PDS: Blinking LEDs.
 	if(identifyTime == 0){
-		sampleGW_zclIdentifyTimerStop();
+		cloudsmets_zclIdentifyTimerStop();
 		light_blink_stop();
 	}else{
 		if(!identifyTimerEvt){
 			light_blink_start(identifyTime, 500, 500);
-			identifyTimerEvt = TL_ZB_TIMER_SCHEDULE(sampleGW_zclIdentifyTimerCb, NULL, 1000);
+			identifyTimerEvt = TL_ZB_TIMER_SCHEDULE(cloudsmets_zclIdentifyTimerCb, NULL, 1000);
 		}
 	}
+#endif
 }
 
 /*********************************************************************
- * @fn      sampleGW_zcltriggerCmdHandler
+ * @fn      cloudsmets_zcltriggerCmdHandler
  *
  * @brief   Handler for ZCL trigger command.
  *
@@ -527,11 +529,12 @@ void sampleGW_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime)
  *
  * @return  None
  */
-static void sampleGW_zcltriggerCmdHandler(zcl_triggerEffect_t *pTriggerEffect)
+static void cloudsmets_zcltriggerCmdHandler(zcl_triggerEffect_t *pTriggerEffect)
 {
-	u8 effectId = pTriggerEffect->effectId;
+	// u8 effectId = pTriggerEffect->effectId;
 //	u8 effectVariant = pTriggerEffect->effectVariant;
 
+#if 0 //!!PDS: What is this for?
 	switch(effectId){
 		case IDENTIFY_EFFECT_BLINK:
 			light_blink_start(1, 500, 500);
@@ -554,10 +557,11 @@ static void sampleGW_zcltriggerCmdHandler(zcl_triggerEffect_t *pTriggerEffect)
 		default:
 			break;
 	}
+#endif
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclIdentifyQueryRspCmdHandler
+ * @fn      cloudsmets_zclIdentifyQueryRspCmdHandler
  *
  * @brief   Handler for ZCL Identify command. This function will set blink LED.
  *
@@ -566,7 +570,7 @@ static void sampleGW_zcltriggerCmdHandler(zcl_triggerEffect_t *pTriggerEffect)
  *
  * @return  None
  */
-static void sampleGW_zclIdentifyQueryRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_identifyRspCmd_t *cmdPayload)
+static void cloudsmets_zclIdentifyQueryRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_identifyRspCmd_t *cmdPayload)
 {
 #if ZBHCI_EN
 	u8 array[8];
@@ -598,23 +602,23 @@ static void sampleGW_zclIdentifyQueryRspCmdHandler(zclIncomingAddrInfo_t *pAddrI
  *
  * @return  status_t
  */
-status_t sampleGW_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
+	if(pAddrInfo->dstEp == CLOUDSMETS_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
 			switch(cmdId){
 				case ZCL_CMD_IDENTIFY:
-					sampleGW_zclIdentifyCmdHandler(pAddrInfo->dstEp, pAddrInfo->srcAddr, ((zcl_identifyCmd_t *)cmdPayload)->identifyTime);
+					cloudsmets_zclIdentifyCmdHandler(pAddrInfo->dstEp, pAddrInfo->srcAddr, ((zcl_identifyCmd_t *)cmdPayload)->identifyTime);
 					break;
 				case ZCL_CMD_TRIGGER_EFFECT:
-					sampleGW_zcltriggerCmdHandler((zcl_triggerEffect_t *)cmdPayload);
+					cloudsmets_zcltriggerCmdHandler((zcl_triggerEffect_t *)cmdPayload);
 					break;
 				default:
 					break;
 			}
 		}else{
 			if(cmdId == ZCL_CMD_IDENTIFY_QUERY_RSP){
-				sampleGW_zclIdentifyQueryRspCmdHandler(pAddrInfo, (zcl_identifyRspCmd_t *)cmdPayload);
+				cloudsmets_zclIdentifyQueryRspCmdHandler(pAddrInfo, (zcl_identifyRspCmd_t *)cmdPayload);
 			}
 		}
 	}
@@ -626,7 +630,7 @@ status_t sampleGW_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *c
 
 #ifdef ZCL_GROUP
 /*********************************************************************
- * @fn      sampleGW_zclAddGroupRspCmdHandler
+ * @fn      cloudsmets_zclAddGroupRspCmdHandler
  *
  * @brief   Handler for ZCL add group response command.
  *
@@ -635,7 +639,7 @@ status_t sampleGW_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *c
  *
  * @return  None
  */
-static void sampleGW_zclAddGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_addGroupRsp_t *pAddGroupRsp)
+static void cloudsmets_zclAddGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_addGroupRsp_t *pAddGroupRsp)
 {
 #if ZBHCI_EN
 	u8 array[8];
@@ -657,7 +661,7 @@ static void sampleGW_zclAddGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, 
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclViewGroupRspCmdHandler
+ * @fn      cloudsmets_zclViewGroupRspCmdHandler
  *
  * @brief   Handler for ZCL view group response command.
  *
@@ -666,7 +670,7 @@ static void sampleGW_zclAddGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, 
  *
  * @return  None
  */
-static void sampleGW_zclViewGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_viewGroupRsp_t *pViewGroupRsp)
+static void cloudsmets_zclViewGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_viewGroupRsp_t *pViewGroupRsp)
 {
 #if ZBHCI_EN
 	u8 array[64];
@@ -696,7 +700,7 @@ static void sampleGW_zclViewGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo,
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclRemoveGroupRspCmdHandler
+ * @fn      cloudsmets_zclRemoveGroupRspCmdHandler
  *
  * @brief   Handler for ZCL remove group response command.
  *
@@ -705,7 +709,7 @@ static void sampleGW_zclViewGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo,
  *
  * @return  None
  */
-static void sampleGW_zclRemoveGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_removeGroupRsp_t *pRemoveGroupRsp)
+static void cloudsmets_zclRemoveGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_removeGroupRsp_t *pRemoveGroupRsp)
 {
 #if ZBHCI_EN
 	u8 array[8];
@@ -728,7 +732,7 @@ static void sampleGW_zclRemoveGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInf
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclGetGroupMembershipRspCmdHandler
+ * @fn      cloudsmets_zclGetGroupMembershipRspCmdHandler
  *
  * @brief   Handler for ZCL get group membership response command.
  *
@@ -737,7 +741,7 @@ static void sampleGW_zclRemoveGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInf
  *
  * @return  None
  */
-static void sampleGW_zclGetGroupMembershipRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_getGroupMembershipRsp_t *pGetGroupMembershipRsp)
+static void cloudsmets_zclGetGroupMembershipRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_getGroupMembershipRsp_t *pGetGroupMembershipRsp)
 {
 #if ZBHCI_EN
 	u8 array[64];
@@ -764,7 +768,7 @@ static void sampleGW_zclGetGroupMembershipRspCmdHandler(zclIncomingAddrInfo_t *p
 }
 
 /*********************************************************************
- * @fn      sampleGW_groupCb
+ * @fn      cloudsmets_groupCb
  *
  * @brief   Handler for ZCL Group command.
  *
@@ -772,22 +776,22 @@ static void sampleGW_zclGetGroupMembershipRspCmdHandler(zclIncomingAddrInfo_t *p
  *
  * @return  None
  */
-status_t sampleGW_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_GROUP_ADD_GROUP_RSP:
-					sampleGW_zclAddGroupRspCmdHandler(pAddrInfo, (zcl_addGroupRsp_t *)cmdPayload);
+					cloudsmets_zclAddGroupRspCmdHandler(pAddrInfo, (zcl_addGroupRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_GROUP_VIEW_GROUP_RSP:
-					sampleGW_zclViewGroupRspCmdHandler(pAddrInfo, (zcl_viewGroupRsp_t *)cmdPayload);
+					cloudsmets_zclViewGroupRspCmdHandler(pAddrInfo, (zcl_viewGroupRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_GROUP_REMOVE_GROUP_RSP:
-					sampleGW_zclRemoveGroupRspCmdHandler(pAddrInfo, (zcl_removeGroupRsp_t *)cmdPayload);
+					cloudsmets_zclRemoveGroupRspCmdHandler(pAddrInfo, (zcl_removeGroupRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_GROUP_GET_MEMBERSHIP_RSP:
-					sampleGW_zclGetGroupMembershipRspCmdHandler(pAddrInfo,(zcl_getGroupMembershipRsp_t *)cmdPayload);
+					cloudsmets_zclGetGroupMembershipRspCmdHandler(pAddrInfo,(zcl_getGroupMembershipRsp_t *)cmdPayload);
 					break;
 				default:
 					break;
@@ -801,7 +805,7 @@ status_t sampleGW_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdP
 
 #ifdef ZCL_SCENE
 /*********************************************************************
- * @fn      sampleGW_zclAddSceneRspCmdHandler
+ * @fn      cloudsmets_zclAddSceneRspCmdHandler
  *
  * @brief   Handler for ZCL add scene response command.
  *
@@ -811,7 +815,7 @@ status_t sampleGW_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdP
  *
  * @return  None
  */
-static void sampleGW_zclAddSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, addSceneRsp_t *pAddSceneRsp)
+static void cloudsmets_zclAddSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, addSceneRsp_t *pAddSceneRsp)
 {
 #if ZBHCI_EN
 	u8 array[16];
@@ -834,7 +838,7 @@ static void sampleGW_zclAddSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, 
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclViewSceneRspCmdHandler
+ * @fn      cloudsmets_zclViewSceneRspCmdHandler
  *
  * @brief   Handler for ZCL view scene response command.
  *
@@ -844,7 +848,7 @@ static void sampleGW_zclAddSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, 
  *
  * @return  None
  */
-static void sampleGW_zclViewSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, viewSceneRsp_t *pViewSceneRsp)
+static void cloudsmets_zclViewSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, viewSceneRsp_t *pViewSceneRsp)
 {
 #if ZBHCI_EN
 	u8 array[64];
@@ -881,7 +885,7 @@ static void sampleGW_zclViewSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo,
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclRemoveSceneRspCmdHandler
+ * @fn      cloudsmets_zclRemoveSceneRspCmdHandler
  *
  * @brief   Handler for ZCL remove scene response command.
  *
@@ -890,7 +894,7 @@ static void sampleGW_zclViewSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo,
  *
  * @return  None
  */
-static void sampleGW_zclRemoveSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, removeSceneRsp_t *pRemoveSceneRsp)
+static void cloudsmets_zclRemoveSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, removeSceneRsp_t *pRemoveSceneRsp)
 {
 #if ZBHCI_EN
 	u8 array[12];
@@ -913,7 +917,7 @@ static void sampleGW_zclRemoveSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInf
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclRemoveAllSceneRspCmdHandler
+ * @fn      cloudsmets_zclRemoveAllSceneRspCmdHandler
  *
  * @brief   Handler for ZCL remove all scene response command.
  *
@@ -922,7 +926,7 @@ static void sampleGW_zclRemoveSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInf
  *
  * @return  None
  */
-static void sampleGW_zclRemoveAllSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, removeAllSceneRsp_t *pRemoveAllSceneRsp)
+static void cloudsmets_zclRemoveAllSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, removeAllSceneRsp_t *pRemoveAllSceneRsp)
 {
 #if ZBHCI_EN
 	u8 array[12];
@@ -945,7 +949,7 @@ static void sampleGW_zclRemoveAllSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddr
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclStoreSceneRspCmdHandler
+ * @fn      cloudsmets_zclStoreSceneRspCmdHandler
  *
  * @brief   Handler for ZCL store scene response command.
  *
@@ -954,7 +958,7 @@ static void sampleGW_zclRemoveAllSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddr
  *
  * @return  None
  */
-static void sampleGW_zclStoreSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, storeSceneRsp_t *pStoreSceneRsp)
+static void cloudsmets_zclStoreSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, storeSceneRsp_t *pStoreSceneRsp)
 {
 #if ZBHCI_EN
 	u8 array[12];
@@ -978,7 +982,7 @@ static void sampleGW_zclStoreSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo
 }
 
 /*********************************************************************
- * @fn      sampleGW_zclGetSceneMembershipRspCmdHandler
+ * @fn      cloudsmets_zclGetSceneMembershipRspCmdHandler
  *
  * @brief   Handler for ZCL get scene membership response command.
  *
@@ -987,7 +991,7 @@ static void sampleGW_zclStoreSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo
  *
  * @return  None
  */
-static void sampleGW_zclGetSceneMembershipRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, getSceneMemRsp_t *pGetSceneMembershipRsp)
+static void cloudsmets_zclGetSceneMembershipRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, getSceneMemRsp_t *pGetSceneMembershipRsp)
 {
 #if ZBHCI_EN
 	u8 array[64];
@@ -1017,7 +1021,7 @@ static void sampleGW_zclGetSceneMembershipRspCmdHandler(zclIncomingAddrInfo_t *p
 }
 
 /*********************************************************************
- * @fn      sampleGW_sceneCb
+ * @fn      cloudsmets_sceneCb
  *
  * @brief   Handler for ZCL Scene command.
  *
@@ -1025,30 +1029,30 @@ static void sampleGW_zclGetSceneMembershipRspCmdHandler(zclIncomingAddrInfo_t *p
  *
  * @return  None
  */
-status_t sampleGW_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_SCENE_ADD_SCENE_RSP:
 				case ZCL_CMD_SCENE_ENHANCED_ADD_SCENE_RSP:
-					sampleGW_zclAddSceneRspCmdHandler(pAddrInfo, cmdId, (addSceneRsp_t *)cmdPayload);
+					cloudsmets_zclAddSceneRspCmdHandler(pAddrInfo, cmdId, (addSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_VIEW_SCENE_RSP:
 				case ZCL_CMD_SCENE_ENHANCED_VIEW_SCENE_RSP:
-					sampleGW_zclViewSceneRspCmdHandler(pAddrInfo, cmdId, (viewSceneRsp_t *)cmdPayload);
+					cloudsmets_zclViewSceneRspCmdHandler(pAddrInfo, cmdId, (viewSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_REMOVE_SCENE_RSP:
-					sampleGW_zclRemoveSceneRspCmdHandler(pAddrInfo, (removeSceneRsp_t *)cmdPayload);
+					cloudsmets_zclRemoveSceneRspCmdHandler(pAddrInfo, (removeSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_REMOVE_ALL_SCENE_RSP:
-					sampleGW_zclRemoveAllSceneRspCmdHandler(pAddrInfo, (removeAllSceneRsp_t *)cmdPayload);
+					cloudsmets_zclRemoveAllSceneRspCmdHandler(pAddrInfo, (removeAllSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_STORE_SCENE_RSP:
-					sampleGW_zclStoreSceneRspCmdHandler(pAddrInfo, (storeSceneRsp_t *)cmdPayload);
+					cloudsmets_zclStoreSceneRspCmdHandler(pAddrInfo, (storeSceneRsp_t *)cmdPayload);
 					break;
 				case ZCL_CMD_SCENE_GET_SCENE_MEMSHIP_RSP:
-					sampleGW_zclGetSceneMembershipRspCmdHandler(pAddrInfo, (getSceneMemRsp_t *)cmdPayload);
+					cloudsmets_zclGetSceneMembershipRspCmdHandler(pAddrInfo, (getSceneMemRsp_t *)cmdPayload);
 					break;
 				default:
 					break;
@@ -1072,7 +1076,7 @@ status_t sampleGW_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdP
  *
  * @return  None
  */
-static void sampleGW_zclDoorLockRspCmdHandler(u8 cmdId, zcl_doorlockRsp_t *doorlockRsp)
+static void cloudsmets_zclDoorLockRspCmdHandler(u8 cmdId, zcl_doorlockRsp_t *doorlockRsp)
 {
 #if ZBHCI_EN
 	u8 array[64];
@@ -1092,7 +1096,7 @@ static void sampleGW_zclDoorLockRspCmdHandler(u8 cmdId, zcl_doorlockRsp_t *doorl
  *
  * @return  None
  */
-status_t sampleGW_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
@@ -1100,7 +1104,7 @@ status_t sampleGW_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *c
 				case ZCL_CMD_LOCK_DOOR_RESPONSE:
 				case ZCL_CMD_UNLOCK_DOOR_RESPONSE:
 				case ZCL_CMD_DOOR_LOCK_TOGGLE_RESPONSE:
-					sampleGW_zclDoorLockRspCmdHandler(cmdId, (zcl_doorlockRsp_t *)cmdPayload);
+					cloudsmets_zclDoorLockRspCmdHandler(cmdId, (zcl_doorlockRsp_t *)cmdPayload);
 					break;
 				default:
 					break;
@@ -1122,7 +1126,7 @@ status_t sampleGW_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *c
  *
  * @return  None
  */
-status_t sampleGW_iasZoneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_iasZoneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
@@ -1139,7 +1143,7 @@ status_t sampleGW_iasZoneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cm
 
 #ifdef ZCL_POLL_CTRL
 /*********************************************************************
- * @fn      sampleGW_zclPollCtrlChkInCmdHandler
+ * @fn      cloudsmets_zclPollCtrlChkInCmdHandler
  *
  * @brief   Handler for ZCL poll control request command.
  *
@@ -1148,7 +1152,7 @@ status_t sampleGW_iasZoneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cm
  *
  * @return  status_t
  */
-static status_t sampleGW_zclPollCtrlChkInCmdHandler(zclIncomingAddrInfo_t *pAddrInfo)
+static status_t cloudsmets_zclPollCtrlChkInCmdHandler(zclIncomingAddrInfo_t *pAddrInfo)
 {
 	epInfo_t dstEpInfo;
 	TL_SETSTRUCTCONTENT(dstEpInfo, 0);
@@ -1176,14 +1180,14 @@ static status_t sampleGW_zclPollCtrlChkInCmdHandler(zclIncomingAddrInfo_t *pAddr
  *
  * @return  None
  */
-status_t sampleGW_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+status_t cloudsmets_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	status_t status = ZCL_STA_SUCCESS;
 
 	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			if(cmdId == ZCL_CMD_CHK_IN){
-				status = sampleGW_zclPollCtrlChkInCmdHandler(pAddrInfo);
+				status = cloudsmets_zclPollCtrlChkInCmdHandler(pAddrInfo);
 			}
 		}
 	}
