@@ -41,9 +41,15 @@ extern "C" {
 /**********************************************************************
  * Product Information
  */
-/* Debug mode config */
-#define	UART_PRINTF_MODE				0
+
+/**********************************************************************
+ * Debug mode config
+ * Currently allowing printf output to tlsr8258 PC4 pin.
+ */
+#define	UART_PRINTF_MODE				1
 #define USB_PRINTF_MODE         		0
+//!!PDS: Might be able to get up to 1000000 (921600?) baud.
+#define BAUDRATE						115200
 
 /* PM */
 #define PM_ENABLE						0
