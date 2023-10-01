@@ -11,7 +11,7 @@
 !/tlsr8258/build/tlsr_tc32/.cproject
 
 # Ignore build output.
-/tlsr8258/build/tlsr_tc32/cloudsmets-8258
+/tlsr8258/build/tlsr_tc32/*-8258
 /tlsr8258/build/tlsr_tc32/boot.link
 
 # Ignore the Eclipse history file.
