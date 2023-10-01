@@ -98,10 +98,12 @@ extern zcl_identifyAttr_t g_zcl_identifyAttrs;
 void esme_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg);
 
 /**********************************************************************
- * The ESME emulation only supports the time and smart energy clusters and does
- * not need to support any commands.
+ * The ESME emulation only supports the basic, identify, time and smart energy
+ * clusters.
+ */
 status_t esme_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 status_t esme_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+/*
 status_t esme_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 status_t esme_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 status_t esme_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);

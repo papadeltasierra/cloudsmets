@@ -231,6 +231,125 @@ const zclAttrInfo_t identify_attrTbl[] =
 
 #define ZCL_IDENTIFY_ATTR_NUM	 sizeof(identify_attrTbl) / sizeof(zclAttrInfo_t)
 
+/**********************************************************************
+ * For some reason the Telink library does not define this structure.
+ */
+
+typedef u32 utc;
+typedef u8 map8;
+
+#define TIMESTATUS_MASTER			1
+#define TIMESTATUS_SYNCHRONIZED		1
+#define TIMESTATUS_MASTERZONEDST	1
+#define TIMESTATUS_SUPERSEDING		1
+
+typedef struct{
+	utc	 time;
+	map8 timeStatus;
+	i32	 timeZone;
+	u32	 dstStart;
+	u32	 dstEnd;
+	i32  dstShift;
+	u32	 standardTime;
+	u32	 localTime;
+	utc	 lastSetTime;
+	utc	 validUntilTime;
+}zcl_timeAttr_t;
+
+/* Time */
+zcl_timeAttr_t g_zcl_timeAttrs =
+{
+	.time			= 1696172476,		// 2023/10/01 15:05:16
+	.timeStatus		= TIMESTATUS_SYNCHRONIZED,
+	.timeZone		= 0,				// UK is GMT.
+	.dstStart		= 1679792400,		// 2023/03/26 01:00:00
+	.dstEnd			= 1698541200,		// 2023/10/29 01:00:00
+	.dstShift		= 3600,				// UK DST is +1 hour, 3600s
+	.standardTime	= 1696172476,		// 2023/10/01 15:05:16
+	.localTime		= 1696176316,		// 2023/10/01 16:05:16
+	.lastSetTime	= 1672531200,		// 2023/01/01 00:00:00
+	.validUntilTime = 1704067200		// 2024/01/01 00:00:00
+};
+
+const zclAttrInfo_t time_attrTbl[] =
+{
+	{ ZCL_ATTRID_TIME,      		ZCL_DATA_TYPE_UTC,    	ACCESS_CONTROL_READ,	(utc*)&g_zcl_timeAttrs.time},
+	{ ZCL_ATTRID_TIME_STATUS,      	ZCL_DATA_TYPE_BITMAP,   ACCESS_CONTROL_READ,    (map8*)&g_zcl_timeAttrs.timeStatus},
+	{ ZCL_ATTRID_TIMEZONE,    		ZCL_DATA_TYPE_INT32,    ACCESS_CONTROL_READ,  	(i32*)&g_zcl_timeAttrs.timeZone},
+	{ ZCL_ATTRID_DST_START,       	ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u32*)&g_zcl_timeAttrs.dstStart},
+	{ ZCL_ATTRID_DST_END,       	ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u32*)&g_zcl_timeAttrs.dstEnd},
+	{ ZCL_ATTRID_DST_SHIFT,    		ZCL_DATA_TYPE_INT32,    ACCESS_CONTROL_READ,  	(i32*)&g_zcl_timeAttrs.dstShift},
+	{ ZCL_ATTRID_STANDARD_TIME,     ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u32*)&g_zcl_timeAttrs.standardTime},
+	{ ZCL_ATTRID_LOCAL_TIME,       	ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u32*)&g_zcl_timeAttrs.localTime},
+	{ ZCL_ATTRID_LAST_SET_TIME,     ZCL_DATA_TYPE_UTC,      ACCESS_CONTROL_READ,  	(utc*)&g_zcl_timeAttrs.lastSetTime},
+	{ ZCL_ATTRID_VALID_UNTIL_TIME,  ZCL_DATA_TYPE_UTC,      ACCESS_CONTROL_READ,  	(utc*)&g_zcl_timeAttrs.validUntilTime},
+};
+
+#define ZCL_TIME_ATTR_NUM	  sizeof(basic_attrTbl) / sizeof(zclAttrInfo_t)
+
+#if 0 // !!PD: No support for price yet.
+/* Price */
+zcl_priceAttr_t g_zcl_priceAttrs =
+{
+	.zclVersion 	= 0x03,
+	.appVersion 	= 0x00,
+	.stackVersion 	= 0x02,
+	.hwVersion		= 0x00,
+	.manuName		= ZCL_BASIC_MFG_NAME,
+	.modelId		= ZCL_BASIC_MODEL_ID,
+	.powerSource	= POWER_SOURCE_MAINS_1_PHASE,
+	.deviceEnable	= TRUE,
+};
+
+const zclAttrInfo_t price_attrTbl[] =
+{
+	{ ZCL_ATTRID_BASIC_ZCL_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.zclVersion},
+	{ ZCL_ATTRID_BASIC_APP_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.appVersion},
+	{ ZCL_ATTRID_BASIC_STACK_VER,    		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.stackVersion},
+	{ ZCL_ATTRID_BASIC_HW_VER,       		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.hwVersion},
+	{ ZCL_ATTRID_BASIC_MFR_NAME,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.manuName},
+	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.modelId},
+	{ ZCL_ATTRID_BASIC_POWER_SOURCE, 		ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.powerSource},
+	{ ZCL_ATTRID_BASIC_DEV_ENABLED,  		ZCL_DATA_TYPE_BOOLEAN,  ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_basicAttrs.deviceEnable},
+
+	{ ZCL_ATTRID_GLOBAL_CLUSTER_REVISION, 	ZCL_DATA_TYPE_UINT16,  	ACCESS_CONTROL_READ,  						(u8*)&zcl_attr_global_clusterRevision},
+};
+
+#define ZCL_PRICE_ATTR_NUM	  sizeof(basic_attrTbl) / sizeof(zclAttrInfo_t)
+#endif
+
+/**********************************************************************
+ * Short term we are only supporting a single attribute.
+ */
+/* Metering */
+zcl_meteringAttr_t g_zcl_meteringAttrs =
+{
+	.zclVersion 	= 0x03,
+	.appVersion 	= 0x00,
+	.stackVersion 	= 0x02,
+	.hwVersion		= 0x00,
+	.manuName		= ZCL_BASIC_MFG_NAME,
+	.modelId		= ZCL_BASIC_MODEL_ID,
+	.powerSource	= POWER_SOURCE_MAINS_1_PHASE,
+	.deviceEnable	= TRUE,
+};
+
+const zclAttrInfo_t metering_attrTbl[] =
+{
+	{ ZCL_ATTRID_BASIC_ZCL_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.zclVersion},
+	{ ZCL_ATTRID_BASIC_APP_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.appVersion},
+	{ ZCL_ATTRID_BASIC_STACK_VER,    		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.stackVersion},
+	{ ZCL_ATTRID_BASIC_HW_VER,       		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.hwVersion},
+	{ ZCL_ATTRID_BASIC_MFR_NAME,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.manuName},
+	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.modelId},
+	{ ZCL_ATTRID_BASIC_POWER_SOURCE, 		ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.powerSource},
+	{ ZCL_ATTRID_BASIC_DEV_ENABLED,  		ZCL_DATA_TYPE_BOOLEAN,  ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_basicAttrs.deviceEnable},
+
+	{ ZCL_ATTRID_GLOBAL_CLUSTER_REVISION, 	ZCL_DATA_TYPE_UINT16,  	ACCESS_CONTROL_READ,  						(u8*)&zcl_attr_global_clusterRevision},
+};
+
+#define ZCL_METERING_ATTR_NUM	  sizeof(metering_attrTbl) / sizeof(zclAttrInfo_t)
+
 
 /**
  *  @brief Definition for simple GW ZCL specific cluster
@@ -240,13 +359,13 @@ const zcl_specClusterInfo_t g_esmeClusterList[] =
 	{ZCL_CLUSTER_GEN_BASIC,						MANUFACTURER_CODE_NONE, ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		esme_basicCb},
 	{ZCL_CLUSTER_GEN_IDENTIFY,					MANUFACTURER_CODE_NONE, ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	esme_identifyCb},
 #ifdef ZCL_TIME
-	{ZCL_CLUSTER_SE_TIME,						MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_time_register,		esme_timeCb},
+	{ZCL_CLUSTER_SE_TIME,						MANUFACTURER_CODE_NONE, 0, 						time_attrTbl,		zcl_time_register,		NULL},
 #endif
 #ifdef ZCL_SE_PRICE
-	{ZCL_CLUSTER_SE_PRICE,						MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_price_register,		esme_priceCb},
+	{ZCL_CLUSTER_SE_PRICE,						MANUFACTURER_CODE_NONE, 0, 						price_attrTbl,  	zcl_price_register,		NULL},
 #endif
 #ifdef ZCL_SE_METERING
-	{ZCL_CLUSTER_SE_METERING,					MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_metering_register,	esme_meteringCb},
+	{ZCL_CLUSTER_SE_METERING,					MANUFACTURER_CODE_NONE, 0, 						metering_attrTbl,	zcl_metering_register,	NULL},
 #endif
 #ifdef ZCL_GROUP
 	{ZCL_CLUSTER_GEN_GROUPS,					MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_group_register,		esme_groupCb},
