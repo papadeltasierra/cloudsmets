@@ -1,7 +1,7 @@
 /********************************************************************************************************
- * @file    sampleGateway.h
+ * @file    esme.h
  *
- * @brief   This is the header file for sampleGateway
+ * @brief   This is the header file for esme
  *
  * @author  Zigbee Group
  * @date    2021
@@ -80,7 +80,7 @@ extern bdb_appCb_t g_zbDemoBdbCb;
 
 extern u8 SAMPLE_GW_CB_CLUSTER_NUM;
 extern const zcl_specClusterInfo_t g_sampleGwClusterList[];
-extern const af_simple_descriptor_t sampleGW_simpleDesc;
+extern const af_simple_descriptor_t esme_simpleDesc;
 #if AF_TEST_ENABLE
 extern const af_simple_descriptor_t sampleTestDesc;
 #endif
@@ -93,24 +93,24 @@ extern zcl_identifyAttr_t g_zcl_identifyAttrs;
 /**********************************************************************
  * FUNCTIONS
  */
-void sampleGW_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg);
+void esme_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg);
 
-status_t sampleGW_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleGW_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleGW_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleGW_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleGW_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleGW_iasZoneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
-status_t sampleGW_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t esme_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t esme_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t esme_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t esme_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t esme_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t esme_iasZoneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t esme_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 
-void sampleGW_devAnnHandler(zdo_device_annce_req_t *pDevAnnceReq);
-void sampleGW_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf);
-void sampleGW_leaveIndHandler(nlme_leave_ind_t *pLeaveInd);
-bool sampleGW_nwkUpdateIndicateHandler(nwkCmd_nwkUpdate_t *pNwkUpdateCmd);
-bool sampleGW_tcJoinIndHandler(zdo_tc_join_ind_t *pTcJoinInd);
-void sampleGW_tcFrameCntReachedHandler(void);
+void esme_devAnnHandler(zdo_device_annce_req_t *pDevAnnceReq);
+void esme_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf);
+void esme_leaveIndHandler(nlme_leave_ind_t *pLeaveInd);
+bool esme_nwkUpdateIndicateHandler(nwkCmd_nwkUpdate_t *pNwkUpdateCmd);
+bool esme_tcJoinIndHandler(zdo_tc_join_ind_t *pTcJoinInd);
+void esme_tcFrameCntReachedHandler(void);
 
-void sampleGW_dataSendConfirm(void *arg);
+void esme_dataSendConfirm(void *arg);
 
 #if AF_TEST_ENABLE
 void afTest_rx_handler(void *arg);

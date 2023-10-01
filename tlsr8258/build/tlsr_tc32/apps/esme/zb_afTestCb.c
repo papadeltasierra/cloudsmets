@@ -31,7 +31,7 @@
 #include "tl_common.h"
 #include "zb_api.h"
 #include "zcl_include.h"
-#include "sampleGateway.h"
+#include "esme.h"
 #if ZBHCI_EN
 #include "zbhci.h"
 #endif

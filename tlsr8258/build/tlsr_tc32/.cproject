@@ -1400,7 +1400,7 @@
 								<option id="com.telink.tc32eclipse.assembler.option.debug.level.1560834220" name="Generate Debugging Info" superClass="com.telink.tc32eclipse.assembler.option.debug.level" value="com.telink.tc32eclipse.assembler.option.debug.level.none" valueType="enumerated"/>
 								<option id="com.telink.tc32eclipse.asm.option.flags.1184775025" name="Other GCC Flags" superClass="com.telink.tc32eclipse.asm.option.flags" value="-DMCU_CORE_8258 -DMCU_STARTUP_8258" valueType="string"/>
 								<option id="com.telink.tc32eclipse.asm.option.include.paths.1597560062" name="#include paths for preprocessor(-I)" superClass="com.telink.tc32eclipse.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${GITHUB_WORKSPACE}/tlsr8258/build/tlsr_tc32/apps/cloudsmets&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${GITHUB_WORKSPACE}/tlsr8258/build/tlsr_tc32/apps/esme&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/apps/common&quot;"/>
 								</option>
 								<inputType id="com.telink.tc32eclipse.tool.assembler.input.89297018" superClass="com.telink.tc32eclipse.tool.assembler.input"/>
@@ -1410,7 +1410,7 @@
 								<option id="com.telink.tc32eclipse.compiler.option.optimize.1056895457" name="Optimization Level" superClass="com.telink.tc32eclipse.compiler.option.optimize" value="com.telink.tc32eclipse.compiler.optimize.two" valueType="enumerated"/>
 								<option id="com.telink.tc32eclipse.compiler.option.incpath.1667677631" name="Include Paths (-I)" superClass="com.telink.tc32eclipse.compiler.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/apps/common&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${GITHUB_WORKSPACE}/tlsr8258/build/tlsr_tc32/apps/cloudsmets&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${GITHUB_WORKSPACE}/tlsr8258/build/tlsr_tc32/apps/esme&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/platform&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/proj/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/proj&quot;"/>
@@ -1424,9 +1424,9 @@
 									<listOptionValue builtIn="false" value="&quot;${TELINK_ZIGBEE_SDK}/zbhci&quot;"/>
 								</option>
 								<option id="com.telink.tc32eclipse.compiler.option.def.564625300" name="Define Syms (-D)" superClass="com.telink.tc32eclipse.compiler.option.def" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="END_DEVICE=1"/>
+									<listOptionValue builtIn="false" value="COORDINATOR=1"/>
 									<listOptionValue builtIn="false" value="MCU_CORE_8258=1"/>
-									<listOptionValue builtIn="false" value="__PROJECT_CLOUDSMETS__=1"/>
+									<listOptionValue builtIn="false" value="__PROJECT_ESME__=1"/>
 								</option>
 								<option id="com.telink.tc32eclipse.compiler.option.optimize.packstruct.2083511797" name="Pack structs (-fpack-struct)" superClass="com.telink.tc32eclipse.compiler.option.optimize.packstruct" value="true" valueType="boolean"/>
 								<option id="com.telink.tc32eclipse.compiler.option.optimize.shortenums.746755290" name="Short enums (-fshort-enums)" superClass="com.telink.tc32eclipse.compiler.option.optimize.shortenums" value="true" valueType="boolean"/>
@@ -1436,7 +1436,7 @@
 							</tool>
 							<tool command="tc32-elf-ld --gc-sections" id="com.telink.tc32eclipse.tool.linker.TC32Win.app.release.1010895958" name="TC32 C Linker" superClass="com.telink.tc32eclipse.tool.linker.TC32Win.app.release">
 								<option id="com.telink.tc32eclipse.linker.option.libs.1669021714" name="Libraries (-l)" superClass="com.telink.tc32eclipse.linker.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="zb_ed"/>
+									<listOptionValue builtIn="false" value="zb_coordinator"/>
 									<listOptionValue builtIn="false" value="drivers_8258"/>
 								</option>
 								<option id="com.telink.tc32eclipse.linker.option.libpath.17655118" name="Libraries Path (-L)" superClass="com.telink.tc32eclipse.linker.option.libpath" valueType="stringList">

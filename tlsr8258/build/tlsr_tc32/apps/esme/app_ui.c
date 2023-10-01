@@ -31,7 +31,7 @@
 #include "tl_common.h"
 #include "zb_api.h"
 #include "zcl_include.h"
-#include "sampleGateway.h"
+#include "esme.h"
 #include "app_ui.h"
 #include "gp.h"
 
@@ -182,7 +182,7 @@ void buttonShortPressed(u8 btNum){
 	if(btNum == VK_SW1){
 		if(zb_isDeviceJoinedNwk()){
 #if POLL_CTRL_SUPPORT
-			sampleGW_zclFastPollStopCmdSend();
+			esme_zclFastPollStopCmdSend();
 #else
 #if 0
 			epInfo_t dstEpInfo;

@@ -1,7 +1,7 @@
 /********************************************************************************************************
- * @file    sampleGateway.c
+ * @file    esme.c
  *
- * @brief   This is the source file for sampleGateway
+ * @brief   This is the source file for esme
  *
  * @author  Zigbee Group
  * @date    2021
@@ -34,7 +34,7 @@
 #include "bdb.h"
 #include "ota.h"
 #include "gp.h"
-#include "sampleGateway.h"
+#include "esme.h"
 #include "app_ui.h"
 #if ZBHCI_EN
 #include "zbhci.h"
@@ -63,7 +63,7 @@ extern mac_appIndCb_t macAppIndCbList;
 
 #ifdef ZCL_OTA
 //running code firmware information
-ota_preamble_t sampleGW_otaInfo = {
+ota_preamble_t esme_otaInfo = {
 	.fileVer 			= FILE_VERSION,
 	.imageType 			= IMAGE_TYPE,
 	.manufacturerCode 	= MANUFACTURER_CODE_TELINK,
@@ -75,14 +75,14 @@ ota_preamble_t sampleGW_otaInfo = {
 const zdo_appIndCb_t appCbLst = {
 	bdb_zdoStartDevCnf,					//start device cnf cb
 	NULL,								//reset cnf cb
-	sampleGW_devAnnHandler,				//device announce indication cb
-	sampleGW_leaveIndHandler,			//leave ind cb
-	sampleGW_leaveCnfHandler,			//leave cnf cb
-	sampleGW_nwkUpdateIndicateHandler,	//nwk update ind cb
+	esme_devAnnHandler,				//device announce indication cb
+	esme_leaveIndHandler,			//leave ind cb
+	esme_leaveCnfHandler,			//leave cnf cb
+	esme_nwkUpdateIndicateHandler,	//nwk update ind cb
 	NULL,								//permit join ind cb
 	NULL,								//nlme sync cnf cb
-	sampleGW_tcJoinIndHandler,			//tc join ind cb
-	sampleGW_tcFrameCntReachedHandler,	//tc detects that the frame counter is near limit
+	esme_tcJoinIndHandler,			//tc join ind cb
+	esme_tcFrameCntReachedHandler,	//tc detects that the frame counter is near limit
 };
 
 
@@ -146,10 +146,10 @@ void user_app_init(void)
 
     /* Initialize ZCL layer */
 	/* Register Incoming ZCL Foundation command/response messages */
-	zcl_init(sampleGW_zclProcessIncomingMsg);
+	zcl_init(esme_zclProcessIncomingMsg);
 
 	/* Register endPoint */
-	af_endpointRegister(SAMPLE_GW_ENDPOINT, (af_simple_descriptor_t *)&sampleGW_simpleDesc, zcl_rx_handler, sampleGW_dataSendConfirm);
+	af_endpointRegister(SAMPLE_GW_ENDPOINT, (af_simple_descriptor_t *)&esme_simpleDesc, zcl_rx_handler, esme_dataSendConfirm);
 #if AF_TEST_ENABLE
 	/* A sample of AF data handler. */
 	af_endpointRegister(SAMPLE_TEST_ENDPOINT, (af_simple_descriptor_t *)&sampleTestDesc, afTest_rx_handler, afTest_dataSendConfirm);
@@ -163,7 +163,7 @@ void user_app_init(void)
 #endif
 
 #if ZCL_OTA_SUPPORT
-    ota_init(OTA_TYPE_SERVER, (af_simple_descriptor_t *)&sampleGW_simpleDesc, &sampleGW_otaInfo, NULL);
+    ota_init(OTA_TYPE_SERVER, (af_simple_descriptor_t *)&esme_simpleDesc, &esme_otaInfo, NULL);
 #endif
 }
 
@@ -266,7 +266,7 @@ void user_init(bool isRetention)
 	 * once initialization is done, the g_zbDemoBdbCb.bdbInitCb() will be called
 	 *
 	 * */
-    bdb_init((af_simple_descriptor_t *)&sampleGW_simpleDesc, &g_bdbCommissionSetting, &g_zbDemoBdbCb, 1);
+    bdb_init((af_simple_descriptor_t *)&esme_simpleDesc, &g_bdbCommissionSetting, &g_zbDemoBdbCb, 1);
 }
 
 #endif  /* __PROJECT_TL_GW__ */

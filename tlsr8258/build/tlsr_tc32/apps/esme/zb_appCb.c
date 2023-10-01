@@ -32,7 +32,7 @@
 #include "zb_api.h"
 #include "zcl_include.h"
 #include "bdb.h"
-#include "sampleGateway.h"
+#include "esme.h"
 #if ZBHCI_EN
 #include "zbhci.h"
 #endif
@@ -185,15 +185,15 @@ void zbdemo_bdbCommissioningCb(u8 status, void *arg){
 }
 
 
-extern void sampleGW_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime);
+extern void esme_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime);
 void zbdemo_bdbIdentifyCb(u8 endpoint, u16 srcAddr, u16 identifyTime){
-	sampleGW_zclIdentifyCmdHandler(endpoint, srcAddr, identifyTime);
+	esme_zclIdentifyCmdHandler(endpoint, srcAddr, identifyTime);
 }
 
 
 
 /*********************************************************************
- * @fn      sampleGW_devAnnHandler
+ * @fn      esme_devAnnHandler
  *
  * @brief   Handler for ZDO Device Announce message. When this function be called means
  *          there is new node join PAN or a node rejoin the PAN.
@@ -202,7 +202,7 @@ void zbdemo_bdbIdentifyCb(u8 endpoint, u16 srcAddr, u16 identifyTime){
  *
  * @return  None
  */
-void sampleGW_devAnnHandler(zdo_device_annce_req_t *pDevAnnceReq)
+void esme_devAnnHandler(zdo_device_annce_req_t *pDevAnnceReq)
 {
 #if ZBHCI_EN
 	u8 array[64];
@@ -223,7 +223,7 @@ void sampleGW_devAnnHandler(zdo_device_annce_req_t *pDevAnnceReq)
 }
 
 /*********************************************************************
- * @fn      sampleGW_leaveCnfHandler
+ * @fn      esme_leaveCnfHandler
  *
  * @brief   Handler for ZDO Leave Confirm message.
  *
@@ -231,13 +231,13 @@ void sampleGW_devAnnHandler(zdo_device_annce_req_t *pDevAnnceReq)
  *
  * @return  None
  */
-void sampleGW_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf)
+void esme_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf)
 {
-//	printf("sampleGW_leaveCnfHandler, status = %x\n", pLeaveCnf->status);
+//	printf("esme_leaveCnfHandler, status = %x\n", pLeaveCnf->status);
 }
 
 /*********************************************************************
- * @fn      sampleGW_leaveIndHandler
+ * @fn      esme_leaveIndHandler
  *
  * @brief   Handler for ZDO leave indication message.
  *
@@ -245,7 +245,7 @@ void sampleGW_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf)
  *
  * @return  None
  */
-void sampleGW_leaveIndHandler(nlme_leave_ind_t *pLeaveInd)
+void esme_leaveIndHandler(nlme_leave_ind_t *pLeaveInd)
 {
 #if ZBHCI_EN
 	//zbhciLeaveIndMsgPush(pLeaveInd);
@@ -259,7 +259,7 @@ void sampleGW_leaveIndHandler(nlme_leave_ind_t *pLeaveInd)
 #endif
 }
 
-void sampleGW_dataSendConfirm(void *arg){
+void esme_dataSendConfirm(void *arg){
 #if ZBHCI_EN
 	apsdeDataConf_t *pApsDataCnf = (apsdeDataConf_t *)arg;
 
@@ -284,7 +284,7 @@ bool sampleGw_macAssocReqIndHandler(void *arg){
  * @return  TRUE  - Allow PAN ID conflict handling
  * 			FALSE - Truncate the execution of PAN ID conflict handling
  */
-bool sampleGW_nwkUpdateIndicateHandler(nwkCmd_nwkUpdate_t *pNwkUpdateCmd){
+bool esme_nwkUpdateIndicateHandler(nwkCmd_nwkUpdate_t *pNwkUpdateCmd){
 	return FALSE;
 }
 
@@ -297,7 +297,7 @@ bool sampleGW_nwkUpdateIndicateHandler(nwkCmd_nwkUpdate_t *pNwkUpdateCmd){
  * @return  TRUE  - Allow delivery of transport key
  * 			FALSE - Truncate delivery transport key
  */
-bool sampleGW_tcJoinIndHandler(zdo_tc_join_ind_t *pTcJoinInd){
+bool esme_tcJoinIndHandler(zdo_tc_join_ind_t *pTcJoinInd){
 	return TRUE;
 }
 
@@ -313,7 +313,7 @@ bool sampleGW_tcJoinIndHandler(zdo_tc_join_ind_t *pTcJoinInd){
  *
  * @return  None
  */
-void sampleGW_tcFrameCntReachedHandler(void){
+void esme_tcFrameCntReachedHandler(void){
 	ss_tcUpdateNwkKey_t updateNwkKey;
 
 	/* Broadcast NWK key updates. */

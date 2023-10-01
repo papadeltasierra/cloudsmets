@@ -1,7 +1,7 @@
 /********************************************************************************************************
- * @file    sampleGatewayEpCfg.c
+ * @file    esmeEpCfg.c
  *
- * @brief   This is the source file for sampleGatewayEpCfg
+ * @brief   This is the source file for esmeEpCfg
  *
  * @author  Zigbee Group
  * @date    2021
@@ -30,7 +30,7 @@
  */
 #include "tl_common.h"
 #include "zcl_include.h"
-#include "sampleGateway.h"
+#include "esme.h"
 
 /**********************************************************************
  * LOCAL CONSTANTS
@@ -54,7 +54,7 @@
 /**
  *  @brief Definition for Incoming cluster / Sever Cluster
  */
-const u16 sampleGW_inClusterList[] =
+const u16 esme_inClusterList[] =
 {
 	ZCL_CLUSTER_GEN_BASIC,
 	ZCL_CLUSTER_GEN_IDENTIFY,
@@ -67,7 +67,7 @@ const u16 sampleGW_inClusterList[] =
 /**
  *  @brief Definition for Outgoing cluster / Client Cluster
  */
-const u16 sampleGW_outClusterList[] =
+const u16 esme_outClusterList[] =
 {
 #ifdef ZCL_GROUP
 	ZCL_CLUSTER_GEN_GROUPS,
@@ -104,13 +104,13 @@ const u16 sampleGW_outClusterList[] =
 /**
  *  @brief Definition for Server cluster number and Client cluster number
  */
-#define SAMPLEGW_IN_CLUSTER_NUM		(sizeof(sampleGW_inClusterList)/sizeof(sampleGW_inClusterList[0]))
-#define SAMPLEGW_OUT_CLUSTER_NUM	(sizeof(sampleGW_outClusterList)/sizeof(sampleGW_outClusterList[0]))
+#define SAMPLEGW_IN_CLUSTER_NUM		(sizeof(esme_inClusterList)/sizeof(esme_inClusterList[0]))
+#define SAMPLEGW_OUT_CLUSTER_NUM	(sizeof(esme_outClusterList)/sizeof(esme_outClusterList[0]))
 
 /**
  *  @brief Definition for simple description for HA profile
  */
-const af_simple_descriptor_t sampleGW_simpleDesc =
+const af_simple_descriptor_t esme_simpleDesc =
 {
 	HA_PROFILE_ID,                      /* Application profile identifier */
 	HA_DEV_HOME_GATEWAY,                /* Application device identifier */
@@ -119,8 +119,8 @@ const af_simple_descriptor_t sampleGW_simpleDesc =
 	0,									/* Reserved */
 	SAMPLEGW_IN_CLUSTER_NUM,           	/* Application input cluster count */
 	SAMPLEGW_OUT_CLUSTER_NUM,          	/* Application output cluster count */
-	(u16 *)sampleGW_inClusterList,    	/* Application input cluster list */
-	(u16 *)sampleGW_outClusterList,   	/* Application output cluster list */
+	(u16 *)esme_inClusterList,    	/* Application input cluster list */
+	(u16 *)esme_outClusterList,   	/* Application output cluster list */
 };
 
 
@@ -223,16 +223,16 @@ const zclAttrInfo_t identify_attrTbl[] =
  */
 const zcl_specClusterInfo_t g_sampleGwClusterList[] =
 {
-	{ZCL_CLUSTER_GEN_BASIC,						MANUFACTURER_CODE_NONE, ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		sampleGW_basicCb},
-	{ZCL_CLUSTER_GEN_IDENTIFY,					MANUFACTURER_CODE_NONE, ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	sampleGW_identifyCb},
+	{ZCL_CLUSTER_GEN_BASIC,						MANUFACTURER_CODE_NONE, ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		esme_basicCb},
+	{ZCL_CLUSTER_GEN_IDENTIFY,					MANUFACTURER_CODE_NONE, ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	esme_identifyCb},
 #ifdef ZCL_GROUP
-	{ZCL_CLUSTER_GEN_GROUPS,					MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_group_register,		sampleGW_groupCb},
+	{ZCL_CLUSTER_GEN_GROUPS,					MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_group_register,		esme_groupCb},
 #endif
 #ifdef ZCL_SCENE
-	{ZCL_CLUSTER_GEN_SCENES,					MANUFACTURER_CODE_NONE, 0,						NULL,				zcl_scene_register,		sampleGW_sceneCb},
+	{ZCL_CLUSTER_GEN_SCENES,					MANUFACTURER_CODE_NONE, 0,						NULL,				zcl_scene_register,		esme_sceneCb},
 #endif
 #ifdef ZCL_DOOR_LOCK
-	{ZCL_CLUSTER_CLOSURES_DOOR_LOCK,			MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_doorLock_register, 	&sampleGW_doorLockCb},
+	{ZCL_CLUSTER_CLOSURES_DOOR_LOCK,			MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_doorLock_register, 	&esme_doorLockCb},
 #endif
 #ifdef ZCL_TEMPERATURE_MEASUREMENT
 	{ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,	MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_temperature_measurement_register, 	NULL},
@@ -241,10 +241,10 @@ const zcl_specClusterInfo_t g_sampleGwClusterList[] =
 	{ZCL_CLUSTER_MS_OCCUPANCY_SENSING,			MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_occupancySensing_register, 	NULL},
 #endif
 #ifdef ZCL_IAS_ZONE
-	{ZCL_CLUSTER_SS_IAS_ZONE,					MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_iasZone_register, 	&sampleGW_iasZoneCb},
+	{ZCL_CLUSTER_SS_IAS_ZONE,					MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_iasZone_register, 	&esme_iasZoneCb},
 #endif
 #ifdef ZCL_POLL_CTRL
-	{ZCL_CLUSTER_GEN_POLL_CONTROL,				MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_pollCtrl_register, 	&sampleGW_pollCtrlCb},
+	{ZCL_CLUSTER_GEN_POLL_CONTROL,				MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_pollCtrl_register, 	&esme_pollCtrlCb},
 #endif
 };
 
