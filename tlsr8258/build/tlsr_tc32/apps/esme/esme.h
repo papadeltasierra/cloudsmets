@@ -9,6 +9,8 @@
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
  *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
+ *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
  *          You may obtain a copy of the License at
@@ -23,14 +25,14 @@
  *
  *******************************************************************************************************/
 
-#ifndef _SAMPLE_GW_H_
-#define _SAMPLE_GW_H_
+#ifndef _ESME_H_
+#define _ESME_H_
 
 
 /**********************************************************************
  * CONSTANT
  */
-#define SAMPLE_GW_ENDPOINT      0x01
+#define ESME_ENDPOINT      0x01
 #define SAMPLE_TEST_ENDPOINT	0x02
 
 /**********************************************************************
@@ -78,8 +80,8 @@ extern app_ctx_t g_appGwCtx;
 
 extern bdb_appCb_t g_zbDemoBdbCb;
 
-extern u8 SAMPLE_GW_CB_CLUSTER_NUM;
-extern const zcl_specClusterInfo_t g_sampleGwClusterList[];
+extern u8 ESME_CB_CLUSTER_NUM;
+extern const zcl_specClusterInfo_t g_esmeClusterList[];
 extern const af_simple_descriptor_t esme_simpleDesc;
 #if AF_TEST_ENABLE
 extern const af_simple_descriptor_t sampleTestDesc;
@@ -95,6 +97,9 @@ extern zcl_identifyAttr_t g_zcl_identifyAttrs;
  */
 void esme_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg);
 
+/**********************************************************************
+ * The ESME emulation only supports the time and smart energy clusters and does
+ * not need to support any commands.
 status_t esme_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 status_t esme_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 status_t esme_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
@@ -102,6 +107,7 @@ status_t esme_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPaylo
 status_t esme_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 status_t esme_iasZoneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 status_t esme_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+ */
 
 void esme_devAnnHandler(zdo_device_annce_req_t *pDevAnnceReq);
 void esme_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf);
@@ -117,4 +123,4 @@ void afTest_rx_handler(void *arg);
 void afTest_dataSendConfirm(void *arg);
 #endif
 
-#endif /* _SAMPLE_GW_H_ */
+#endif /* _ESME_H_ */

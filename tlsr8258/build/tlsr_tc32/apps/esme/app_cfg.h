@@ -9,6 +9,8 @@
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
  *
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
+ *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
  *          You may obtain a copy of the License at
@@ -42,8 +44,11 @@ extern "C" {
 /* PA */
 #define PA_ENABLE						0
 
-/* Debug mode */
-#define	UART_PRINTF_MODE				0
+/* Debug mode
+ * Enable serial port debugging.
+ */
+#define	UART_PRINTF_MODE				1
+#define BAUDRATE                        115200
 #define USB_PRINTF_MODE         		0
 
 /* HCI interface */
@@ -160,19 +165,29 @@ extern "C" {
 
 /**********************************************************************
  * ZCL cluster support setting
+ * ESME only supports time and smart enerygy clusters.
  */
-#define ZCL_ON_OFF_SUPPORT							1
-#define ZCL_LEVEL_CTRL_SUPPORT						1
-#define ZCL_LIGHT_COLOR_CONTROL_SUPPORT				1
-#define ZCL_DOOR_LOCK_SUPPORT						1
-#define ZCL_TEMPERATURE_MEASUREMENT_SUPPORT			1
-#define ZCL_OCCUPANCY_SENSING_SUPPORT				1
-#define ZCL_IAS_ZONE_SUPPORT						1
-#define ZCL_POLL_CTRL_SUPPORT						1
-#define ZCL_GROUP_SUPPORT							1
-#define ZCL_SCENE_SUPPORT							1
-#define ZCL_OTA_SUPPORT								1
-#define ZCL_GP_SUPPORT								1
+#define ZCL_ON_OFF_SUPPORT							0
+#define ZCL_LEVEL_CTRL_SUPPORT						0
+#define ZCL_LIGHT_COLOR_CONTROL_SUPPORT				0
+#define ZCL_DOOR_LOCK_SUPPORT						0
+#define ZCL_TEMPERATURE_MEASUREMENT_SUPPORT			0
+#define ZCL_OCCUPANCY_SENSING_SUPPORT				0
+#define ZCL_IAS_ZONE_SUPPORT						0
+#define ZCL_POLL_CTRL_SUPPORT						0
+#define ZCL_GROUP_SUPPORT							0
+#define ZCL_SCENE_SUPPORT							0
+#define ZCL_OTA_SUPPORT								0
+#define ZCL_GP_SUPPORT								0
+#define ZCL_GEN_TIME_SUPPORT						1
+/**********************************************************************
+ * The Telink libraries do not have support for price yet.  We may have to
+ * add this later but for now just ignore and use time and metering.
+ *
+#define ZCL_SE_PRICE_SUPPORT						1
+ */
+#define ZCL_SE_METERING_SUPPOORT					1
+
 
 #define AF_TEST_ENABLE								0
 

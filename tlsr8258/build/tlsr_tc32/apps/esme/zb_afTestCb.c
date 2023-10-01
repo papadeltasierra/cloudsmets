@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_GW__)
+#if (__PROJECT_ESME__)
 
 /**********************************************************************
  * INCLUDES
@@ -149,4 +149,4 @@ void afTest_dataSendConfirm(void *arg)
 }
 
 #endif	/* AF_TEST_ENABLE */
-#endif  /* __PROJECT_TL_GW__ */
+#endif  /* __PROJECT_ESME__ */

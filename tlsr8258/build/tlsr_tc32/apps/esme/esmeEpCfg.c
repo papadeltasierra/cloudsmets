@@ -8,6 +8,8 @@
  *
  * @par     Copyright (c) 2021, Telink Semiconductor (Shanghai) Co., Ltd. ("TELINK")
  *			All rights reserved.
+
+ *          Portions Copyright (c) 2023, Paul D.Smith (pau@pauldsmith.org.uk)
  *
  *          Licensed under the Apache License, Version 2.0 (the "License");
  *          you may not use this file except in compliance with the License.
@@ -23,7 +25,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_GW__)
+#if (__PROJECT_ESME__)
 
 /**********************************************************************
  * INCLUDES
@@ -36,10 +38,10 @@
  * LOCAL CONSTANTS
  */
 #ifndef ZCL_BASIC_MFG_NAME
-#define ZCL_BASIC_MFG_NAME     {6,'T','E','L','I','N','K'}
+#define ZCL_BASIC_MFG_NAME     {10,'C','L','O','U','D','S','M','E','T','S'}
 #endif
 #ifndef ZCL_BASIC_MODEL_ID
-#define ZCL_BASIC_MODEL_ID	   {8,'T','L','S','R','8','2','x','x'}
+#define ZCL_BASIC_MODEL_ID	   {9,'E','S','M','E','0','.','0','.','1'}
 #endif
 
 
@@ -69,6 +71,18 @@ const u16 esme_inClusterList[] =
  */
 const u16 esme_outClusterList[] =
 {
+	/******************************************************************
+	 * ESME only supports time and smart energy clusters.
+	 */
+#ifdef ZCL_TIME
+	ZCL_CLUSTER_GEN_TIME,
+#endif
+#ifdef ZCL_PRICE
+	ZCL_CLUSTER_SE_PRICE
+#endif
+#ifdef ZCL_METERING
+	ZCL_CLUSTER_SE_METERING
+#endif
 #ifdef ZCL_GROUP
 	ZCL_CLUSTER_GEN_GROUPS,
 #endif
@@ -114,7 +128,7 @@ const af_simple_descriptor_t esme_simpleDesc =
 {
 	HA_PROFILE_ID,                      /* Application profile identifier */
 	HA_DEV_HOME_GATEWAY,                /* Application device identifier */
-	SAMPLE_GW_ENDPOINT,                 /* Endpoint */
+	ESME_ENDPOINT,                 /* Endpoint */
 	0,                                  /* Application device version */
 	0,									/* Reserved */
 	SAMPLEGW_IN_CLUSTER_NUM,           	/* Application input cluster count */
@@ -221,10 +235,19 @@ const zclAttrInfo_t identify_attrTbl[] =
 /**
  *  @brief Definition for simple GW ZCL specific cluster
  */
-const zcl_specClusterInfo_t g_sampleGwClusterList[] =
+const zcl_specClusterInfo_t g_esmeClusterList[] =
 {
 	{ZCL_CLUSTER_GEN_BASIC,						MANUFACTURER_CODE_NONE, ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		esme_basicCb},
 	{ZCL_CLUSTER_GEN_IDENTIFY,					MANUFACTURER_CODE_NONE, ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	esme_identifyCb},
+#ifdef ZCL_TIME
+	{ZCL_CLUSTER_SE_TIME,						MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_time_register,		esme_timeCb},
+#endif
+#ifdef ZCL_SE_PRICE
+	{ZCL_CLUSTER_SE_PRICE,						MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_price_register,		esme_priceCb},
+#endif
+#ifdef ZCL_SE_METERING
+	{ZCL_CLUSTER_SE_METERING,					MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_metering_register,	esme_meteringCb},
+#endif
 #ifdef ZCL_GROUP
 	{ZCL_CLUSTER_GEN_GROUPS,					MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_group_register,		esme_groupCb},
 #endif
@@ -248,7 +271,7 @@ const zcl_specClusterInfo_t g_sampleGwClusterList[] =
 #endif
 };
 
-u8 SAMPLE_GW_CB_CLUSTER_NUM = (sizeof(g_sampleGwClusterList)/sizeof(g_sampleGwClusterList[0]));
+u8 ESME_CB_CLUSTER_NUM = (sizeof(g_esmeClusterList)/sizeof(g_esmeClusterList[0]));
 
 
 /**********************************************************************
@@ -258,4 +281,4 @@ u8 SAMPLE_GW_CB_CLUSTER_NUM = (sizeof(g_sampleGwClusterList)/sizeof(g_sampleGwCl
 
 
 
-#endif	/* __PROJECT_TL_GW__ */
+#endif	/* __PROJECT_ESME__ */

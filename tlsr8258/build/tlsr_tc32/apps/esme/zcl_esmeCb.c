@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_GW__)
+#if (__PROJECT_ESME__)
 
 /**********************************************************************
  * INCLUDES
@@ -598,7 +598,7 @@ static void esme_zclIdentifyQueryRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo,
  */
 status_t esme_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
+	if(pAddrInfo->dstEp == ESME_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
 			switch(cmdId){
 				case ZCL_CMD_IDENTIFY:
@@ -772,7 +772,7 @@ static void esme_zclGetGroupMembershipRspCmdHandler(zclIncomingAddrInfo_t *pAddr
  */
 status_t esme_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
+	if(pAddrInfo->dstEp == ESME_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_GROUP_ADD_GROUP_RSP:
@@ -1025,7 +1025,7 @@ static void esme_zclGetSceneMembershipRspCmdHandler(zclIncomingAddrInfo_t *pAddr
  */
 status_t esme_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
+	if(pAddrInfo->dstEp == ESME_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_SCENE_ADD_SCENE_RSP:
@@ -1060,7 +1060,7 @@ status_t esme_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPaylo
 
 #ifdef ZCL_DOOR_LOCK
 /*********************************************************************
- * @fn      sampleGw_zclDoorLockRspCmdHandler
+ * @fn      esme_zclDoorLockRspCmdHandler
  *
  * @brief   Handler for ZCL door lock response command.
  *
@@ -1082,7 +1082,7 @@ static void esme_zclDoorLockRspCmdHandler(u8 cmdId, zcl_doorlockRsp_t *doorlockR
 }
 
 /*********************************************************************
- * @fn      sampleGw_doorLockCb
+ * @fn      esme_doorLockCb
  *
  * @brief   Handler for ZCL Door Lock command.
  *
@@ -1092,7 +1092,7 @@ static void esme_zclDoorLockRspCmdHandler(u8 cmdId, zcl_doorlockRsp_t *doorlockR
  */
 status_t esme_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
+	if(pAddrInfo->dstEp == ESME_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_LOCK_DOOR_RESPONSE:
@@ -1112,7 +1112,7 @@ status_t esme_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPa
 
 #ifdef ZCL_IAS_ZONE
 /*********************************************************************
- * @fn      sampleGw_iasZoneCb
+ * @fn      esme_iasZoneCb
  *
  * @brief   Handler for ZCL IAS Zone command.
  *
@@ -1122,7 +1122,7 @@ status_t esme_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPa
  */
 status_t esme_iasZoneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
+	if(pAddrInfo->dstEp == ESME_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			if(cmdId == ZCL_CMD_ZONE_STATUS_CHANGE_NOTIFICATION){
 				light_blink_start(5, 250, 250);
@@ -1160,13 +1160,13 @@ static status_t esme_zclPollCtrlChkInCmdHandler(zclIncomingAddrInfo_t *pAddrInfo
 	checkInRsp.startFastPolling = FALSE;
 	checkInRsp.fastPollTimeout = 0;
 
-	zcl_pollCtrl_chkInRspCmd(SAMPLE_GW_ENDPOINT, &dstEpInfo, TRUE, pAddrInfo->seqNum, &checkInRsp);
+	zcl_pollCtrl_chkInRspCmd(ESME_ENDPOINT, &dstEpInfo, TRUE, pAddrInfo->seqNum, &checkInRsp);
 
 	return ZCL_STA_CMD_HAS_RESP;
 }
 
 /*********************************************************************
- * @fn      sampleGw_iasZoneCb
+ * @fn      esme_iasZoneCb
  *
  * @brief   Handler for ZCL IAS Zone command.
  *
@@ -1178,7 +1178,7 @@ status_t esme_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPa
 {
 	status_t status = ZCL_STA_SUCCESS;
 
-	if(pAddrInfo->dstEp == SAMPLE_GW_ENDPOINT){
+	if(pAddrInfo->dstEp == ESME_ENDPOINT){
 		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			if(cmdId == ZCL_CMD_CHK_IN){
 				status = esme_zclPollCtrlChkInCmdHandler(pAddrInfo);
@@ -1190,6 +1190,6 @@ status_t esme_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPa
 }
 #endif	/* ZCL_POLL_CTRL */
 
-#endif  /* __PROJECT_TL_GW__ */
+#endif  /* __PROJECT_ESME__ */
 
 

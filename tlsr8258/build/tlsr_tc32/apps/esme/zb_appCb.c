@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_GW__)
+#if (__PROJECT_ESME__)
 
 /**********************************************************************
  * INCLUDES
@@ -60,8 +60,8 @@ void zbdemo_bdbIdentifyCb(u8 endpoint, u16 srcAddr, u16 identifyTime);
 bdb_appCb_t g_zbDemoBdbCb = {zbdemo_bdbInitCb, zbdemo_bdbCommissioningCb, zbdemo_bdbIdentifyCb, NULL};
 
 #if ZBHCI_EN
-bool sampleGw_macAssocReqIndHandler(void *arg);
-mac_appIndCb_t macAppIndCbList = {NULL, NULL, sampleGw_macAssocReqIndHandler};
+bool esme_macAssocReqIndHandler(void *arg);
+mac_appIndCb_t macAppIndCbList = {NULL, NULL, esme_macAssocReqIndHandler};
 #endif
 
 
@@ -268,7 +268,7 @@ void esme_dataSendConfirm(void *arg){
 }
 
 #if ZBHCI_EN
-bool sampleGw_macAssocReqIndHandler(void *arg){
+bool esme_macAssocReqIndHandler(void *arg){
 	zb_mlme_associate_ind_t *ind = (zb_mlme_associate_ind_t *)arg;
 
 	return zbhciMacAddrGetPush(ind->devAddress);
@@ -323,4 +323,4 @@ void esme_tcFrameCntReachedHandler(void){
 	zb_tcUpdateNwkKey(&updateNwkKey);
 }
 
-#endif  /* __PROJECT_TL_GW__ */
+#endif  /* __PROJECT_ESME__ */

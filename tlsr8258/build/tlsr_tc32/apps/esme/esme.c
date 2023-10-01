@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_GW__)
+#if (__PROJECT_ESME__)
 
 /**********************************************************************
  * INCLUDES
@@ -149,17 +149,17 @@ void user_app_init(void)
 	zcl_init(esme_zclProcessIncomingMsg);
 
 	/* Register endPoint */
-	af_endpointRegister(SAMPLE_GW_ENDPOINT, (af_simple_descriptor_t *)&esme_simpleDesc, zcl_rx_handler, esme_dataSendConfirm);
+	af_endpointRegister(ESME_ENDPOINT, (af_simple_descriptor_t *)&esme_simpleDesc, zcl_rx_handler, esme_dataSendConfirm);
 #if AF_TEST_ENABLE
 	/* A sample of AF data handler. */
 	af_endpointRegister(SAMPLE_TEST_ENDPOINT, (af_simple_descriptor_t *)&sampleTestDesc, afTest_rx_handler, afTest_dataSendConfirm);
 #endif
 
 	/* Register ZCL specific cluster information */
-	zcl_register(SAMPLE_GW_ENDPOINT, SAMPLE_GW_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_sampleGwClusterList);
+	zcl_register(ESME_ENDPOINT, ESME_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_esmeClusterList);
 
 #if ZCL_GP_SUPPORT
-	gp_init(SAMPLE_GW_ENDPOINT);
+	gp_init(ESME_ENDPOINT);
 #endif
 
 #if ZCL_OTA_SUPPORT
@@ -197,7 +197,7 @@ void app_task(void)
 	}
 }
 
-static void sampleGwSysException(void)
+static void esmeSysException(void)
 {
 #if 1
 	SYSTEM_RESET();
@@ -242,7 +242,7 @@ void user_init(bool isRetention)
 	/* Initialize Stack */
 	stack_init();
 
-	sys_exceptHandlerRegister(sampleGwSysException);
+	sys_exceptHandlerRegister(esmeSysException);
 
 	/* Initialize user application */
 	user_app_init();
@@ -269,5 +269,5 @@ void user_init(bool isRetention)
     bdb_init((af_simple_descriptor_t *)&esme_simpleDesc, &g_bdbCommissionSetting, &g_zbDemoBdbCb, 1);
 }
 
-#endif  /* __PROJECT_TL_GW__ */
+#endif  /* __PROJECT_ESME__ */
 

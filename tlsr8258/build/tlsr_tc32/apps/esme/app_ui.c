@@ -23,7 +23,7 @@
  *
  *******************************************************************************************************/
 
-#if (__PROJECT_TL_GW__)
+#if (__PROJECT_ESME__)
 
 /**********************************************************************
  * INCLUDES
@@ -152,18 +152,18 @@ s32 brc_toggleCb(void *arg)
 	TL_SETSTRUCTCONTENT(dstEpInfo, 0);
 
 	dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
-	dstEpInfo.dstEp = SAMPLE_GW_ENDPOINT;
+	dstEpInfo.dstEp = ESME_ENDPOINT;
 	dstEpInfo.dstAddr.shortAddr = 0xffff;
 	dstEpInfo.profileId = HA_PROFILE_ID;
 	dstEpInfo.txOptions = 0;
 	dstEpInfo.radius = 0;
 
-	//zcl_onOff_toggleCmd(SAMPLE_GW_ENDPOINT, &dstEpInfo, FALSE);
+	//zcl_onOff_toggleCmd(ESME_ENDPOINT, &dstEpInfo, FALSE);
 	toggle = !toggle;
 	if(toggle){
-		zcl_onOff_onCmd(SAMPLE_GW_ENDPOINT, &dstEpInfo, FALSE);
+		zcl_onOff_onCmd(ESME_ENDPOINT, &dstEpInfo, FALSE);
 	}else{
-		zcl_onOff_offCmd(SAMPLE_GW_ENDPOINT, &dstEpInfo, FALSE);
+		zcl_onOff_offCmd(ESME_ENDPOINT, &dstEpInfo, FALSE);
 	}
 
 	return 0;
@@ -189,13 +189,13 @@ void buttonShortPressed(u8 btNum){
 			TL_SETSTRUCTCONTENT(dstEpInfo, 0);
 
 			dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
-			dstEpInfo.dstEp = SAMPLE_GW_ENDPOINT;
+			dstEpInfo.dstEp = ESME_ENDPOINT;
 			dstEpInfo.dstAddr.shortAddr = 0xffff;
 			dstEpInfo.profileId = HA_PROFILE_ID;
 			dstEpInfo.txOptions = 0;
 			dstEpInfo.radius = 0;
 
-			zcl_onOff_toggleCmd(SAMPLE_GW_ENDPOINT, &dstEpInfo, FALSE);
+			zcl_onOff_toggleCmd(ESME_ENDPOINT, &dstEpInfo, FALSE);
 #else
 			brc_toggle();
 #endif
@@ -254,4 +254,4 @@ void app_key_handler(void){
 	}
 }
 
-#endif  /* __PROJECT_TL_GW__ */
+#endif  /* __PROJECT_ESME__ */
