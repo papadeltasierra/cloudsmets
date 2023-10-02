@@ -165,9 +165,11 @@ extern "C" {
 
 /**********************************************************************
  * ZCL cluster support setting
- * ESME only supports time and smart enerygy clusters.
+ * ESME only supports time and smart energy clusters.
+ * We also need on/off support unless we remove the key press support.
+ * We also have to have Green Power (GP) support enabled.
  */
-#define ZCL_ON_OFF_SUPPORT							0
+#define ZCL_ON_OFF_SUPPORT							1
 #define ZCL_LEVEL_CTRL_SUPPORT						0
 #define ZCL_LIGHT_COLOR_CONTROL_SUPPORT				0
 #define ZCL_DOOR_LOCK_SUPPORT						0
@@ -178,7 +180,7 @@ extern "C" {
 #define ZCL_GROUP_SUPPORT							0
 #define ZCL_SCENE_SUPPORT							0
 #define ZCL_OTA_SUPPORT								0
-#define ZCL_GP_SUPPORT								0
+#define ZCL_GP_SUPPORT								1
 #define ZCL_GEN_TIME_SUPPORT						1
 /**********************************************************************
  * The Telink libraries do not have support for price yet.  We may have to

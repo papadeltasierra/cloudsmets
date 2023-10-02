@@ -246,10 +246,10 @@ typedef u8 map8;
 typedef struct{
 	utc	 time;
 	map8 timeStatus;
-	i32	 timeZone;
+	s32	 timeZone;
 	u32	 dstStart;
 	u32	 dstEnd;
-	i32  dstShift;
+	s32  dstShift;
 	u32	 standardTime;
 	u32	 localTime;
 	utc	 lastSetTime;
@@ -273,16 +273,16 @@ zcl_timeAttr_t g_zcl_timeAttrs =
 
 const zclAttrInfo_t time_attrTbl[] =
 {
-	{ ZCL_ATTRID_TIME,      		ZCL_DATA_TYPE_UTC,    	ACCESS_CONTROL_READ,	(utc*)&g_zcl_timeAttrs.time},
-	{ ZCL_ATTRID_TIME_STATUS,      	ZCL_DATA_TYPE_BITMAP,   ACCESS_CONTROL_READ,    (map8*)&g_zcl_timeAttrs.timeStatus},
-	{ ZCL_ATTRID_TIMEZONE,    		ZCL_DATA_TYPE_INT32,    ACCESS_CONTROL_READ,  	(i32*)&g_zcl_timeAttrs.timeZone},
-	{ ZCL_ATTRID_DST_START,       	ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u32*)&g_zcl_timeAttrs.dstStart},
-	{ ZCL_ATTRID_DST_END,       	ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u32*)&g_zcl_timeAttrs.dstEnd},
-	{ ZCL_ATTRID_DST_SHIFT,    		ZCL_DATA_TYPE_INT32,    ACCESS_CONTROL_READ,  	(i32*)&g_zcl_timeAttrs.dstShift},
-	{ ZCL_ATTRID_STANDARD_TIME,     ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u32*)&g_zcl_timeAttrs.standardTime},
-	{ ZCL_ATTRID_LOCAL_TIME,       	ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u32*)&g_zcl_timeAttrs.localTime},
-	{ ZCL_ATTRID_LAST_SET_TIME,     ZCL_DATA_TYPE_UTC,      ACCESS_CONTROL_READ,  	(utc*)&g_zcl_timeAttrs.lastSetTime},
-	{ ZCL_ATTRID_VALID_UNTIL_TIME,  ZCL_DATA_TYPE_UTC,      ACCESS_CONTROL_READ,  	(utc*)&g_zcl_timeAttrs.validUntilTime},
+	{ ZCL_ATTRID_TIME,      		ZCL_DATA_TYPE_UTC,    	ACCESS_CONTROL_READ,	(u8*)&g_zcl_timeAttrs.time},
+	{ ZCL_ATTRID_TIME_STATUS,      	ZCL_DATA_TYPE_BITMAP8,  ACCESS_CONTROL_READ,    (u8*)&g_zcl_timeAttrs.timeStatus},
+	{ ZCL_ATTRID_TIMEZONE,    		ZCL_DATA_TYPE_INT32,    ACCESS_CONTROL_READ,  	(u8*)&g_zcl_timeAttrs.timeZone},
+	{ ZCL_ATTRID_DST_START,       	ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u8*)&g_zcl_timeAttrs.dstStart},
+	{ ZCL_ATTRID_DST_END,       	ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u8*)&g_zcl_timeAttrs.dstEnd},
+	{ ZCL_ATTRID_DST_SHIFT,    		ZCL_DATA_TYPE_INT32,    ACCESS_CONTROL_READ,  	(u8*)&g_zcl_timeAttrs.dstShift},
+	{ ZCL_ATTRID_STANDARD_TIME,     ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u8*)&g_zcl_timeAttrs.standardTime},
+	{ ZCL_ATTRID_LOCAL_TIME,       	ZCL_DATA_TYPE_UINT32,   ACCESS_CONTROL_READ,  	(u8*)&g_zcl_timeAttrs.localTime},
+	{ ZCL_ATTRID_LAST_SET_TIME,     ZCL_DATA_TYPE_UTC,      ACCESS_CONTROL_READ,  	(u8*)&g_zcl_timeAttrs.lastSetTime},
+	{ ZCL_ATTRID_VALID_UNTIL_TIME,  ZCL_DATA_TYPE_UTC,      ACCESS_CONTROL_READ,  	(u8*)&g_zcl_timeAttrs.validUntilTime},
 };
 
 #define ZCL_TIME_ATTR_NUM	  sizeof(basic_attrTbl) / sizeof(zclAttrInfo_t)
@@ -318,34 +318,25 @@ const zclAttrInfo_t price_attrTbl[] =
 #define ZCL_PRICE_ATTR_NUM	  sizeof(basic_attrTbl) / sizeof(zclAttrInfo_t)
 #endif
 
+typedef u8 u48[6];
+
+typedef struct{
+	u48  currentSummationDelivered;
+}zcl_meteringAttr_t;
+
+
 /**********************************************************************
  * Short term we are only supporting a single attribute.
  */
 /* Metering */
 zcl_meteringAttr_t g_zcl_meteringAttrs =
 {
-	.zclVersion 	= 0x03,
-	.appVersion 	= 0x00,
-	.stackVersion 	= 0x02,
-	.hwVersion		= 0x00,
-	.manuName		= ZCL_BASIC_MFG_NAME,
-	.modelId		= ZCL_BASIC_MODEL_ID,
-	.powerSource	= POWER_SOURCE_MAINS_1_PHASE,
-	.deviceEnable	= TRUE,
+	.currentSummationDelivered 	= { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab },
 };
 
 const zclAttrInfo_t metering_attrTbl[] =
 {
-	{ ZCL_ATTRID_BASIC_ZCL_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.zclVersion},
-	{ ZCL_ATTRID_BASIC_APP_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.appVersion},
-	{ ZCL_ATTRID_BASIC_STACK_VER,    		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.stackVersion},
-	{ ZCL_ATTRID_BASIC_HW_VER,       		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.hwVersion},
-	{ ZCL_ATTRID_BASIC_MFR_NAME,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.manuName},
-	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.modelId},
-	{ ZCL_ATTRID_BASIC_POWER_SOURCE, 		ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.powerSource},
-	{ ZCL_ATTRID_BASIC_DEV_ENABLED,  		ZCL_DATA_TYPE_BOOLEAN,  ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_basicAttrs.deviceEnable},
-
-	{ ZCL_ATTRID_GLOBAL_CLUSTER_REVISION, 	ZCL_DATA_TYPE_UINT16,  	ACCESS_CONTROL_READ,  						(u8*)&zcl_attr_global_clusterRevision},
+	{ ZCL_ATTRID_CURRENT_SUMMATION_DELIVERD,	ZCL_DATA_TYPE_UINT48,	ACCESS_CONTROL_READ,	(u8*)&g_zcl_meteringAttrs.currentSummationDelivered},
 };
 
 #define ZCL_METERING_ATTR_NUM	  sizeof(metering_attrTbl) / sizeof(zclAttrInfo_t)
