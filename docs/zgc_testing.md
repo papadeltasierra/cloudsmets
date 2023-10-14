@@ -1,5 +1,13 @@
 # Testing Plan
 
+---
+# Building
+- Remember to switch board from 48-pin dongle to 32-pin dongle in `board_2858_dongle.h`
+- Remember to enable ZBHCI_UART in `app_cfg.h`
+- You **cannot** cnotrol the zbhci using the USB connector; you must either pass-through to the ESP32-C3 or redirect the tlsr8258 UART to other pins.
+---
+
+
 ## Index
 - [What we Want To Know](#what-we-want-to-know)
 

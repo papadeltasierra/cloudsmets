@@ -47,7 +47,7 @@ extern "C" {
 /* Debug mode
  * Enable serial port debugging.
  */
-#define	UART_PRINTF_MODE				1
+#define	UART_PRINTF_MODE				0
 #define BAUDRATE                        115200
 #define USB_PRINTF_MODE         		0
 
