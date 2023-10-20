@@ -30,31 +30,24 @@ Everything below refers to the [Telink] tlsr8258 portion of the CloudSMETS devic
 # ZigBee Clusters
 See the [ZigBee Cluster Library] documentation for reference.
 
-## I Think We Need...
-|Cluster ID|Cluster Name|
-|-|-|
-|0x0700|Price
-|0x0702|Metering
-
-See
-
 We have metering (at least some) and should be able to produce an attribute table for pricing based on the [ZigBee Cluster Library] documentation.
 
 See [SMETS technical Spec], section 6.3.2 onwards.  These apply for both electricy and gas unless stated otherwise.
-|Section|Purpose|SMET Cluster|Telink provides?|
-|-|-|-|-|
-|6.3.2.1|HAN signal strength|
-|6.3.2.2|Local time with BST adjustment|3.12: Time<br/>UTC time|Yes
-|6.3.3.1|Active Tariff Price|Price<br/>"Get Current Price"?|No
-|6.3.3.2|Aggregate Debt|Debt Attribute Set
-|6.3.3.3|Aggregate Debt Recovery Rate|Debt Attribute set
-|6.3.3.4|Cumulative Consumption|Metering<br/>Historical Consumption|Yes
-|6.3.3.5|Emergency Credit Balance|Prepayment<br/>Prepayment Information Attribute Set<br/>Emergency credit Remaining|No
-|6.3.3.4|Historic Consumption|Metering<br/>Historical Consumption|Yes
-|6.3.3.5|Low Credit Alert|Prepayment<br/>Prepayment Information Attribute Set<br/>Low Credit Warning Level Attribute<br/>**Or should this be showing an alert?**|No
-|6.3.3.9|Meter Balance|Prepayment<br/>Prepayment Information Attribute Set<br/>Credit remaining Attribute<br/>**Or something else of not prepay?**|No
-|6.3.3.10|Payment Mode|Prepayment (Smart Energy)<br/>10.8.2.2.1.1: Payment Control Configuration Attribute|No
-|6.3.4.10|Power Threshold Status<br/>Electricity only|Metering<be/>Meter Status Attribute set<br/>Ambient Consumption Indicator Attribute
+|Section|Purpose|Cluster|Attr Set|Attr/Cmd|Telink provides?|
+|-|-|-|-|-|-|
+|6.3.2.1|HAN signal strength|N/A|N/A|N/A|?
+|6.3.2.2|Local time with<br/>BST adjustment|Time|N/A|Time<br/>Maybe localTime|Yes
+|6.3.3.1|Active Tariff Price|Price|N/A|PublishPrice<br/>(cmd, D.4.2.4.1)|No
+|6.3.3.2|Aggregate Debt|Prepayment|Debt Attribute|DebtAmmount
+|6.3.3.3|Aggregate Debt Recovery Rate|Prepayment|Debt Attribute|DebtRecoveryAmount/<br/>DebtRecoveryFrequency
+|6.3.3.4|Cumulative Consumption<br/>(Amount)|Prepayment|Historical Consumption|CurrentDayConsumptionDelivered<br/>CurrentWeekConsumptionDelivered<br/>CurrentMonthConsumptionDelivered|Yes
+|6.3.3.4|Cumulative Consumption<br/>(Cost)|Prepayment|Historical Cost Consumption|CurrentDayCostConsumptionDelivered<br/>CurrentWeekCostConsumptionDelivered<br/>CurrentMonthCostConsumptionDelivered|Yes
+|6.3.3.5|Emergency Credit Balance|Prepayment|Prepayment Information|EmergencyCreditRemaining<br/>CreditStatus|No
+|6.3.3.4|Historic Consumption|Metering|Historical Consumption|CurrentDay/Week/MonthCnosumption<br/>PreviousDay/Week/MonthNConsumption|Yes
+|6.3.3.5|Low Credit Alert|Prepayment|Prepayment Information|CreditRemaining<br/>EmergencyCredit<br/>CreditLimit<br/>CreditStatus|No
+|6.3.3.9|Meter Balance|Prepayment|Prepayment Information|AccumulatedDebt<br/>CreditRemaining|No
+|6.3.3.10|Payment Mode|Prepayment|Prepayment Information|PaymentControlConfiguration|No
+|6.3.4.10|Power Threshold Status<br/>(electricity only)|Metering|Meter Status|AmbientConsumptionIndicator
 
 
 ## Starting Point
