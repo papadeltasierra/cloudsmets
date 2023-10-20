@@ -143,6 +143,7 @@ void buttonKeepPressed(u8 btNum){
 	}
 }
 
+#if 0 // PDS
 ev_timer_event_t *brc_toggleEvt = NULL;
 s32 brc_toggleCb(void *arg)
 {
@@ -168,7 +169,9 @@ s32 brc_toggleCb(void *arg)
 
 	return 0;
 }
+#endif
 
+#if 0 //PDS
 void brc_toggle(void)
 {
 	if(!brc_toggleEvt){
@@ -177,7 +180,9 @@ void brc_toggle(void)
 		TL_ZB_TIMER_CANCEL(&brc_toggleEvt);
 	}
 }
+#endif
 
+#if 0 //PDS
 void buttonShortPressed(u8 btNum){
 	if(btNum == VK_SW1){
 		if(zb_isDeviceJoinedNwk()){
@@ -211,7 +216,9 @@ void buttonShortPressed(u8 btNum){
 		}
 	}
 }
+#endif
 
+#if 0 //PDS
 void keyScan_keyPressedCB(kb_data_t *kbEvt){
 //	u8 toNormal = 0;
 	u8 keyCode = kbEvt->keycode[0];
@@ -253,5 +260,6 @@ void app_key_handler(void){
 		}
 	}
 }
+#endif
 
 #endif  /* __PROJECT_ESME__ */

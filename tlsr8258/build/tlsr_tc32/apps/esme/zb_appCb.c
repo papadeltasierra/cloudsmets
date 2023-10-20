@@ -102,7 +102,7 @@ static s32 heartTimerCb(void *arg){
  * @return  None
  */
 void zbdemo_bdbInitCb(u8 status, u8 joinedNetwork){
-	printf("bdbInitCb: sta = %x, joined = %x\n", status, joinedNetwork);
+	//printf("bdbInitCb: sta = %x, joined = %x\n", status, joinedNetwork);
 
 	if(status == BDB_INIT_STATUS_SUCCESS){
 		/*

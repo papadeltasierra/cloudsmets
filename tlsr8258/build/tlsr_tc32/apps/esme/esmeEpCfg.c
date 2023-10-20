@@ -1,7 +1,14 @@
 /********************************************************************************************************
  * @file    esmeEpCfg.c
  *
- * @brief   This is the source file for esmeEpCfg
+ * @brief   This is the source file for esmeEpCfg.  This is a ZigBee coordinator that
+ *          emulates ESME, Electricity Smart Metering Equipment, as defined in the
+ *          Smart Metering Implementation Programme Great Britain Companion
+ *          Specification (GBCS), v0.8.1.
+ *
+ *          The ESME only provides sufficient support (minimal number of attributes
+ *          of fixed values) to allow testing of a CAD (Customer Access Device) under
+ *          development.  Support is defined in the SMETS documentation above.
  *
  * @author  Zigbee Group
  * @date    2021
@@ -38,10 +45,10 @@
  * LOCAL CONSTANTS
  */
 #ifndef ZCL_BASIC_MFG_NAME
-#define ZCL_BASIC_MFG_NAME     {10,'C','L','O','U','D','S','M','E','T','S'}
+#define ZCL_BASIC_MFG_NAME     {10,'C','l','o','u','d','S','M','E','T','S'}
 #endif
 #ifndef ZCL_BASIC_MODEL_ID
-#define ZCL_BASIC_MODEL_ID	   {9,'E','S','M','E','0','.','0','.','1'}
+#define ZCL_BASIC_MODEL_ID	   {11,'E','S','M','E',' ','v','0','.','0','.','1'}
 #endif
 
 
@@ -54,65 +61,47 @@
  * GLOBAL VARIABLES
  */
 /**
- *  @brief Definition for Incoming cluster / Sever Cluster
+ *  @brief Definition for Incoming cluster / Server Cluster
  */
 const u16 esme_inClusterList[] =
 {
 	ZCL_CLUSTER_GEN_BASIC,
-	ZCL_CLUSTER_GEN_IDENTIFY,
-#ifdef ZCL_OTA
-    ZCL_CLUSTER_OTA,
-#endif
-};
-
-
-/**
- *  @brief Definition for Outgoing cluster / Client Cluster
- */
-const u16 esme_outClusterList[] =
-{
-	/******************************************************************
-	 * ESME only supports time and smart energy clusters.
-	 */
 #ifdef ZCL_TIME
 	ZCL_CLUSTER_GEN_TIME,
 #endif
 #ifdef ZCL_PRICE
-	ZCL_CLUSTER_SE_PRICE
+	ZCL_CLUSTER_SE_PRICE,
+#endif
+#ifdef ZCL_Demand_RSP_AND_LOAD_CONTROL
+	ZCL_CLUSTER_SE_Demand_RSP_AND_LOAD_CONTROL,
 #endif
 #ifdef ZCL_METERING
-	ZCL_CLUSTER_SE_METERING
+	ZCL_CLUSTER_SE_METERING,
 #endif
-#ifdef ZCL_GROUP
-	ZCL_CLUSTER_GEN_GROUPS,
+#ifdef ZCL_MESSAGING
+	ZCL_CLUSTER_SE_MESSAGING,
 #endif
-#ifdef ZCL_SCENE
-	ZCL_CLUSTER_GEN_SCENES,
+#ifdef ZCL_TUNNELING
+	ZCL_CLUSTER_SE_TUNNELING,
 #endif
-#ifdef ZCL_ON_OFF
-	ZCL_CLUSTER_GEN_ON_OFF,
+#ifdef ZCL_PREPAYMENT
+	ZCL_CLUSTER_SE_PREPAYMENT,
 #endif
-#ifdef ZCL_LEVEL_CTRL
-	ZCL_CLUSTER_GEN_LEVEL_CONTROL,
+#ifdef ZCL_CALENDAR
+	ZCL_CLUSTER_SE_CALENDAR,
 #endif
-#ifdef ZCL_LIGHT_COLOR_CONTROL
-	ZCL_CLUSTER_LIGHTING_COLOR_CONTROL,
+#ifdef ZCL_DEVICE_MANAGEMENT
+	ZCL_CLUSTER_SE_DEVICE_MANAGEMENT
 #endif
-#ifdef ZCL_DOOR_LOCK
-	ZCL_CLUSTER_CLOSURES_DOOR_LOCK,
-#endif
-#ifdef ZCL_TEMPERATURE_MEASUREMENT
-	ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,
-#endif
-#ifdef ZCL_OCCUPANCY_SENSING
-	ZCL_CLUSTER_MS_OCCUPANCY_SENSING,
-#endif
-#ifdef ZCL_IAS_ZONE
-	ZCL_CLUSTER_SS_IAS_ZONE,
-#endif
-#ifdef ZCL_POLL_CTRL
-	ZCL_CLUSTER_GEN_POLL_CONTROL,
-#endif
+};
+
+/**
+ *  @brief Definition for Outgoing cluster / Client Cluster
+ *         This device is never intended to be a client.
+ */
+const u16 esme_outClusterList[] =
+{
+	ZCL_CLUSTER_GEN_BASIC
 };
 
 /**
@@ -126,15 +115,15 @@ const u16 esme_outClusterList[] =
  */
 const af_simple_descriptor_t esme_simpleDesc =
 {
-	HA_PROFILE_ID,                      /* Application profile identifier */
-	HA_DEV_HOME_GATEWAY,                /* Application device identifier */
-	ESME_ENDPOINT,                 /* Endpoint */
-	0,                                  /* Application device version */
-	0,									/* Reserved */
-	SAMPLEGW_IN_CLUSTER_NUM,           	/* Application input cluster count */
-	SAMPLEGW_OUT_CLUSTER_NUM,          	/* Application output cluster count */
-	(u16 *)esme_inClusterList,    	/* Application input cluster list */
-	(u16 *)esme_outClusterList,   	/* Application output cluster list */
+	SE_PROFILE_ID,                      	/* Smart Energy profile identifier */
+	SE_DEV_METERING_DEVICE,    				/* Smart Energy device identifier */
+	ESME_ENDPOINT,                 			/* Endpoint number */
+	0,                                  	/* Application device version */
+	0,										/* Reserved */
+	SAMPLEGW_IN_CLUSTER_NUM,           		/* Application input cluster count */
+	SAMPLEGW_OUT_CLUSTER_NUM,          		/* Application output cluster count */
+	(u16 *)esme_inClusterList,    			/* Application input cluster list */
+	(u16 *)esme_outClusterList,   			/* Application output cluster list */
 };
 
 
@@ -350,7 +339,7 @@ const zcl_specClusterInfo_t g_esmeClusterList[] =
 	{ZCL_CLUSTER_GEN_BASIC,						MANUFACTURER_CODE_NONE, ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		esme_basicCb},
 	{ZCL_CLUSTER_GEN_IDENTIFY,					MANUFACTURER_CODE_NONE, ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	esme_identifyCb},
 #ifdef ZCL_TIME
-	{ZCL_CLUSTER_SE_TIME,						MANUFACTURER_CODE_NONE, 0, 						time_attrTbl,		zcl_time_register,		NULL},
+	{ZCL_CLUSTER_GEN_TIME,						MANUFACTURER_CODE_NONE, 0, 						time_attrTbl,		zcl_time_register,		NULL},
 #endif
 #ifdef ZCL_SE_PRICE
 	{ZCL_CLUSTER_SE_PRICE,						MANUFACTURER_CODE_NONE, 0, 						price_attrTbl,  	zcl_price_register,		NULL},

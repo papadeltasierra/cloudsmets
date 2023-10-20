@@ -165,34 +165,21 @@ extern "C" {
 
 /**********************************************************************
  * ZCL cluster support setting
- * ESME only supports time and smart energy clusters.
- * We also need on/off support unless we remove the key press support.
- * We also have to have Green Power (GP) support enabled.
- */
-#define ZCL_ON_OFF_SUPPORT							1
-#define ZCL_LEVEL_CTRL_SUPPORT						0
-#define ZCL_LIGHT_COLOR_CONTROL_SUPPORT				0
-#define ZCL_DOOR_LOCK_SUPPORT						0
-#define ZCL_TEMPERATURE_MEASUREMENT_SUPPORT			0
-#define ZCL_OCCUPANCY_SENSING_SUPPORT				0
-#define ZCL_IAS_ZONE_SUPPORT						0
-#define ZCL_POLL_CTRL_SUPPORT						0
-#define ZCL_GROUP_SUPPORT							0
-#define ZCL_SCENE_SUPPORT							0
-#define ZCL_OTA_SUPPORT								0
-#define ZCL_GP_SUPPORT								1
-#define ZCL_GEN_TIME_SUPPORT						1
-/**********************************************************************
- * The Telink libraries do not have support for price yet.  We may have to
- * add this later but for now just ignore and use time and metering.
+ * ESME supports those clusters defined by the UK SMETS documentation.
  *
-#define ZCL_SE_PRICE_SUPPORT						1
+ * Also support Green Power (GP) because the Telink SDK assumes this for
+ * routers and coordinators.
  */
-#define ZCL_SE_METERING_SUPPOORT					1
-
-
-#define AF_TEST_ENABLE								0
-
+#define ZCL_GP_SUPPORT								1
+#define ZCL_TIME									1
+#define ZCL_PRICE_SUPPORT							1
+#define ZCL_METERING_SUPPORT						1
+#define ZCL_Demand_RSP_AND_LOAD_CONTROL_SUPPORT		1
+#define ZCL_MESSAGING_SUPPORT						1
+#define ZCL_TUNNELING_SUPPORT						1
+#define ZCL_PREPAYMENT_SUPPORT						1
+#define ZCL_CALENDAR_SUPPORT						1
+#define ZCL_DEVICE_MANAGEMENT_SUPPORT				1
 
 /**********************************************************************
  * Stack configuration

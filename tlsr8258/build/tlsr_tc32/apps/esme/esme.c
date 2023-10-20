@@ -192,9 +192,11 @@ void app_task(void)
 		}
 	}
 
+#if 0 //PDS
 	if(BDB_STATE_GET() == BDB_STATE_IDLE){
 		app_key_handler();
 	}
+#endif
 }
 
 static void esmeSysException(void)

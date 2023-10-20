@@ -39,10 +39,10 @@
  */
 #if (__PROJECT_CLOUDSMETS__)
 #ifndef ZCL_BASIC_MFG_NAME
-#define ZCL_BASIC_MFG_NAME     {10,'C','L','O','U','D','S','M','E','T','S'}
+#define ZCL_BASIC_MFG_NAME     {10,'C','l','o','u','d','S','M','E','T','S'}
 #endif
 #ifndef ZCL_BASIC_MODEL_ID
-#define ZCL_BASIC_MODEL_ID	   {5,'0','.','0','.','1'}
+#define ZCL_BASIC_MODEL_ID	   {10,'C','A','D',' ','v','0','.','0','.','1'}
 #endif
 #endif /* __PROJECT_CLOUDSMETS__ */
 
@@ -61,7 +61,7 @@
 const u16 cloudsmets_inClusterList[] =
 {
 	ZCL_CLUSTER_GEN_BASIC,
-	ZCL_CLUSTER_GEN_IDENTIFY,
+	ZCL_CLUSTER_GEN_IDENTIFY
 };
 
 /**
@@ -72,7 +72,8 @@ const u16 cloudsmets_outClusterList[] =
 	ZCL_CLUSTER_GEN_BASIC,
 	ZCL_CLUSTER_GEN_TIME,
 	ZCL_CLUSTER_SE_PRICE,
-	ZCL_CLUSTER_SE_METERING
+	ZCL_CLUSTER_SE_METERING,
+	ZCL_CLUSTER_SE_PREPAYMENT
 };
 
 /**
@@ -86,9 +87,9 @@ const u16 cloudsmets_outClusterList[] =
  */
 const af_simple_descriptor_t cloudsmets_simpleDesc =
 {
-	HA_PROFILE_ID,                      	/* Application profile identifier */
-	HA_DEV_ONOFF_SWITCH,                	/* Application device identifier */
-	CLOUDSMETS_ENDPOINT,                 	/* Endpoint */
+	SE_PROFILE_ID,                      	/* Smart Energy profile identifier */
+	SE_DEV_IHD,                				/* Smrt Energy device identifier */
+	CLOUDSMETS_ENDPOINT,  	               	/* Endpoint */
 	2,                                  	/* Application device version */
 	0,										/* Reserved */
 	CLOUDSMETS_IN_CLUSTER_NUM,           	/* Application input cluster count */
@@ -96,7 +97,6 @@ const af_simple_descriptor_t cloudsmets_simpleDesc =
 	(u16 *)cloudsmets_inClusterList,    	/* Application input cluster list */
 	(u16 *)cloudsmets_outClusterList,   	/* Application output cluster list */
 };
-
 
 /* Basic */
 zcl_basicAttr_t g_zcl_basicAttrs =
@@ -121,8 +121,6 @@ const zclAttrInfo_t basic_attrTbl[] =
 	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.modelId},
 	{ ZCL_ATTRID_BASIC_POWER_SOURCE, 		ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.powerSource},
 	{ ZCL_ATTRID_BASIC_DEV_ENABLED,  		ZCL_DATA_TYPE_BOOLEAN,  ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_basicAttrs.deviceEnable},
-
-	{ ZCL_ATTRID_GLOBAL_CLUSTER_REVISION, 	ZCL_DATA_TYPE_UINT16,  	ACCESS_CONTROL_READ,  						(u8*)&zcl_attr_global_clusterRevision},
 };
 
 #define	ZCL_BASIC_ATTR_NUM		 sizeof(basic_attrTbl) / sizeof(zclAttrInfo_t)
@@ -137,19 +135,18 @@ zcl_identifyAttr_t g_zcl_identifyAttrs =
 const zclAttrInfo_t identify_attrTbl[] =
 {
 	{ ZCL_ATTRID_IDENTIFY_TIME,  			ZCL_DATA_TYPE_UINT16,   ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_identifyAttrs.identifyTime },
-
 	{ ZCL_ATTRID_GLOBAL_CLUSTER_REVISION, 	ZCL_DATA_TYPE_UINT16,  	ACCESS_CONTROL_READ,  						(u8*)&zcl_attr_global_clusterRevision},
 };
 
-#define	ZCL_IDENTIFY_ATTR_NUM			sizeof(identify_attrTbl) / sizeof(zclAttrInfo_t)
+#define ZCL_IDENTIFY_ATTR_NUM	 sizeof(identify_attrTbl) / sizeof(zclAttrInfo_t)
+
 
 /**
  *  @brief Definition for CloudSMETS specific (server) clusters
  */
 const zcl_specClusterInfo_t g_cloudsmetsClusterList[] =
 {
-	{ZCL_CLUSTER_GEN_BASIC,			MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		cloudsmets_basicCb},
-	{ZCL_CLUSTER_GEN_IDENTIFY,		MANUFACTURER_CODE_NONE,	ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	cloudsmets_identifyCb},
+	{ZCL_CLUSTER_GEN_BASIC,			MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		cloudsmets_basicCb}
 };
 
 u8 CLOUDSMETS_CB_CLUSTER_NUM = (sizeof(g_cloudsmetsClusterList)/sizeof(g_cloudsmetsClusterList[0]));

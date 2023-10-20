@@ -32,8 +32,7 @@
 /**********************************************************************
  * CONSTANT
  */
-#define ESME_ENDPOINT      0x01
-#define SAMPLE_TEST_ENDPOINT	0x02
+#define ESME_ENDPOINT	0x01
 
 /**********************************************************************
  * TYPEDEFS
