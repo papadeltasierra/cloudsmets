@@ -243,7 +243,7 @@ typedef struct{
 	u32	 localTime;
 	utc	 lastSetTime;
 	utc	 validUntilTime;
-}zcl_timeAttr_t;
+} zcl_timeAttr_t;
 
 /* Time */
 zcl_timeAttr_t g_zcl_timeAttrs =
@@ -276,51 +276,48 @@ const zclAttrInfo_t time_attrTbl[] =
 
 #define ZCL_TIME_ATTR_NUM	  sizeof(basic_attrTbl) / sizeof(zclAttrInfo_t)
 
-#if 0 // !!PD: No support for price yet.
-/* Price */
-zcl_priceAttr_t g_zcl_priceAttrs =
+/*
+ * For the following SE (Smart Energy) clusters, we just support a minial (typically
+ * single) attribute just so that we can prove we can read them properly.  More support
+ * might be added for future CloudSMETS testing needs.
+ */
+
+#ifdef ZCL_PRICE
+/* SE Price (D.4) */
+#define ZCL_SE_PRICE_TIER_LABEL_MAX_LENGTH		13
+
+typedef struct {
+	u8			tier1PriceLabel[ZCL_SE_PRICE_TIER_LABEL_MAX_LENGTH];
+} zcl_priceTierLabelAttr_t;
+
+#define ZCL_SE_PRICE_TIER_1_PRICE_LABEL		{ 11,'E','M','S','E',' ','T','i','e','r',' ','1'}
+
+zcl_priceTierLabelAttr_t g_zcl_priceTierLabelAttrs =
 {
-	.zclVersion 	= 0x03,
-	.appVersion 	= 0x00,
-	.stackVersion 	= 0x02,
-	.hwVersion		= 0x00,
-	.manuName		= ZCL_BASIC_MFG_NAME,
-	.modelId		= ZCL_BASIC_MODEL_ID,
-	.powerSource	= POWER_SOURCE_MAINS_1_PHASE,
-	.deviceEnable	= TRUE,
+	.tier1PriceLabel	= ZCL_SE_PRICE_TIER_1_PRICE_LABEL
 };
 
 const zclAttrInfo_t price_attrTbl[] =
 {
-	{ ZCL_ATTRID_BASIC_ZCL_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.zclVersion},
-	{ ZCL_ATTRID_BASIC_APP_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.appVersion},
-	{ ZCL_ATTRID_BASIC_STACK_VER,    		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.stackVersion},
-	{ ZCL_ATTRID_BASIC_HW_VER,       		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.hwVersion},
-	{ ZCL_ATTRID_BASIC_MFR_NAME,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.manuName},
-	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.modelId},
-	{ ZCL_ATTRID_BASIC_POWER_SOURCE, 		ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.powerSource},
-	{ ZCL_ATTRID_BASIC_DEV_ENABLED,  		ZCL_DATA_TYPE_BOOLEAN,  ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_basicAttrs.deviceEnable},
-
-	{ ZCL_ATTRID_GLOBAL_CLUSTER_REVISION, 	ZCL_DATA_TYPE_UINT16,  	ACCESS_CONTROL_READ,  						(u8*)&zcl_attr_global_clusterRevision},
+	{ ZCL_ATTRID_TIER1_PRICE_LABEL,    		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_priceTierLabelAttrs.tier1PriceLabel}
 };
 
-#define ZCL_PRICE_ATTR_NUM	  sizeof(basic_attrTbl) / sizeof(zclAttrInfo_t)
-#endif
+#define ZCL_PRICE_ATTR_NUM	  sizeof(price_attrTbl) / sizeof(zclAttrInfo_t)
 
-typedef u8 u48[6];
+#endif /* ZCL_PRICE */
 
+
+#ifdef ZCL_METERING
+/* SE Metering */
 typedef struct{
 	u48  currentSummationDelivered;
 }zcl_meteringAttr_t;
 
 
-/**********************************************************************
- * Short term we are only supporting a single attribute.
- */
 /* Metering */
 zcl_meteringAttr_t g_zcl_meteringAttrs =
 {
-	.currentSummationDelivered 	= { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab },
+	.currentSummationDelivered 	= 0x0123456789ab,
 };
 
 const zclAttrInfo_t metering_attrTbl[] =
@@ -330,6 +327,37 @@ const zclAttrInfo_t metering_attrTbl[] =
 
 #define ZCL_METERING_ATTR_NUM	  sizeof(metering_attrTbl) / sizeof(zclAttrInfo_t)
 
+#endif /* ZCL_METERING */
+
+#ifdef ZCL_PREPAYMENT
+/* Prepayment */
+typedef struct{
+
+	s32 creditRemaining;
+	u8  debtLabel1[ZCL_DEBT_LABEL1_MAX_LENGTH];
+	u16	currency;
+} zcl_prepaymentAttr_t;
+
+#define ZCL_SE_PREPAYMENT_DEBT_LABEL1	{11,'E','S','M','E',' ','D','e','b','t','1'}
+#define ISO_4217_CURRENCY_GDB 826
+
+zcl_prepaymentAttr_t g_zcl_prepayentAttrs =
+{
+	.creditRemaining = 0x87654321,
+	.debtLabel1 = ZCL_SE_PREPAYMENT_DEBT_LABEL1,
+	.currency = ISO_4217_CURRENCY_GDB
+};
+
+const zclAttrInfo_t prepayment_attrTbl[] =
+{
+	{ ZCL_ATTRID_CREDIT_REMAINING,	ZCL_DATA_TYPE_INT32,	ACCESS_CONTROL_READ,	(u8*)&g_zcl_prepayentAttrs.creditRemaining},
+	{ ZCL_ATTRID_DEBT_LABEL1,		ZCL_DATA_TYPE_CHAR_STR,	ACCESS_CONTROL_READ,	(u8*)&g_zcl_prepayentAttrs.debtLabel1},
+	{ ZCL_ATTRID_CURRENCY,			ZCL_DATA_TYPE_UINT16,	ACCESS_CONTROL_READ,	(u8*)&g_zcl_prepayentAttrs.currency},
+};
+
+#define ZCL_PREPAYMENT_ATTR_NUM	  sizeof(prepayment_attrTbl) / sizeof(zclAttrInfo_t)
+
+#endif /* ZCL_PREPAYMENT */
 
 /**
  *  @brief Definition for simple GW ZCL specific cluster
@@ -341,32 +369,14 @@ const zcl_specClusterInfo_t g_esmeClusterList[] =
 #ifdef ZCL_TIME
 	{ZCL_CLUSTER_GEN_TIME,						MANUFACTURER_CODE_NONE, 0, 						time_attrTbl,		zcl_time_register,		NULL},
 #endif
-#ifdef ZCL_SE_PRICE
+#ifdef ZCL_PRICE
 	{ZCL_CLUSTER_SE_PRICE,						MANUFACTURER_CODE_NONE, 0, 						price_attrTbl,  	zcl_price_register,		NULL},
 #endif
-#ifdef ZCL_SE_METERING
+#ifdef ZCL_METERING
 	{ZCL_CLUSTER_SE_METERING,					MANUFACTURER_CODE_NONE, 0, 						metering_attrTbl,	zcl_metering_register,	NULL},
 #endif
-#ifdef ZCL_GROUP
-	{ZCL_CLUSTER_GEN_GROUPS,					MANUFACTURER_CODE_NONE, 0, 						NULL,  				zcl_group_register,		esme_groupCb},
-#endif
-#ifdef ZCL_SCENE
-	{ZCL_CLUSTER_GEN_SCENES,					MANUFACTURER_CODE_NONE, 0,						NULL,				zcl_scene_register,		esme_sceneCb},
-#endif
-#ifdef ZCL_DOOR_LOCK
-	{ZCL_CLUSTER_CLOSURES_DOOR_LOCK,			MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_doorLock_register, 	&esme_doorLockCb},
-#endif
-#ifdef ZCL_TEMPERATURE_MEASUREMENT
-	{ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,	MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_temperature_measurement_register, 	NULL},
-#endif
-#ifdef ZCL_OCCUPANCY_SENSING
-	{ZCL_CLUSTER_MS_OCCUPANCY_SENSING,			MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_occupancySensing_register, 	NULL},
-#endif
-#ifdef ZCL_IAS_ZONE
-	{ZCL_CLUSTER_SS_IAS_ZONE,					MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_iasZone_register, 	&esme_iasZoneCb},
-#endif
-#ifdef ZCL_POLL_CTRL
-	{ZCL_CLUSTER_GEN_POLL_CONTROL,				MANUFACTURER_CODE_NONE, 0, 						NULL, 				zcl_pollCtrl_register, 	&esme_pollCtrlCb},
+#ifdef ZCL_PREPAYMENT
+	{ZCL_CLUSTER_SE_PREPAYMENT,					MANUFACTURER_CODE_NONE, 0, 						prepayment_attrTbl,	zcl_prepayment_register,	NULL},
 #endif
 };
 

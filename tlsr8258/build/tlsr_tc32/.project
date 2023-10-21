@@ -852,6 +852,11 @@
 			<locationURI>TELINK_ZIGBEE_SDK/zigbee/common/zb_config.c</locationURI>
 		</link>
 		<link>
+			<name>zigbee/common/zb_version.c</name>
+			<type>1</type>
+			<locationURI>TELINK_ZIGBEE_SDK_WS/zigbee/common/zb_version.c</locationURI>
+		</link>
+		<link>
 			<name>zigbee/gp/cGP_stub.h</name>
 			<type>1</type>
 			<locationURI>TELINK_ZIGBEE_SDK/zigbee/gp/cGP_stub.h</locationURI>
@@ -1697,6 +1702,11 @@
 			<locationURI>TELINK_ZIGBEE_SDK/zigbee/zcl/general/zcl_time.h</locationURI>
 		</link>
 		<link>
+			<name>zigbee/zcl/general/zcl_time_attr.c</name>
+			<type>1</type>
+			<locationURI>TELINK_ZIGBEE_SDK_WS/zigbee/zcl/general/zcl_time_attr.c</locationURI>
+		</link>
+		<link>
 			<name>zigbee/zcl/hvac/zcl_thermostat.c</name>
 			<type>1</type>
 			<locationURI>TELINK_ZIGBEE_SDK/zigbee/zcl/hvac/zcl_thermostat.c</locationURI>
@@ -1850,6 +1860,26 @@
 			<name>zigbee/zcl/smart_energy/zcl_metering_attr.c</name>
 			<type>1</type>
 			<locationURI>TELINK_ZIGBEE_SDK/zigbee/zcl/smart_energy/zcl_metering_attr.c</locationURI>
+		</link>
+		<link>
+			<name>zigbee/zcl/smart_energy/zcl_prepayment.c</name>
+			<type>1</type>
+			<locationURI>TELINK_ZIGBEE_SDK_WS/zigbee/zcl/smart_energy/zcl_prepayment.c</locationURI>
+		</link>
+		<link>
+			<name>zigbee/zcl/smart_energy/zcl_prepayment.h</name>
+			<type>1</type>
+			<locationURI>TELINK_ZIGBEE_SDK_WS/zigbee/zcl/smart_energy/zcl_prepayment.h</locationURI>
+		</link>
+		<link>
+			<name>zigbee/zcl/smart_energy/zcl_price.c</name>
+			<type>1</type>
+			<locationURI>TELINK_ZIGBEE_SDK_WS/zigbee/zcl/smart_energy/zcl_price.c</locationURI>
+		</link>
+		<link>
+			<name>zigbee/zcl/smart_energy/zcl_price.h</name>
+			<type>1</type>
+			<locationURI>TELINK_ZIGBEE_SDK_WS/zigbee/zcl/smart_energy/zcl_price.h</locationURI>
 		</link>
 		<link>
 			<name>zigbee/zcl/zcl_wwah/zcl_wwah.c</name>

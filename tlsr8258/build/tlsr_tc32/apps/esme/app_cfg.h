@@ -167,6 +167,8 @@ extern "C" {
  * ZCL cluster support setting
  * ESME supports those clusters defined by the UK SMETS documentation.
  *
+ * Note that every ZigBee device has to support BASIC so this is "baked in".
+ *
  * Also support Green Power (GP) because the Telink SDK assumes this for
  * routers and coordinators.
  */
@@ -174,12 +176,14 @@ extern "C" {
 #define ZCL_TIME									1
 #define ZCL_PRICE_SUPPORT							1
 #define ZCL_METERING_SUPPORT						1
-#define ZCL_Demand_RSP_AND_LOAD_CONTROL_SUPPORT		1
-#define ZCL_MESSAGING_SUPPORT						1
-#define ZCL_TUNNELING_SUPPORT						1
 #define ZCL_PREPAYMENT_SUPPORT						1
-#define ZCL_CALENDAR_SUPPORT						1
-#define ZCL_DEVICE_MANAGEMENT_SUPPORT				1
+
+/* Note required for CloudSMETS testing */
+#define ZCL_Demand_RSP_AND_LOAD_CONTROL_SUPPORT		0
+#define ZCL_MESSAGING_SUPPORT						0
+#define ZCL_TUNNELING_SUPPORT						0
+#define ZCL_CALENDAR_SUPPORT						0
+#define ZCL_DEVICE_MANAGEMENT_SUPPORT				0
 
 /**********************************************************************
  * Stack configuration
