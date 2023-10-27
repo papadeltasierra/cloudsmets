@@ -474,103 +474,6 @@ status_t cloudsmets_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cm
 }
 #endif	/* ZCL_BASIC */
 
-#ifdef ZCL_PRICE
-
-/*********************************************************************
- * @fn      cloudsmets_zclPublishPriceCmdHandler
- *
- * @brief   Handler for ZCL SE Price publish price command.
- *
- * @param   pAddreInfo
- * @param   pPublishPriceCmd
- *
- * @return  None
- */
-static void cloudsmets_zclPublishPriceCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_price_publishPriceCmd_t *pPublishPriceCmd)
-{
-#if ZBHCI_EN
-	u8 payload[56];
-	memset(payload, 0, 56);
-	u8 *pBuf = payload;
-
-	*pBuf++ = U32_BYTE0(pPublishPriceCmd->providerId);
-	*pBuf++ = U32_BYTE1(pPublishPriceCmd->providerId);
-	*pBuf++ = U32_BYTE2(pPublishPriceCmd->providerId);
-	*pBuf++ = U32_BYTE3(pPublishPriceCmd->providerId);
-	memcpy(pBuf, pPublishPriceCmd->rateLabel, ZCL_RATE_LABEL_MAX_LENGTH);
-	pBuf += ZCL_RATE_LABEL_MAX_LENGTH;
-	*pBuf++ = U32_BYTE0(pPublishPriceCmd->issuerEventId);
-	*pBuf++ = U32_BYTE1(pPublishPriceCmd->issuerEventId);
-	*pBuf++ = U32_BYTE2(pPublishPriceCmd->issuerEventId);
-	*pBuf++ = U32_BYTE3(pPublishPriceCmd->issuerEventId);
-	*pBuf++ = U32_BYTE0(pPublishPriceCmd->currentTime);
-	*pBuf++ = U32_BYTE1(pPublishPriceCmd->currentTime);
-	*pBuf++ = U32_BYTE2(pPublishPriceCmd->currentTime);
-	*pBuf++ = U32_BYTE3(pPublishPriceCmd->currentTime);
-	*pBuf++ = pPublishPriceCmd->unitsOfMeasure;
-	*pBuf++ = U16_BYTE0(pPublishPriceCmd->currency);
-	*pBuf++ = U16_BYTE1(pPublishPriceCmd->currency);
-	*pBuf++ = pPublishPriceCmd->priceTrailingDigitAndPriceTier;
-	*pBuf++ = pPublishPriceCmd->numPriceTiersAndRegisterTier;
-	*pBuf++ = U32_BYTE0(pPublishPriceCmd->startTime);
-	*pBuf++ = U32_BYTE1(pPublishPriceCmd->startTime);
-	*pBuf++ = U32_BYTE2(pPublishPriceCmd->startTime);
-	*pBuf++ = U32_BYTE3(pPublishPriceCmd->startTime);
-	*pBuf++ = U16_BYTE0(pPublishPriceCmd->durationInMins);
-	*pBuf++ = U16_BYTE1(pPublishPriceCmd->durationInMins);
-	*pBuf++ = pPublishPriceCmd->price;
-	*pBuf++ = pPublishPriceCmd->priceRatio;
-	*pBuf++ = U32_BYTE0(pPublishPriceCmd->generationPrice);
-	*pBuf++ = U32_BYTE1(pPublishPriceCmd->generationPrice);
-	*pBuf++ = U32_BYTE2(pPublishPriceCmd->generationPrice);
-	*pBuf++ = U32_BYTE3(pPublishPriceCmd->generationPrice);
-	*pBuf++ = pPublishPriceCmd->generationpriceRatio;
-	*pBuf++ = U32_BYTE0(pPublishPriceCmd->alternateCostDelivered);
-	*pBuf++ = U32_BYTE1(pPublishPriceCmd->alternateCostDelivered);
-	*pBuf++ = U32_BYTE2(pPublishPriceCmd->alternateCostDelivered);
-	*pBuf++ = U32_BYTE3(pPublishPriceCmd->alternateCostDelivered);
-	*pBuf++ = pPublishPriceCmd->alternateCodeUnit;
-	*pBuf++ = pPublishPriceCmd->alternateCostTrailingDigit;
-	*pBuf++ = pPublishPriceCmd->numBlockThresholds;
-	*pBuf++ = pPublishPriceCmd->priceControl;
-	*pBuf++ = pPublishPriceCmd->numGenerationTiers;
-	*pBuf++ = pPublishPriceCmd->generationTier;
-	*pBuf++ = pPublishPriceCmd->extendedNumPriceTiers;
-	*pBuf++ = pPublishPriceCmd->extendedPriceTiers;
-	*pBuf++ = pPublishPriceCmd->extendedRegisterTier;
-
-	zbhciTx(ZBHCI_CMD_ZCL_GROUP_ADD_RSP, 56, payload);
-#endif
-}
-
-/*********************************************************************
- * @fn      cloudsmets_priceCb
- *
- * @brief   Handler for ZCL Smart Energy publish Price command.
- *
- * @param   pAddrInfo
- * @param   cmdId
- * @param   cmdPayload
- *
- * @return  status_t
- */
-status_t cloudsmets_priceCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
-{
-	if(pAddrInfo->dstEp == CLOUDSMETS_ENDPOINT){
-		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
-			switch(cmdId){
-				case ZCL_CMD_PUBLISH_PRICE:
-					cloudsmets_zclPublishPriceCmdHandler(pAddrInfo, (zcl_price_publishPriceCmd_t *)cmdPayload);
-					break;
-				default:
-					break;
-			}
-		}
-	}
-
-	return ZCL_STA_SUCCESS;
-}
-#endif	/* ZCL_PRICE */
 
 #ifdef ZCL_IDENTIFY
 s32 cloudsmets_zclIdentifyTimerCb(void *arg)
@@ -722,6 +625,101 @@ status_t cloudsmets_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void 
 
 #endif	/* ZCL_IDENTIFY */
 
+#ifdef ZCL_PRICE
+/*********************************************************************
+ * @fn      cloudsmets_zclPublishPriceCmdHandler
+ *
+ * @brief   Handler for ZCL SE Price publish price command.
+ *
+ * @param   pAddreInfo
+ * @param   pPublishPriceCmd
+ *
+ * @return  None
+ */
+static void cloudsmets_zclPublishPriceCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_price_publishPriceCmd_t *pPublishPriceCmd)
+{
+#if ZBHCI_EN
+	u8 payload[56];
+	memset(payload, 0, 56);
+	u8 *pBuf = payload;
+
+	*pBuf++ = U32_BYTE0(pPublishPriceCmd->providerId);
+	*pBuf++ = U32_BYTE1(pPublishPriceCmd->providerId);
+	*pBuf++ = U32_BYTE2(pPublishPriceCmd->providerId);
+	*pBuf++ = U32_BYTE3(pPublishPriceCmd->providerId);
+	memcpy(pBuf, pPublishPriceCmd->rateLabel, ZCL_RATE_LABEL_MAX_LENGTH);
+	pBuf += ZCL_RATE_LABEL_MAX_LENGTH;
+	*pBuf++ = U32_BYTE0(pPublishPriceCmd->issuerEventId);
+	*pBuf++ = U32_BYTE1(pPublishPriceCmd->issuerEventId);
+	*pBuf++ = U32_BYTE2(pPublishPriceCmd->issuerEventId);
+	*pBuf++ = U32_BYTE3(pPublishPriceCmd->issuerEventId);
+	*pBuf++ = U32_BYTE0(pPublishPriceCmd->currentTime);
+	*pBuf++ = U32_BYTE1(pPublishPriceCmd->currentTime);
+	*pBuf++ = U32_BYTE2(pPublishPriceCmd->currentTime);
+	*pBuf++ = U32_BYTE3(pPublishPriceCmd->currentTime);
+	*pBuf++ = pPublishPriceCmd->unitsOfMeasure;
+	*pBuf++ = U16_BYTE0(pPublishPriceCmd->currency);
+	*pBuf++ = U16_BYTE1(pPublishPriceCmd->currency);
+	*pBuf++ = pPublishPriceCmd->priceTrailingDigitAndPriceTier;
+	*pBuf++ = pPublishPriceCmd->numPriceTiersAndRegisterTier;
+	*pBuf++ = U32_BYTE0(pPublishPriceCmd->startTime);
+	*pBuf++ = U32_BYTE1(pPublishPriceCmd->startTime);
+	*pBuf++ = U32_BYTE2(pPublishPriceCmd->startTime);
+	*pBuf++ = U32_BYTE3(pPublishPriceCmd->startTime);
+	*pBuf++ = U16_BYTE0(pPublishPriceCmd->durationInMins);
+	*pBuf++ = U16_BYTE1(pPublishPriceCmd->durationInMins);
+	*pBuf++ = pPublishPriceCmd->price;
+	*pBuf++ = pPublishPriceCmd->priceRatio;
+	*pBuf++ = U32_BYTE0(pPublishPriceCmd->generationPrice);
+	*pBuf++ = U32_BYTE1(pPublishPriceCmd->generationPrice);
+	*pBuf++ = U32_BYTE2(pPublishPriceCmd->generationPrice);
+	*pBuf++ = U32_BYTE3(pPublishPriceCmd->generationPrice);
+	*pBuf++ = pPublishPriceCmd->generationpriceRatio;
+	*pBuf++ = U32_BYTE0(pPublishPriceCmd->alternateCostDelivered);
+	*pBuf++ = U32_BYTE1(pPublishPriceCmd->alternateCostDelivered);
+	*pBuf++ = U32_BYTE2(pPublishPriceCmd->alternateCostDelivered);
+	*pBuf++ = U32_BYTE3(pPublishPriceCmd->alternateCostDelivered);
+	*pBuf++ = pPublishPriceCmd->alternateCostUnit;
+	*pBuf++ = pPublishPriceCmd->alternateCostTrailingDigit;
+	*pBuf++ = pPublishPriceCmd->numBlockThresholds;
+	*pBuf++ = pPublishPriceCmd->priceControl;
+	*pBuf++ = pPublishPriceCmd->numGenerationTiers;
+	*pBuf++ = pPublishPriceCmd->generationTier;
+	*pBuf++ = pPublishPriceCmd->extendedNumPriceTiers;
+	*pBuf++ = pPublishPriceCmd->extendedPriceTiers;
+	*pBuf++ = pPublishPriceCmd->extendedRegisterTier;
+
+	zbhciTx(ZBHCI_CMD_ZCL_GROUP_ADD_RSP, 56, payload);
+#endif
+}
+
+/*********************************************************************
+ * @fn      cloudsmets_priceCb
+ *
+ * @brief   Handler for ZCL Smart Energy publish Price command.
+ *
+ * @param   pAddrInfo
+ * @param   cmdId
+ * @param   cmdPayload
+ *
+ * @return  status_t
+ */
+status_t cloudsmets_priceCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
+{
+	if(pAddrInfo->dstEp == CLOUDSMETS_ENDPOINT){
+		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
+			switch(cmdId){
+				case ZCL_CMD_PUBLISH_PRICE:
+					cloudsmets_zclPublishPriceCmdHandler(pAddrInfo, (zcl_price_publishPriceCmd_t *)cmdPayload);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+	return ZCL_STA_SUCCESS;
+}
+#endif	/* ZCL_PRICE */
+
 #endif  /* __PROJECT_CLOUDSMETS__ */
-
-
