@@ -28,6 +28,9 @@
     1. Or `ZBHCI_CMD_MAC_ADDR_IND`?
         1. Looks like this returns the MAC address of a device joining to the coordinator, so no good for CloudSMETS.
 
+1. Extend zbhci to print published price.
+1. Print link key as simple hex.
+
 1. Can we query the join information, including the keys, over the `zbhci`?
     1. Doesn't look like it.  Cannot find an interface that has access to it.
     1. MAYBE - see zdo_ssInfoKeyGet() which seems to query the keys.  Can we extend this to read and set the key?
