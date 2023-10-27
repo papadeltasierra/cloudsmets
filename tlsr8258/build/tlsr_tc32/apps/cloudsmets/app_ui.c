@@ -59,9 +59,17 @@ void led_off(u32 pin)
 	drv_gpio_write(pin, LED_OFF);
 }
 
-#if 0
-//!!PDS: If we wan tflashing LEDs, we have to sort this.
-s32 zclLEDTimerCb(void *arg)
+void light_on(void)
+{
+	led_on(LED_POWER);
+}
+
+void light_off(void)
+{
+	led_off(LED_POWER);
+}
+
+s32 zclLightTimerCb(void *arg)
 {
 	u32 interval = 0;
 	u32 pin = (u32)arg;
@@ -86,7 +94,7 @@ s32 zclLEDTimerCb(void *arg)
 	return interval;
 }
 
-void led_blink_start(u32 pin, u8 times, u16 ledOnTime, u16 ledOffTime)
+void light_blink_start(u32 pin, u8 times, u16 ledOnTime, u16 ledOffTime)
 {
 	u32 interval = 0;
 	g_switchAppCtx.times = times;
@@ -104,11 +112,11 @@ void led_blink_start(u32 pin, u8 times, u16 ledOnTime, u16 ledOffTime)
 		g_switchAppCtx.ledOnTime = ledOnTime;
 		g_switchAppCtx.ledOffTime = ledOffTime;
 
-		g_switchAppCtx.timerLedEvt = TL_ZB_TIMER_SCHEDULE(zclLightTimerCb, pin, interval);
+		g_switchAppCtx.timerLedEvt = TL_ZB_TIMER_SCHEDULE(zclLightTimerCb, (void *)pin, interval);
 	}
 }
 
-void led_blink_stop(u32 pin)
+void light_blink_stop(u32 pin)
 {
 	if(g_switchAppCtx.timerLedEvt){
 		TL_ZB_TIMER_CANCEL(&g_switchAppCtx.timerLedEvt);
@@ -121,7 +129,5 @@ void led_blink_stop(u32 pin)
 		}
 	}
 }
-#endif
-
 
 #endif  /* __PROJECT_CLOUDSMETS__ */

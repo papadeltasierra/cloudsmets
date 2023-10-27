@@ -48,8 +48,12 @@ enum{
 /**********************************************************************
  * FUNCTIONS
  */
-void led_blink_start(u32 pin, u8 times, u16 ledOnTime, u16 ledOffTime);
-void led_blink_stop(void);
+void light_blink_start(u32 pin, u8 times, u16 ledOnTime, u16 ledOffTime);
+void light_blink_stop(u32 pin);
+
+void light_init(void);
+void light_on(void);
+void light_off(void);
 
 void led_on(u32 pin);
 void led_off(u32 pin);

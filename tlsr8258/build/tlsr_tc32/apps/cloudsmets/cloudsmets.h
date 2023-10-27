@@ -84,7 +84,7 @@ typedef struct{
 /**********************************************************************
  * GLOBAL VARIABLES
  */
-// !!PDS: not used.  extern app_ctx_t g_switchAppCtx;
+extern app_ctx_t g_switchAppCtx;
 
 extern bdb_appCb_t g_zbDemoBdbCb;
 
@@ -104,6 +104,7 @@ extern zcl_identifyAttr_t g_zcl_identifyAttrs;
  */
 status_t cloudsmets_basicCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 status_t cloudsmets_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
+status_t cloudsmets_priceCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);
 void cloudsmets_zclProcessIncomingMsg(zclIncoming_t *pInHdlrMsg);
 
 status_t cloudsmets_timeCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload);

@@ -115,6 +115,11 @@ bdb_commissionSetting_t g_bdbCommissionSetting = {
 	.touchlinkLqiThreshold = 0xA0,			   							/* threshold for touch-link scan req/resp command */
 };
 
+/*
+ * Smart Energy Price cluster will publish pricing information on request.
+ */
+zcl_price_publishPriceCmd_t g_zclPricePublishPriceCmd = {0};
+
 /**********************************************************************
  * LOCAL VARIABLES
  */

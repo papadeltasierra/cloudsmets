@@ -170,9 +170,12 @@ extern "C" {
 
 /**********************************************************************
  * ZCL cluster support setting
- * CloudSMETS is a client for both time and Smart Energy metering so does not
- * need any local attributes defined.
+ * CloudSMETS has to support the "Identify" cluster and the commands of
+ * the Smart Energy (SE) "Price" cluster.  All other ZigBee operations are
+ * simple attribute reads.
  */
+#define ZCL_IDENTIFY_SUPPORT						1
+#define ZCL_PRICE_SUPPORT							1
 
 /**********************************************************************
  * Stack configuration

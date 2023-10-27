@@ -146,7 +146,8 @@ const zclAttrInfo_t identify_attrTbl[] =
  */
 const zcl_specClusterInfo_t g_cloudsmetsClusterList[] =
 {
-	{ZCL_CLUSTER_GEN_BASIC,			MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		cloudsmets_basicCb}
+	{ZCL_CLUSTER_GEN_BASIC,			MANUFACTURER_CODE_NONE,	ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		cloudsmets_basicCb},
+	{ZCL_CLUSTER_SE_PRICE,			MANUFACTURER_CODE_NONE,	0, 						NULL,  				zcl_price_register,		cloudsmets_priceCb}
 };
 
 u8 CLOUDSMETS_CB_CLUSTER_NUM = (sizeof(g_cloudsmetsClusterList)/sizeof(g_cloudsmetsClusterList[0]));
