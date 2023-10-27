@@ -173,7 +173,7 @@ extern "C" {
  * routers and coordinators.
  */
 #define ZCL_GP_SUPPORT								1
-#define ZCL_TIME									1
+#define ZCL_TIME_SUPPORT							1
 #define ZCL_PRICE_SUPPORT							1
 #define ZCL_METERING_SUPPORT						1
 #define ZCL_PREPAYMENT_SUPPORT						1

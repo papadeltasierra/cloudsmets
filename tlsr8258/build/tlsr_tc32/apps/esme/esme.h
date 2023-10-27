@@ -90,6 +90,9 @@ extern const af_simple_descriptor_t sampleTestDesc;
 extern zcl_basicAttr_t g_zcl_basicAttrs;
 extern zcl_identifyAttr_t g_zcl_identifyAttrs;
 
+/* Information used to emulate command responses. */
+extern zcl_price_publishPriceCmd_t g_zcl_pricePublishPriceCmd;
+
 
 /**********************************************************************
  * FUNCTIONS

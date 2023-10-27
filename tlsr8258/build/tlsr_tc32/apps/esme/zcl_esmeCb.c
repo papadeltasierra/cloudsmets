@@ -75,6 +75,7 @@ static void esme_zclDfltRspCmd(zclIncoming_t *pInMsg);
  */
 #ifdef ZCL_IDENTIFY
 static ev_timer_event_t *identifyTimerEvt = NULL;
+static ev_timer_event_t *pricePublishPriceTimerEvt = NULL;
 #endif
 
 
@@ -622,573 +623,72 @@ status_t esme_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPa
 
 #endif	/* ZCL_IDENTIFY */
 
-#ifdef ZCL_GROUP
+#ifdef ZCL_PRICE
+
 /*********************************************************************
- * @fn      esme_zclAddGroupRspCmdHandler
+ * @fn      cloudsmets_zclPublishPriceCmdHandler
  *
- * @brief   Handler for ZCL add group response command.
+ * @brief   Handler for ZCL SE Price publish price command.
  *
- * @param   pApsdeInd
- * @param   pAddGroupRsp
+ * @param   pAddreInfo
+ * @param   pPublishPriceCmd
  *
  * @return  None
  */
-static void esme_zclAddGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_addGroupRsp_t *pAddGroupRsp)
+
+s32 esme_zclPublishPriceTimerCb(void *arg)
 {
-#if ZBHCI_EN
-	u8 array[8];
-	memset(array, 0, 8);
+    epInfo_t dstEpInfo;
+	TL_SETSTRUCTCONTENT(dstEpInfo, 0);
 
-	u8 *pBuf = array;
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
+	dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
+	dstEpInfo.dstEp = ESME_ENDPOINT;
+	dstEpInfo.profileId = SE_PROFILE_ID;
 
-	*pBuf++ = pAddGroupRsp->status;
-	*pBuf++ = HI_UINT16(pAddGroupRsp->groupId);
-	*pBuf++ = LO_UINT16(pAddGroupRsp->groupId);
-
-	zbhciTx(ZBHCI_CMD_ZCL_GROUP_ADD_RSP, pBuf - array, array);
-#endif
+    zcl_price_publishPriceCmd(ESME_ENDPOINT, &dstEpInfo, TRUE, &g_zcl_pricePublishPriceCmd);
+	pricePublishPriceTimerEvt = NULL;
+	return 0;
 }
 
-/*********************************************************************
- * @fn      esme_zclViewGroupRspCmdHandler
- *
- * @brief   Handler for ZCL view group response command.
- *
- * @param   pApsdeInd
- * @param   pViewGroupRsp
- *
- * @return  None
- */
-static void esme_zclViewGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_viewGroupRsp_t *pViewGroupRsp)
+static void esme_zclGetCurrentPriceCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_price_getCurrentPriceCmd_t *pPublishPriceCmd)
 {
-#if ZBHCI_EN
-	u8 array[64];
-	memset(array, 0, 64);
-
-	u8 *pBuf = array;
-
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
-
-	*pBuf++ = pViewGroupRsp->status;
-	*pBuf++ = HI_UINT16(pViewGroupRsp->groupId);
-	*pBuf++ = LO_UINT16(pViewGroupRsp->groupId);
-	if(pViewGroupRsp->status == ZCL_STA_SUCCESS){
-		*pBuf++ = pViewGroupRsp->pGroupName[0];
-		if(pViewGroupRsp->pGroupName[0]){
-			memcpy(pBuf, &pViewGroupRsp->pGroupName[1], pViewGroupRsp->pGroupName[0]);
-			pBuf += pViewGroupRsp->pGroupName[0];
-		}
+	/*
+	 * We ignore the payload and just schedule a timer to send the current
+	 * price information shortly.
+	 */
+	if(!pricePublishPriceTimerEvt){
+		pricePublishPriceTimerEvt = TL_ZB_TIMER_SCHEDULE(esme_zclPublishPriceTimerCb, NULL, 100);
 	}
-
-	zbhciTx(ZBHCI_CMD_ZCL_GROUP_VIEW_RSP, pBuf - array, array);
-#endif
 }
 
 /*********************************************************************
- * @fn      esme_zclRemoveGroupRspCmdHandler
+ * @fn      esme_priceCb
  *
- * @brief   Handler for ZCL remove group response command.
+ * @brief   Handler for ZCL Smart Energy get current price command.
  *
- * @param   pApsdeInd
- * @param   pRemoveGroupRsp
- *
- * @return  None
- */
-static void esme_zclRemoveGroupRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_removeGroupRsp_t *pRemoveGroupRsp)
-{
-#if ZBHCI_EN
-	u8 array[8];
-	memset(array, 0, 8);
-
-	u8 *pBuf = array;
-
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
-
-	*pBuf++ = pRemoveGroupRsp->status;
-	*pBuf++ = HI_UINT16(pRemoveGroupRsp->groupId);
-	*pBuf++ = LO_UINT16(pRemoveGroupRsp->groupId);
-
-	zbhciTx(ZBHCI_CMD_ZCL_GROUP_REMOVE_RSP, pBuf - array, array);
-#endif
-}
-
-/*********************************************************************
- * @fn      esme_zclGetGroupMembershipRspCmdHandler
- *
- * @brief   Handler for ZCL get group membership response command.
- *
- * @param   pApsdeInd
- * @param   pGetGroupMembershipRsp
- *
- * @return  None
- */
-static void esme_zclGetGroupMembershipRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_getGroupMembershipRsp_t *pGetGroupMembershipRsp)
-{
-#if ZBHCI_EN
-	u8 array[64];
-	memset(array, 0, 64);
-
-	u8 *pBuf = array;
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
-
-	*pBuf++ = pGetGroupMembershipRsp->capacity;
-	*pBuf++ = pGetGroupMembershipRsp->groupCnt;
-	for(u8 i = 0; i < pGetGroupMembershipRsp->groupCnt; i++){
-		u16 groupId = BUILD_U16(pGetGroupMembershipRsp->pGroupLsit[i*2], pGetGroupMembershipRsp->pGroupLsit[(i*2)+1]);
-
-		*pBuf++ = HI_UINT16(groupId);
-		*pBuf++ = LO_UINT16(groupId);
-	}
-
-	zbhciTx(ZBHCI_CMD_ZCL_GROUP_GET_MEMBERSHIP_RSP, pBuf - array, array);
-#endif
-}
-
-/*********************************************************************
- * @fn      esme_groupCb
- *
- * @brief   Handler for ZCL Group command.
- *
- * @param   pApsdeInd
- *
- * @return  None
- */
-status_t esme_groupCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
-{
-	if(pAddrInfo->dstEp == ESME_ENDPOINT){
-		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
-			switch(cmdId){
-				case ZCL_CMD_GROUP_ADD_GROUP_RSP:
-					esme_zclAddGroupRspCmdHandler(pAddrInfo, (zcl_addGroupRsp_t *)cmdPayload);
-					break;
-				case ZCL_CMD_GROUP_VIEW_GROUP_RSP:
-					esme_zclViewGroupRspCmdHandler(pAddrInfo, (zcl_viewGroupRsp_t *)cmdPayload);
-					break;
-				case ZCL_CMD_GROUP_REMOVE_GROUP_RSP:
-					esme_zclRemoveGroupRspCmdHandler(pAddrInfo, (zcl_removeGroupRsp_t *)cmdPayload);
-					break;
-				case ZCL_CMD_GROUP_GET_MEMBERSHIP_RSP:
-					esme_zclGetGroupMembershipRspCmdHandler(pAddrInfo,(zcl_getGroupMembershipRsp_t *)cmdPayload);
-					break;
-				default:
-					break;
-			}
-		}
-	}
-
-	return ZCL_STA_SUCCESS;
-}
-#endif	/* ZCL_GROUP */
-
-#ifdef ZCL_SCENE
-/*********************************************************************
- * @fn      esme_zclAddSceneRspCmdHandler
- *
- * @brief   Handler for ZCL add scene response command.
- *
- * @param   pApsdeInd
+ * @param   pAddrInfo
  * @param   cmdId
- * @param   pAddSceneRsp
- *
- * @return  None
- */
-static void esme_zclAddSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, addSceneRsp_t *pAddSceneRsp)
-{
-#if ZBHCI_EN
-	u8 array[16];
-	memset(array, 0, 16);
-
-	u8 *pBuf = array;
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
-
-	*pBuf++ = pAddSceneRsp->status;
-	*pBuf++ = HI_UINT16(pAddSceneRsp->groupId);
-	*pBuf++ = LO_UINT16(pAddSceneRsp->groupId);
-	*pBuf++ = pAddSceneRsp->sceneId;
-
-	zbhciTx(ZBHCI_CMD_ZCL_SCENE_ADD_RSP, pBuf - array, array);
-#endif
-}
-
-/*********************************************************************
- * @fn      esme_zclViewSceneRspCmdHandler
- *
- * @brief   Handler for ZCL view scene response command.
- *
- * @param   pApsdeInd
- * @param   cmdId
- * @param   pViewSceneRsp
- *
- * @return  None
- */
-static void esme_zclViewSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, viewSceneRsp_t *pViewSceneRsp)
-{
-#if ZBHCI_EN
-	u8 array[64];
-	memset(array, 0, 64);
-
-	u8 *pBuf = array;
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
-
-	*pBuf++ = pViewSceneRsp->status;
-	*pBuf++ = HI_UINT16(pViewSceneRsp->scene.groupId);
-	*pBuf++ = LO_UINT16(pViewSceneRsp->scene.groupId);
-	*pBuf++ = pViewSceneRsp->scene.sceneId;
-	if(pViewSceneRsp->status == ZCL_STA_SUCCESS){
-		*pBuf++ = HI_UINT16(pViewSceneRsp->scene.transTime);
-		*pBuf++ = LO_UINT16(pViewSceneRsp->scene.transTime);
-		*pBuf++ = pViewSceneRsp->scene.sceneName[0];
-		if(pViewSceneRsp->scene.sceneName[0]){
-			memcpy(pBuf, &pViewSceneRsp->scene.sceneName[1], pViewSceneRsp->scene.sceneName[0]);
-			pBuf += pViewSceneRsp->scene.sceneName[0];
-		}
-		*pBuf++ = pViewSceneRsp->scene.extFieldLen;
-		if(pViewSceneRsp->scene.extFieldLen){
-			memcpy(pBuf, pViewSceneRsp->scene.extField, pViewSceneRsp->scene.extFieldLen);
-			pBuf += pViewSceneRsp->scene.extFieldLen;
-		}
-	}
-
-	zbhciTx(ZBHCI_CMD_ZCL_SCENE_VIEW_RSP, pBuf - array, array);
-#endif
-}
-
-/*********************************************************************
- * @fn      esme_zclRemoveSceneRspCmdHandler
- *
- * @brief   Handler for ZCL remove scene response command.
- *
- * @param   pApsdeInd
- * @param   pRemoveSceneRsp
- *
- * @return  None
- */
-static void esme_zclRemoveSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, removeSceneRsp_t *pRemoveSceneRsp)
-{
-#if ZBHCI_EN
-	u8 array[12];
-	memset(array, 0, 12);
-
-	u8 *pBuf = array;
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
-
-	*pBuf++ = pRemoveSceneRsp->status;
-	*pBuf++ = HI_UINT16(pRemoveSceneRsp->groupId);
-	*pBuf++ = LO_UINT16(pRemoveSceneRsp->groupId);
-	*pBuf++ = pRemoveSceneRsp->sceneId;
-
-	zbhciTx(ZBHCI_CMD_ZCL_SCENE_REMOVE_RSP, pBuf - array, array);
-#endif
-}
-
-/*********************************************************************
- * @fn      esme_zclRemoveAllSceneRspCmdHandler
- *
- * @brief   Handler for ZCL remove all scene response command.
- *
- * @param   pApsdeInd
- * @param   pRemoveAllSceneRsp
- *
- * @return  None
- */
-static void esme_zclRemoveAllSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, removeAllSceneRsp_t *pRemoveAllSceneRsp)
-{
-#if ZBHCI_EN
-	u8 array[12];
-	memset(array, 0, 12);
-
-	u8 *pBuf = array;
-
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
-
-	*pBuf++ = pRemoveAllSceneRsp->status;
-	*pBuf++ = HI_UINT16(pRemoveAllSceneRsp->groupId);
-	*pBuf++ = LO_UINT16(pRemoveAllSceneRsp->groupId);
-
-	zbhciTx(ZBHCI_CMD_ZCL_SCENE_REMOVE_ALL_RSP, pBuf - array, array);
-#endif
-}
-
-/*********************************************************************
- * @fn      esme_zclStoreSceneRspCmdHandler
- *
- * @brief   Handler for ZCL store scene response command.
- *
- * @param   pApsdeInd
- * @param   pStoreSceneRsp
- *
- * @return  None
- */
-static void esme_zclStoreSceneRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, storeSceneRsp_t *pStoreSceneRsp)
-{
-#if ZBHCI_EN
-	u8 array[12];
-	memset(array, 0, 12);
-
-	u8 *pBuf = array;
-
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
-
-	*pBuf++ = pStoreSceneRsp->status;
-	*pBuf++ = HI_UINT16(pStoreSceneRsp->groupId);
-	*pBuf++ = LO_UINT16(pStoreSceneRsp->groupId);
-	*pBuf++ = pStoreSceneRsp->sceneId;
-
-	zbhciTx(ZBHCI_CMD_ZCL_SCENE_STORE_RSP, pBuf - array, array);
-#endif
-}
-
-/*********************************************************************
- * @fn      esme_zclGetSceneMembershipRspCmdHandler
- *
- * @brief   Handler for ZCL get scene membership response command.
- *
- * @param   pApsdeInd
- * @param   pGetSceneMembershipRsp
- *
- * @return  None
- */
-static void esme_zclGetSceneMembershipRspCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, getSceneMemRsp_t *pGetSceneMembershipRsp)
-{
-#if ZBHCI_EN
-	u8 array[64];
-	memset(array, 0, 64);
-
-	u8 *pBuf = array;
-
-	*pBuf++ = HI_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = LO_UINT16(pAddrInfo->srcAddr);
-	*pBuf++ = pAddrInfo->srcEp;
-	*pBuf++ = pAddrInfo->dstEp;
-	*pBuf++ = pAddrInfo->seqNum;
-
-	*pBuf++ = pGetSceneMembershipRsp->status;
-	*pBuf++ = pGetSceneMembershipRsp->capacity;
-	*pBuf++ = HI_UINT16(pGetSceneMembershipRsp->groupId);
-	*pBuf++ = LO_UINT16(pGetSceneMembershipRsp->groupId);
-	if(pGetSceneMembershipRsp->status == ZCL_STA_SUCCESS){
-		*pBuf++ = pGetSceneMembershipRsp->sceneCnt;
-		for(u8 i = 0; i < pGetSceneMembershipRsp->sceneCnt; i++){
-			*pBuf++ = pGetSceneMembershipRsp->sceneList[i];
-		}
-	}
-
-	zbhciTx(ZBHCI_CMD_ZCL_SCENE_GET_MEMBERSHIP_RSP, pBuf - array, array);
-#endif
-}
-
-/*********************************************************************
- * @fn      esme_sceneCb
- *
- * @brief   Handler for ZCL Scene command.
- *
- * @param   pApsdeInd
- *
- * @return  None
- */
-status_t esme_sceneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
-{
-	if(pAddrInfo->dstEp == ESME_ENDPOINT){
-		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
-			switch(cmdId){
-				case ZCL_CMD_SCENE_ADD_SCENE_RSP:
-				case ZCL_CMD_SCENE_ENHANCED_ADD_SCENE_RSP:
-					esme_zclAddSceneRspCmdHandler(pAddrInfo, cmdId, (addSceneRsp_t *)cmdPayload);
-					break;
-				case ZCL_CMD_SCENE_VIEW_SCENE_RSP:
-				case ZCL_CMD_SCENE_ENHANCED_VIEW_SCENE_RSP:
-					esme_zclViewSceneRspCmdHandler(pAddrInfo, cmdId, (viewSceneRsp_t *)cmdPayload);
-					break;
-				case ZCL_CMD_SCENE_REMOVE_SCENE_RSP:
-					esme_zclRemoveSceneRspCmdHandler(pAddrInfo, (removeSceneRsp_t *)cmdPayload);
-					break;
-				case ZCL_CMD_SCENE_REMOVE_ALL_SCENE_RSP:
-					esme_zclRemoveAllSceneRspCmdHandler(pAddrInfo, (removeAllSceneRsp_t *)cmdPayload);
-					break;
-				case ZCL_CMD_SCENE_STORE_SCENE_RSP:
-					esme_zclStoreSceneRspCmdHandler(pAddrInfo, (storeSceneRsp_t *)cmdPayload);
-					break;
-				case ZCL_CMD_SCENE_GET_SCENE_MEMSHIP_RSP:
-					esme_zclGetSceneMembershipRspCmdHandler(pAddrInfo, (getSceneMemRsp_t *)cmdPayload);
-					break;
-				default:
-					break;
-			}
-		}
-	}
-
-	return ZCL_STA_SUCCESS;
-}
-#endif	/* ZCL_SCENE */
-
-#ifdef ZCL_DOOR_LOCK
-/*********************************************************************
- * @fn      esme_zclDoorLockRspCmdHandler
- *
- * @brief   Handler for ZCL door lock response command.
- *
- * @param   pApsdeInd
- * @param   cmdId
- * @param   rspState
- *
- * @return  None
- */
-static void esme_zclDoorLockRspCmdHandler(u8 cmdId, zcl_doorlockRsp_t *doorlockRsp)
-{
-#if ZBHCI_EN
-	u8 array[64];
-	memset(array, 0, 64);
-
-	//u8 *pBuf = array;
-
-#endif
-}
-
-/*********************************************************************
- * @fn      esme_doorLockCb
- *
- * @brief   Handler for ZCL Door Lock command.
- *
- * @param   pApsdeInd
- *
- * @return  None
- */
-status_t esme_doorLockCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
-{
-	if(pAddrInfo->dstEp == ESME_ENDPOINT){
-		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
-			switch(cmdId){
-				case ZCL_CMD_LOCK_DOOR_RESPONSE:
-				case ZCL_CMD_UNLOCK_DOOR_RESPONSE:
-				case ZCL_CMD_DOOR_LOCK_TOGGLE_RESPONSE:
-					esme_zclDoorLockRspCmdHandler(cmdId, (zcl_doorlockRsp_t *)cmdPayload);
-					break;
-				default:
-					break;
-			}
-		}
-	}
-
-	return ZCL_STA_SUCCESS;
-}
-#endif	/* ZCL_DOOR_LOCK */
-
-#ifdef ZCL_IAS_ZONE
-/*********************************************************************
- * @fn      esme_iasZoneCb
- *
- * @brief   Handler for ZCL IAS Zone command.
- *
- * @param   pApsdeInd
- *
- * @return  None
- */
-status_t esme_iasZoneCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
-{
-	if(pAddrInfo->dstEp == ESME_ENDPOINT){
-		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
-			if(cmdId == ZCL_CMD_ZONE_STATUS_CHANGE_NOTIFICATION){
-				light_blink_start(5, 250, 250);
-			}
-		}
-	}
-
-	return ZCL_STA_SUCCESS;
-}
-#endif	/* ZCL_IAS_ZONE */
-
-
-#ifdef ZCL_POLL_CTRL
-/*********************************************************************
- * @fn      esme_zclPollCtrlChkInCmdHandler
- *
- * @brief   Handler for ZCL poll control request command.
- *
- * @param   pApsdeInd
- * @param   seqNum
+ * @param   cmdPayload
  *
  * @return  status_t
  */
-static status_t esme_zclPollCtrlChkInCmdHandler(zclIncomingAddrInfo_t *pAddrInfo)
+status_t esme_priceCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
-	epInfo_t dstEpInfo;
-	TL_SETSTRUCTCONTENT(dstEpInfo, 0);
-
-	dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
-	dstEpInfo.dstAddr.shortAddr = pAddrInfo->srcAddr;
-	dstEpInfo.dstEp = pAddrInfo->srcEp;
-	dstEpInfo.profileId = pAddrInfo->profileId;
-
-	zcl_chkInRsp_t checkInRsp;
-	checkInRsp.startFastPolling = FALSE;
-	checkInRsp.fastPollTimeout = 0;
-
-	zcl_pollCtrl_chkInRspCmd(ESME_ENDPOINT, &dstEpInfo, TRUE, pAddrInfo->seqNum, &checkInRsp);
-
-	return ZCL_STA_CMD_HAS_RESP;
-}
-
-/*********************************************************************
- * @fn      esme_iasZoneCb
- *
- * @brief   Handler for ZCL IAS Zone command.
- *
- * @param   pApsdeInd
- *
- * @return  None
- */
-status_t esme_pollCtrlCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
-{
-	status_t status = ZCL_STA_SUCCESS;
-
 	if(pAddrInfo->dstEp == ESME_ENDPOINT){
-		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
-			if(cmdId == ZCL_CMD_CHK_IN){
-				status = esme_zclPollCtrlChkInCmdHandler(pAddrInfo);
+		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
+			switch(cmdId){
+				case ZCL_CMD_GET_CURRENT_PRICE:
+					esme_zclGetCurrentPriceCmdHandler(pAddrInfo, (zcl_price_getCurrentPriceCmd_t *)cmdPayload);
+					break;
+				default:
+					break;
 			}
 		}
 	}
 
-	return status;
+	return ZCL_STA_SUCCESS;
 }
-#endif	/* ZCL_POLL_CTRL */
+#endif	/* ZCL_PRICE */
 
 #endif  /* __PROJECT_ESME__ */
 

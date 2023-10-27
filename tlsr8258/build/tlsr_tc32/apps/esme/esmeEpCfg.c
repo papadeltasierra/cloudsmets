@@ -72,26 +72,11 @@ const u16 esme_inClusterList[] =
 #ifdef ZCL_PRICE
 	ZCL_CLUSTER_SE_PRICE,
 #endif
-#ifdef ZCL_Demand_RSP_AND_LOAD_CONTROL
-	ZCL_CLUSTER_SE_Demand_RSP_AND_LOAD_CONTROL,
-#endif
 #ifdef ZCL_METERING
 	ZCL_CLUSTER_SE_METERING,
 #endif
-#ifdef ZCL_MESSAGING
-	ZCL_CLUSTER_SE_MESSAGING,
-#endif
-#ifdef ZCL_TUNNELING
-	ZCL_CLUSTER_SE_TUNNELING,
-#endif
 #ifdef ZCL_PREPAYMENT
 	ZCL_CLUSTER_SE_PREPAYMENT,
-#endif
-#ifdef ZCL_CALENDAR
-	ZCL_CLUSTER_SE_CALENDAR,
-#endif
-#ifdef ZCL_DEVICE_MANAGEMENT
-	ZCL_CLUSTER_SE_DEVICE_MANAGEMENT
 #endif
 };
 
@@ -220,6 +205,8 @@ const zclAttrInfo_t identify_attrTbl[] =
 
 #define ZCL_IDENTIFY_ATTR_NUM	 sizeof(identify_attrTbl) / sizeof(zclAttrInfo_t)
 
+#ifdef ZCL_TIME
+
 /**********************************************************************
  * For some reason the Telink library does not define this structure.
  */
@@ -233,7 +220,7 @@ typedef u8 map8;
 #define TIMESTATUS_SUPERSEDING		1
 
 typedef struct{
-	utc	 time;
+	UTCTime	 time;
 	map8 timeStatus;
 	s32	 timeZone;
 	u32	 dstStart;
@@ -276,6 +263,8 @@ const zclAttrInfo_t time_attrTbl[] =
 
 #define ZCL_TIME_ATTR_NUM	  sizeof(basic_attrTbl) / sizeof(zclAttrInfo_t)
 
+#endif /* ZCL_TIME */
+
 /*
  * For the following SE (Smart Energy) clusters, we just support a minial (typically
  * single) attribute just so that we can prove we can read them properly.  More support
@@ -284,6 +273,38 @@ const zclAttrInfo_t time_attrTbl[] =
 
 #ifdef ZCL_PRICE
 /* SE Price (D.4) */
+
+#define ISO_4217_CURRENCY_GDB 826
+#define ESME_PRICE_RATE_LABEL 	{0x08,'P','r','e','m','i','u','m','!'}
+
+zcl_price_publishPriceCmd_t g_zcl_pricePublishPriceCmd =
+{
+	.providerId = 0xAABBCCDD,
+    .rateLabel = ESME_PRICE_RATE_LABEL,
+	.issuerEventId = 0xFFEEDDCC,
+    .currentTime = 1698409278,				// 2023-10-27 13:21:18
+    .unitsOfMeasure = UOM_KWH_OR_KW,
+    .currency = ISO_4217_CURRENCY_GDB,
+    .priceTrailingDigitAndPriceTier = 0x21,	// Two decimals, Tier1PriceLabel
+    .numPriceTiersAndRegisterTier = 0x21,	// Two tiers, CurerntTier1SummationDelivered attribute in use
+    .startTime = 	1672531200,				// 2023-01-01 00:00:00
+    .durationInMins = 0xFFFF,				// Until changed
+    .price = 456,							// £4.56 per kWh!
+    .priceRatio = 10,						// Price ratio 1.0 (units of 0.1)
+    .generationPrice = 0xFFFFFFFF,			// Not used
+    .generationpriceRatio = 0xFF,			// Not used
+    .alternateCostDelivered = 0xFFFFFFFF,	// Not used
+    .alternateCostUnit = 0xFF,				// Not used
+    .alternateCostTrailingDigit = 0xFF,		// Not used
+    .numBlockThresholds = 0xFF,				// Not used
+    .priceControl = 0x00,					// Not used
+    .numGenerationTiers = 0,				// Not used
+    .generationTier = 0xFF,					// Not used
+    .extendedNumPriceTiers = 0,				// Number of Price Tiers sub-field only
+    .extendedPriceTiers = 0,				// Price-tier sub-field only
+    .extendedRegisterTier = 0,				// Register Tier sub-field only
+};
+
 #define ZCL_SE_PRICE_TIER_LABEL_MAX_LENGTH		13
 
 typedef struct {
@@ -339,7 +360,6 @@ typedef struct{
 } zcl_prepaymentAttr_t;
 
 #define ZCL_SE_PREPAYMENT_DEBT_LABEL1	{11,'E','S','M','E',' ','D','e','b','t','1'}
-#define ISO_4217_CURRENCY_GDB 826
 
 zcl_prepaymentAttr_t g_zcl_prepayentAttrs =
 {
