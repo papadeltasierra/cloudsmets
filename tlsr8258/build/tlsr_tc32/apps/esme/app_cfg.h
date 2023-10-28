@@ -177,6 +177,8 @@ extern "C" {
 #define ZCL_PRICE_SUPPORT							1
 #define ZCL_METERING_SUPPORT						1
 #define ZCL_PREPAYMENT_SUPPORT						1
+/* OTA upgrading over the HCI (serial) interface. */
+#define ZCL_OTA_HCI									1
 
 /* Note required for CloudSMETS testing */
 #define ZCL_Demand_RSP_AND_LOAD_CONTROL_SUPPORT		0

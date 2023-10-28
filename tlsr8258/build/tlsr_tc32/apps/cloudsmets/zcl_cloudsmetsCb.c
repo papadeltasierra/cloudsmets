@@ -689,7 +689,7 @@ static void cloudsmets_zclPublishPriceCmdHandler(zclIncomingAddrInfo_t *pAddrInf
 	*pBuf++ = pPublishPriceCmd->extendedPriceTiers;
 	*pBuf++ = pPublishPriceCmd->extendedRegisterTier;
 
-	zbhciTx(ZBHCI_CMD_ZCL_GROUP_ADD_RSP, 56, payload);
+	zbhciTx(ZBHCI_CMD_ZCL_PRICE_PUBLISH_PRICE, 56, payload);
 #endif
 }
 
