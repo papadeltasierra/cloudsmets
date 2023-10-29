@@ -48,7 +48,7 @@ extern "C" {
  */
 #define	UART_PRINTF_MODE				1
 #define USB_PRINTF_MODE         		0
-//!!PDS: Might be able to get up to 1000000 (921600?) baud.
+//TODO: Why do we seem to be limited to this speed?
 #define BAUDRATE						115200
 
 /* PM */
@@ -173,9 +173,13 @@ extern "C" {
  * CloudSMETS has to support the "Identify" cluster and the commands of
  * the Smart Energy (SE) "Price" cluster.  All other ZigBee operations are
  * simple attribute reads.
+ *
+ * Also support ability to upgrade over the HCI.
  */
 #define ZCL_IDENTIFY_SUPPORT						1
 #define ZCL_PRICE_SUPPORT							1
+#define ZCL_HCI_OTA_SUPPORT							1
+
 
 /**********************************************************************
  * Stack configuration

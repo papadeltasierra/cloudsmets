@@ -61,7 +61,7 @@ app_ctx_t g_appGwCtx;
 extern mac_appIndCb_t macAppIndCbList;
 #endif
 
-#ifdef ZCL_OTA
+#if defined(ZCL_OTA) || defined(ZCL_HCI_OTA)
 //running code firmware information
 ota_preamble_t esme_otaInfo = {
 	.fileVer 			= FILE_VERSION,
@@ -150,23 +150,15 @@ void user_app_init(void)
 
 	/* Register endPoint */
 	af_endpointRegister(ESME_ENDPOINT, (af_simple_descriptor_t *)&esme_simpleDesc, zcl_rx_handler, esme_dataSendConfirm);
-#if AF_TEST_ENABLE
-	/* A sample of AF data handler. */
-	af_endpointRegister(SAMPLE_TEST_ENDPOINT, (af_simple_descriptor_t *)&sampleTestDesc, afTest_rx_handler, afTest_dataSendConfirm);
-#endif
 
 	/* Register ZCL specific cluster information */
 	zcl_register(ESME_ENDPOINT, ESME_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_esmeClusterList);
 
-#if ZCL_GP_SUPPORT
-	gp_init(ESME_ENDPOINT);
-#endif
-
-#if ZCL_OTA_SUPPORT
-    ota_init(OTA_TYPE_SERVER, (af_simple_descriptor_t *)&esme_simpleDesc, &esme_otaInfo, NULL);
+#if ZCL_OTA_SUPPORT || ZCL_HCI_OTA_SUPPORT
+	/* Note that ESME is always a client (actually we update over the HCI). */
+    ota_init(OTA_TYPE_CLIENT, (af_simple_descriptor_t *)&esme_simpleDesc, &esme_otaInfo, NULL);
 #endif
 }
-
 
 void led_init(void)
 {

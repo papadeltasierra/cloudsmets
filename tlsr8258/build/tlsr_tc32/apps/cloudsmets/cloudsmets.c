@@ -57,6 +57,14 @@
  */
 app_ctx_t g_switchAppCtx;
 
+#if defined(ZCL_OTA) || defined(ZCL_HCI_OTA)
+//running code firmware information
+ota_preamble_t cloudsmets_otaInfo = {
+	.fileVer 			= FILE_VERSION,
+	.imageType 			= IMAGE_TYPE,
+	.manufacturerCode 	= MANUFACTURER_CODE_TELINK,
+};
+#endif
 
 /**********************************************************************
  * We need callbacks for the ZigBee network functions so that we can learn
@@ -175,6 +183,11 @@ void user_app_init(void)
 	/* Register ZCL specific cluster information */
 	zcl_register(CLOUDSMETS_ENDPOINT, CLOUDSMETS_CB_CLUSTER_NUM, (zcl_specClusterInfo_t *)g_cloudsmetsClusterList);
 
+	/* Note that CludSMETS is always a client (actually we update over the HCI). */
+#if ZCL_OTA_SUPPORT || ZCL_HCI_OTA_SUPPORT
+	/* Note that ESME is always a client (actually we update over the HCI). */
+    ota_init(OTA_TYPE_CLIENT, (af_simple_descriptor_t *)&cloudsmets_simpleDesc, &cloudsmets_otaInfo, NULL);
+#endif
 }
 
 

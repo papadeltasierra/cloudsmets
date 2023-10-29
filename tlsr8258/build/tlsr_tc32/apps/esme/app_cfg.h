@@ -48,6 +48,7 @@ extern "C" {
  * Enable serial port debugging.
  */
 #define	UART_PRINTF_MODE				0
+// TODO: Why do we seem to be limited to this speed?
 #define BAUDRATE                        115200
 #define USB_PRINTF_MODE         		0
 
@@ -178,7 +179,7 @@ extern "C" {
 #define ZCL_METERING_SUPPORT						1
 #define ZCL_PREPAYMENT_SUPPORT						1
 /* OTA upgrading over the HCI (serial) interface. */
-#define ZCL_OTA_HCI									1
+#define ZCL_HCI_OTA									1
 
 /* Note required for CloudSMETS testing */
 #define ZCL_Demand_RSP_AND_LOAD_CONTROL_SUPPORT		0
