@@ -11,6 +11,7 @@ Param(
     [Parameter(Mandatory = $true)]
     [string] $TelinkZigBeeSdkZip,
     [Parameter(Mandatory = $true)]
+
     [string] $TelinkZigBeeSdkHash
 )
 
@@ -41,6 +42,12 @@ if ($Hash.hash.ToString() -ne "${TelinkZigBeeSdkHash}")
 Write-Information "Unzipping the SDK..."
 Expand-Archive -Force -Path "${env:TEMP}\${TelinkZigBeeSdkZip}" -DestinationPath "${TelinkZigBeeSdkPath}"
 Remove-Item -Path "${env:TEMP}\${TelinkZigBeeSdkZip}"
+
+# Some ZIP files add an extra directory :-(.
+if (Test-Path -PathType Container -Path "${TelinkZigBeeSdkPath}\*\tl_zigbee_sdk")
+{
+    Move-Item -Path "${TelinkZigBeeSdkPath}\*\*" -Destination ${TelinkZigBeeSdkPath}
+}
 
 if ($DebugPreference -eq 'Continue')
 {
