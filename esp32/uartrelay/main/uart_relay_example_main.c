@@ -75,8 +75,8 @@ static void relay_task(void *arg)
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
     int len;
 
-    uart_write_bytes(RELAY_UART_PORT0_NUM, (const char *)"Hello Port 0\r\n", 14);
-    uart_write_bytes(RELAY_UART_PORT1_NUM, (const char *)"Hello Port 1\n\n", 14);
+    // uart_write_bytes(RELAY_UART_PORT0_NUM, (const char *)"Hello Port 0\r\n", 14);
+    // uart_write_bytes(RELAY_UART_PORT1_NUM, (const char *)"Hello Port 1\n\n", 14);
 
     while (1) {
         // Read data from UART0
@@ -85,7 +85,7 @@ static void relay_task(void *arg)
         if (len)
         {
             uart_write_bytes(RELAY_UART_PORT1_NUM, (const char *) data, len);
-            uart_write_bytes(RELAY_UART_PORT1_NUM, (const char *)"==", 2);
+            // uart_write_bytes(RELAY_UART_PORT1_NUM, (const char *)"==", 2);
         }
 
         // Read data from UART1
@@ -94,7 +94,7 @@ static void relay_task(void *arg)
         if (len)
         {
             uart_write_bytes(RELAY_UART_PORT0_NUM, (const char *) data, len);
-            uart_write_bytes(RELAY_UART_PORT0_NUM, (const char *)"++", 2);
+            // uart_write_bytes(RELAY_UART_PORT0_NUM, (const char *)"++", 2);
         }
     }
 }
