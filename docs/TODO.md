@@ -41,7 +41,12 @@
     1. MAYBE - see above.
 
 1. Is the ESP32-C3 serial pass-through working?
+    1. Yes!!!!
 
 1. How does HCI OTA work?  Can we use this to update the TLSR8258?
     1. I'm guessing so if we can make it happen and have space on the ESP32-C3 to download the OTA.
+    1. Looks to be working!
+    1. What is the top-speed we can run the UARTs at?  OTA is quite slow at 115200!
+
+1. Split OTA and HCL_OTA and remove as must code as possible.
 
