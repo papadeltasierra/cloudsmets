@@ -36,7 +36,7 @@
     1. MAYBE - see zdo_ssInfoKeyGet() which seems to query the keys.  Can we extend this to read and set the key?
 1. Can we clear the firmware over the `zbhci` and then force a new join?
     1. Yes, `ZBHCI_CMD_BDB_FACTORY_RESET`
-1. Can we restore join infomraiton over the `zbhci` and then force a rejoin
+1. Can we restore join information over the `zbhci` and then force a rejoin
     1. Doesn't look like it.
     1. MAYBE - see above.
 
@@ -50,3 +50,16 @@
 
 1. Split OTA and HCL_OTA and remove as must code as possible.
 
+1. Document use of patched/custom Telink SDK.
+
+1. document design elements lkie
+- SE profile
+- HCI OTA
+
+## Old GitHub config
+79EBD6EA81F2FC2D1FE48C13E422F35DBDA92733D63F32A68407D0BBAE7C9680
+|Variable|Value|
+|-|-|
+|TELINK_ZIGBEE_SDK_HASH|15E6F53C150D355E3FECC53B8950EF7902B121906823E67E0B91C642154EA4A2|
+|TELINK_ZIGBEE_SDK_URI|http://wiki.telink-semi.cn/tools_and_sdk/Zigbee/Zigbee_SDK.zip|
+|TELINK_ZIGBEE_SDK_ZIP|Zigbee_SDK.zip|
