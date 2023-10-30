@@ -11,7 +11,6 @@ Param(
     [Parameter(Mandatory = $true)]
     [string] $TelinkZigBeeSdkZip,
     [Parameter(Mandatory = $true)]
-
     [string] $TelinkZigBeeSdkHash
 )
 
@@ -31,11 +30,7 @@ if (!(Test-Path "${env:TEMP}" -PathType container))
 }
 Invoke-RestMethod -Method GET -FollowRelLink -Uri "${TelinkZigBeeSdkUri}" -OutFile "${env:TEMP}\${TelinkZigBeeSdkZip}"
 
-if ([string]::IsNullOrEmpty(${TelinkZigBeeSdkHash}))
-{
-    Write-Information "Do not validate the downloaded SDK..."
-}
-else
+if (${TelinkZigBeeSdkHash}.length -eq 64))
 {
     Write-Information "Validating the downloaded SDK..."
     $Hash=Get-FileHash -Path "${env:TEMP}\${TelinkZigBeeSdkZip}" -Algorithm sha256
@@ -46,6 +41,10 @@ else
         Write-Error "Actual sha256:   $(Out-String -InputObject $Hash.hash)"
         exit 1
     }
+}
+else
+{
+    Write-Warning "Do not validate the downloaded SDK as hash not 64 hex bytes..."
 }
 
 Write-Information "Unzipping the SDK..."
