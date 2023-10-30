@@ -19,24 +19,33 @@ Param(
 . "${PSScriptRoot}\..\..\..\common\utils\Initialize-Script.ps1"
 
 Write-Information "Creating target directory '${TelinkZigBeeSdkPath}'..."
-if (!(Test-Path "${TelinkZigBeeSdkPath}" -PathType container)) {
+if (!(Test-Path "${TelinkZigBeeSdkPath}" -PathType container))
+{
     New-Item -Path "${TelinkZigBeeSdkPath}" -ItemType "directory"
 }
 
 Write-Information "Downloading the Telink ZigBee SDK..."
-if (!(Test-Path "${env:TEMP}" -PathType container)) {
+if (!(Test-Path "${env:TEMP}" -PathType container))
+{
     New-Item -Path "${env:TEMP}" -ItemType "directory"
 }
 Invoke-RestMethod -Method GET -FollowRelLink -Uri "${TelinkZigBeeSdkUri}" -OutFile "${env:TEMP}\${TelinkZigBeeSdkZip}"
 
-Write-Information "Validating the downloaded SDK..."
-$Hash=Get-FileHash -Path "${env:TEMP}\${TelinkZigBeeSdkZip}" -Algorithm sha256
-if ($Hash.hash.ToString() -ne "${TelinkZigBeeSdkHash}")
+if ([string]::IsNullOrEmpty(${TelinkZigBeeSdkHash}))
 {
-    Write-Error "Zigbee SDK hash has changed implying Zigbee SDK update!"
-    Write-Error "Expected sha256: ${TelinkZigBeeSdkHash}"
-    Write-Error "Actual sha256:   $(Out-String -InputObject $Hash.hash)"
-    exit 1
+    Write-Information "Do not validate the downloaded SDK..."
+}
+else
+{
+    Write-Information "Validating the downloaded SDK..."
+    $Hash=Get-FileHash -Path "${env:TEMP}\${TelinkZigBeeSdkZip}" -Algorithm sha256
+    if ($Hash.hash.ToString() -ne "${TelinkZigBeeSdkHash}")
+    {
+        Write-Error "Zigbee SDK hash has changed implying Zigbee SDK update!"
+        Write-Error "Expected sha256: ${TelinkZigBeeSdkHash}"
+        Write-Error "Actual sha256:   $(Out-String -InputObject $Hash.hash)"
+        exit 1
+    }
 }
 
 Write-Information "Unzipping the SDK..."
