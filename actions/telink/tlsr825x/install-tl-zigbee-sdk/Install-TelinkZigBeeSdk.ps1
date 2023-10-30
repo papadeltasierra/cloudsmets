@@ -30,7 +30,7 @@ if (!(Test-Path "${env:TEMP}" -PathType container))
 }
 Invoke-RestMethod -Method GET -FollowRelLink -Uri "${TelinkZigBeeSdkUri}" -OutFile "${env:TEMP}\${TelinkZigBeeSdkZip}"
 
-if (${TelinkZigBeeSdkHash}.length -eq 64))
+if (${TelinkZigBeeSdkHash}.length -eq 64)
 {
     Write-Information "Validating the downloaded SDK..."
     $Hash=Get-FileHash -Path "${env:TEMP}\${TelinkZigBeeSdkZip}" -Algorithm sha256
