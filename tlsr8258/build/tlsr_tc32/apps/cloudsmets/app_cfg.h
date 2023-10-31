@@ -48,7 +48,11 @@ extern "C" {
  */
 #define	UART_PRINTF_MODE				1
 #define USB_PRINTF_MODE         		0
-//TODO: Why do we seem to be limited to this speed?
+
+/*
+ * It seems that the TLSR8258 is not reliable above 115200.  Put simply it will
+ * not communicate over the zbhci interface.
+ */
 #define BAUDRATE						115200
 
 /* PM */
