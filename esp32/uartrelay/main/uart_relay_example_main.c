@@ -47,6 +47,10 @@
 
 static void relay_task(void *arg)
 {
+    // Sleep to give bootloader time to complete otherwise the UART ports
+    // seem to get confused.
+    vTaskDelay(configTICK_RATE_HZ * 2);
+
     /* Configure parameters of an UART driver,
      * communication pins and install the driver */
     uart_config_t uart_config = {
@@ -63,13 +67,13 @@ static void relay_task(void *arg)
     intr_alloc_flags = ESP_INTR_FLAG_IRAM;
 #endif
 
-    ESP_ERROR_CHECK(uart_driver_install(RELAY_UART_PORT1_NUM, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
-    ESP_ERROR_CHECK(uart_param_config(RELAY_UART_PORT1_NUM, &uart_config));
-    ESP_ERROR_CHECK(uart_set_pin(RELAY_UART_PORT1_NUM, RELAY_TEST_TXD0, RELAY_TEST_RXD0, RELAY_TEST_RTS0, RELAY_TEST_CTS0));
-
     ESP_ERROR_CHECK(uart_driver_install(RELAY_UART_PORT0_NUM, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
     ESP_ERROR_CHECK(uart_param_config(RELAY_UART_PORT0_NUM, &uart_config));
-    ESP_ERROR_CHECK(uart_set_pin(RELAY_UART_PORT0_NUM, RELAY_TEST_TXD1, RELAY_TEST_RXD1, RELAY_TEST_RTS1, RELAY_TEST_CTS1));
+    ESP_ERROR_CHECK(uart_set_pin(RELAY_UART_PORT0_NUM, RELAY_TEST_TXD0, RELAY_TEST_RXD0, RELAY_TEST_RTS0, RELAY_TEST_CTS0));
+
+    ESP_ERROR_CHECK(uart_driver_install(RELAY_UART_PORT1_NUM, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
+    ESP_ERROR_CHECK(uart_param_config(RELAY_UART_PORT1_NUM, &uart_config));
+    ESP_ERROR_CHECK(uart_set_pin(RELAY_UART_PORT1_NUM, RELAY_TEST_TXD1, RELAY_TEST_RXD1, RELAY_TEST_RTS1, RELAY_TEST_CTS1));
 
     // Configure a temporary buffer for the incoming data
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
@@ -86,6 +90,7 @@ static void relay_task(void *arg)
         {
             uart_write_bytes(RELAY_UART_PORT1_NUM, (const char *) data, len);
             // uart_write_bytes(RELAY_UART_PORT1_NUM, (const char *)"==", 2);
+            // uart_write_bytes(RELAY_UART_PORT0_NUM, (const char *)"<<", 2);
         }
 
         // Read data from UART1
@@ -95,6 +100,7 @@ static void relay_task(void *arg)
         {
             uart_write_bytes(RELAY_UART_PORT0_NUM, (const char *) data, len);
             // uart_write_bytes(RELAY_UART_PORT0_NUM, (const char *)"++", 2);
+            // uart_write_bytes(RELAY_UART_PORT1_NUM, (const char *)">>", 2);
         }
     }
 }

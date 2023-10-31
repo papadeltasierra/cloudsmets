@@ -53,7 +53,7 @@ menu "UART Relay Configuration"
     config EXAMPLE_UART1_RXD
         int "UART RXD B pin number"
         range ENV_GPIO_RANGE_MIN ENV_UART_GPIO_RANGE_MAX
-        default 18
+        default 19
         help
             GPIO number for UART B RX pin. See UART documentation for more information
             about available pin numbers for UART.
@@ -61,7 +61,7 @@ menu "UART Relay Configuration"
     config EXAMPLE_UART1_TXD
         int "UART TXD B pin number"
         range ENV_GPIO_RANGE_MIN ENV_UART_GPIO_RANGE_MAX
-        default 19
+        default 18
         help
             GPIO number for UART B TX pin. See UART documentation for more information
             about available pin numbers for UART.
