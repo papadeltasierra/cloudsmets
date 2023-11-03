@@ -71,14 +71,12 @@ The UART Relay configuration menu item leads to the settings whichi should take 
 |-|-|
 |0|UART port A number|
 |1|UART port B number|
-|115200|UART communication rate (baud) (1)|
+|1000000|UART communication rate (baud)|
 |20|UART RXD A pin number (GPIO)|
 |21|UART TXD A pin number (GPIO)|
 |19|UART RXD B pin number (GPIO)|
 |18|UART TXD B pin number (GPIO)|
 |4096|UART echo example task stack size|
-
-1. Currently we do no seem to be able to run the serials lines faster than 115200.  460800 and 1000000 should be possible so this requires some more investigation.
 
 > Note that the port B TX and RX ports are **deliberately switched**.  This is because of the wiring on the [T-ZigBee] board, which can been understood from the [T-ZigBee Schematic].  Note however that the [T-ZigBee Schematic] numbers to DIP switches in reverse - RST/RESETB is actually switch 5!
 

@@ -40,6 +40,9 @@
 #define RELAY_UART_BAUD_RATE     (CONFIG_EXAMPLE_UART_BAUD_RATE)
 #define RELAY_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
 
+#define TLSR8258_POWER  GPIO_NUM_0
+#define BLUE_LED        GPIO_NUM_3
+
 // We are not logging.
 // static const char *TAG = "UART RELAY";
 
@@ -50,6 +53,12 @@ static void relay_task(void *arg)
     // Sleep to give bootloader time to complete otherwise the UART ports
     // seem to get confused.
     vTaskDelay(configTICK_RATE_HZ * 2);
+
+    // Turn on the power to the tlsr8258
+    ESP_ERROR_CHECK(gpio_set_level(TLSR8258_POWER, 1));
+
+    // Turn on the blue LED connected to the ESP32-C3
+    ESP_ERROR_CHECK(gpio_set_level(BLUE_LED, 1));
 
     /* Configure parameters of an UART driver,
      * communication pins and install the driver */
@@ -105,9 +114,6 @@ static void relay_task(void *arg)
     }
 }
 
-#define TLSR8258_POWER  GPIO_NUM_0
-#define BLUE_LED        GPIO_NUM_3
-
 void app_main(void)
 {
     // Configure the GPIO fields used by T-ZigBee.
@@ -120,12 +126,6 @@ void app_main(void)
     };
 
     ESP_ERROR_CHECK(gpio_config(&gpio_config_data));
-
-    // Turn on the power to the tlsr8258
-    ESP_ERROR_CHECK(gpio_set_level(TLSR8258_POWER, 1));
-
-    // Turn on the blue LED connected to the ESP32-C3
-    ESP_ERROR_CHECK(gpio_set_level(BLUE_LED, 1));
 
     // Create the relay task.
     xTaskCreate(relay_task, "uart_relay_task", RELAY_TASK_STACK_SIZE, NULL, 10, NULL);
