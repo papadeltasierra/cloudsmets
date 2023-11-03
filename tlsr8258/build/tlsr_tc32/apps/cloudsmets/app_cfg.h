@@ -44,16 +44,16 @@ extern "C" {
 
 /**********************************************************************
  * Debug mode config
- * Currently allowing printf output to tlsr8258 PC4 pin.
  */
-#define	UART_PRINTF_MODE				1
+#define	UART_PRINTF_MODE				0
 #define USB_PRINTF_MODE         		0
 
 /*
- * It seems that the TLSR8258 is not reliable above 115200.  Put simply it will
- * not communicate over the zbhci interface.
+ * BAUDRATE sets the BAUD rate that will be used if you use the printf()
+ * debugging statements but HCI_BAUDRATE sets the BAUD rate for the HCI interface.
  */
 #define BAUDRATE						115200
+#define HCI_BAUDRATE					1000000
 
 /* PM */
 #define PM_ENABLE						0

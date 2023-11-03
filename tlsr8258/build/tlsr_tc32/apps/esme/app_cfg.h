@@ -48,7 +48,14 @@ extern "C" {
  * Enable serial port debugging.
  */
 #define	UART_PRINTF_MODE				0
-// TODO: Why do we seem to be limited to this speed?
+#define USB_PRINTF_MODE         		0
+
+/*
+ * BAUDRATE sets the BAUD rate that will be used if you use the printf()
+ * debugging statements but HCI_BAUDRATE sets the BAUD rate for the HCI interface.
+ */
+#define BAUDRATE						115200
+#define HCI_BAUDRATE					1000000
 #define BAUDRATE                        115200
 #define USB_PRINTF_MODE         		0
 
