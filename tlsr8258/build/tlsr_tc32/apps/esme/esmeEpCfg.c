@@ -62,10 +62,21 @@
  */
 /**
  *  @brief Definition for Incoming cluster / Server Cluster
+ *         This device is never intended to be a client.
  */
 const u16 esme_inClusterList[] =
 {
 	ZCL_CLUSTER_GEN_BASIC,
+	ZCL_CLUSTER_GEN_IDENTIFY
+};
+
+/**
+ *  @brief Definition for Outgoing cluster / Client Cluster
+ */
+const u16 esme_outClusterList[] =
+{
+	ZCL_CLUSTER_GEN_BASIC,
+	ZCL_CLUSTER_GEN_IDENTIFY,
 #ifdef ZCL_TIME
 	ZCL_CLUSTER_GEN_TIME,
 #endif
@@ -78,15 +89,6 @@ const u16 esme_inClusterList[] =
 #ifdef ZCL_PREPAYMENT
 	ZCL_CLUSTER_SE_PREPAYMENT,
 #endif
-};
-
-/**
- *  @brief Definition for Outgoing cluster / Client Cluster
- *         This device is never intended to be a client.
- */
-const u16 esme_outClusterList[] =
-{
-	ZCL_CLUSTER_GEN_BASIC
 };
 
 /**
@@ -387,16 +389,16 @@ const zcl_specClusterInfo_t g_esmeClusterList[] =
 	{ZCL_CLUSTER_GEN_BASIC,						MANUFACTURER_CODE_NONE, ZCL_BASIC_ATTR_NUM, 	basic_attrTbl,  	zcl_basic_register,		esme_basicCb},
 	{ZCL_CLUSTER_GEN_IDENTIFY,					MANUFACTURER_CODE_NONE, ZCL_IDENTIFY_ATTR_NUM,	identify_attrTbl,	zcl_identify_register,	esme_identifyCb},
 #ifdef ZCL_TIME
-	{ZCL_CLUSTER_GEN_TIME,						MANUFACTURER_CODE_NONE, 0, 						time_attrTbl,		zcl_time_register,		NULL},
+	{ZCL_CLUSTER_GEN_TIME,						MANUFACTURER_CODE_NONE, ZCL_TIME_ATTR_NUM,		time_attrTbl,		zcl_time_register,		NULL},
 #endif
 #ifdef ZCL_PRICE
-	{ZCL_CLUSTER_SE_PRICE,						MANUFACTURER_CODE_NONE, 0, 						price_attrTbl,  	zcl_price_register,		NULL},
+	{ZCL_CLUSTER_SE_PRICE,						MANUFACTURER_CODE_NONE, ZCL_PRICE_ATTR_NUM, 	price_attrTbl,  	zcl_price_register,		esme_priceCb},
 #endif
 #ifdef ZCL_METERING
-	{ZCL_CLUSTER_SE_METERING,					MANUFACTURER_CODE_NONE, 0, 						metering_attrTbl,	zcl_metering_register,	NULL},
+	{ZCL_CLUSTER_SE_METERING,					MANUFACTURER_CODE_NONE, ZCL_METERING_ATTR_NUM,	metering_attrTbl,	zcl_metering_register,	NULL},
 #endif
 #ifdef ZCL_PREPAYMENT
-	{ZCL_CLUSTER_SE_PREPAYMENT,					MANUFACTURER_CODE_NONE, 0, 						prepayment_attrTbl,	zcl_prepayment_register,	NULL},
+	{ZCL_CLUSTER_SE_PREPAYMENT,					MANUFACTURER_CODE_NONE, ZCL_PREPAYMENT_ATTR_NUM,	prepayment_attrTbl,	zcl_prepayment_register,	NULL},
 #endif
 };
 

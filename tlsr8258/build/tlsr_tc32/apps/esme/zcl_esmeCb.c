@@ -647,7 +647,9 @@ s32 esme_zclPublishPriceTimerCb(void *arg)
 
     zcl_price_publishPriceCmd(ESME_ENDPOINT, &dstEpInfo, TRUE, &g_zcl_pricePublishPriceCmd);
 	pricePublishPriceTimerEvt = NULL;
-	return 0;
+
+	// -1 stops the timer.
+	return -1;
 }
 
 static void esme_zclGetCurrentPriceCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_price_getCurrentPriceCmd_t *pPublishPriceCmd)
@@ -675,7 +677,8 @@ static void esme_zclGetCurrentPriceCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, 
 status_t esme_priceCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPayload)
 {
 	if(pAddrInfo->dstEp == ESME_ENDPOINT){
-		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
+		// Note that this is "server from client".
+		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
 			switch(cmdId){
 				case ZCL_CMD_GET_CURRENT_PRICE:
 					esme_zclGetCurrentPriceCmdHandler(pAddrInfo, (zcl_price_getCurrentPriceCmd_t *)cmdPayload);
@@ -685,7 +688,6 @@ status_t esme_priceCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPaylo
 			}
 		}
 	}
-
 	return ZCL_STA_SUCCESS;
 }
 #endif	/* ZCL_PRICE */

@@ -55,8 +55,7 @@ extern "C" {
  * debugging statements but HCI_BAUDRATE sets the BAUD rate for the HCI interface.
  */
 #define BAUDRATE						115200
-#define HCI_BAUDRATE					1000000
-#define BAUDRATE                        115200
+#define HCI_BAUDRATE					115200
 #define USB_PRINTF_MODE         		0
 
 /* HCI interface */
