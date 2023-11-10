@@ -638,14 +638,9 @@ status_t esme_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPa
 
 s32 esme_zclPublishPriceTimerCb(void *arg)
 {
-    epInfo_t dstEpInfo;
-	TL_SETSTRUCTCONTENT(dstEpInfo, 0);
+    epInfo_t *dstEpInfo = (epInfo_t *)arg;
 
-	dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
-	dstEpInfo.dstEp = ESME_ENDPOINT;
-	dstEpInfo.profileId = SE_PROFILE_ID;
-
-    zcl_price_publishPriceCmd(ESME_ENDPOINT, &dstEpInfo, TRUE, &g_zcl_pricePublishPriceCmd);
+    zcl_price_publishPriceCmd(ESME_ENDPOINT, dstEpInfo, TRUE, &g_zcl_pricePublishPriceCmd);
 	pricePublishPriceTimerEvt = NULL;
 
 	// -1 stops the timer.
@@ -657,9 +652,29 @@ static void esme_zclGetCurrentPriceCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, 
 	/*
 	 * We ignore the payload and just schedule a timer to send the current
 	 * price information shortly.
+	 *
+	 * However as do need to route the request back to where it came from which
+	 * means we need to know the address information.  We rely on there only
+	 * being a single reuqest being processed at a time and use a static variable
+	 * to hold this information.
 	 */
+	static epInfo_t dstEp;
+
+	// We need to send the response
 	if(!pricePublishPriceTimerEvt){
-		pricePublishPriceTimerEvt = TL_ZB_TIMER_SCHEDULE(esme_zclPublishPriceTimerCb, NULL, 100);
+		/*
+		 * Set the destination address, which will be the source address for this
+		 * command.
+		 */
+	    dstEp.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
+		dstEp.dstAddr.shortAddr = pAddrInfo->srcAddr;
+		dstEp.dstEp = pAddrInfo->srcEp;
+        dstEp.profileId = pAddrInfo->profileId;
+		dstEp.txOptions |= APS_TX_OPT_ACK_TX;
+		if(pAddrInfo->apsSec){
+			dstEp.txOptions |= APS_TX_OPT_SECURITY_ENABLED;
+		}
+		pricePublishPriceTimerEvt = TL_ZB_TIMER_SCHEDULE(esme_zclPublishPriceTimerCb, &dstEp, 100);
 	}
 }
 
@@ -678,7 +693,7 @@ status_t esme_priceCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void *cmdPaylo
 {
 	if(pAddrInfo->dstEp == ESME_ENDPOINT){
 		// Note that this is "server from client".
-		if(pAddrInfo->dirCluster == ZCL_FRAME_SERVER_CLIENT_DIR){
+		if(pAddrInfo->dirCluster == ZCL_FRAME_CLIENT_SERVER_DIR){
 			switch(cmdId){
 				case ZCL_CMD_GET_CURRENT_PRICE:
 					esme_zclGetCurrentPriceCmdHandler(pAddrInfo, (zcl_price_getCurrentPriceCmd_t *)cmdPayload);

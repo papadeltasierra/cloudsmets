@@ -237,16 +237,16 @@ typedef struct{
 /* Time */
 zcl_timeAttr_t g_zcl_timeAttrs =
 {
-	.time			= 1696172476,		// 2023/10/01 15:05:16
+	.time			= 749487676,		// 2023/10/01 15:05:16
 	.timeStatus		= TIMESTATUS_SYNCHRONIZED,
 	.timeZone		= 0,				// UK is GMT.
-	.dstStart		= 1679792400,		// 2023/03/26 01:00:00
+	.dstStart		= 733107600,		// 2023/03/26 01:00:00
 	.dstEnd			= 1698541200,		// 2023/10/29 01:00:00
 	.dstShift		= 3600,				// UK DST is +1 hour, 3600s
-	.standardTime	= 1696172476,		// 2023/10/01 15:05:16
-	.localTime		= 1696176316,		// 2023/10/01 16:05:16
-	.lastSetTime	= 1672531200,		// 2023/01/01 00:00:00
-	.validUntilTime = 1704067200		// 2024/01/01 00:00:00
+	.standardTime	= 751856400,		// 2023/10/01 15:05:16
+	.localTime		= 749491516,		// 2023/10/01 16:05:16
+	.lastSetTime	= 725846400,		// 2023/01/01 00:00:00
+	.validUntilTime = 757382400			// 2024/01/01 00:00:00
 };
 
 const zclAttrInfo_t time_attrTbl[] =
@@ -279,17 +279,18 @@ const zclAttrInfo_t time_attrTbl[] =
 #define ISO_4217_CURRENCY_GDB 826
 #define ESME_PRICE_RATE_LABEL 	{0x08,'P','r','e','m','i','u','m','!'}
 
+// Note that ZigBee time is relative to 2000-01-01 00:00:00 and is not Linux time.
 zcl_price_publishPriceCmd_t g_zcl_pricePublishPriceCmd =
 {
 	.providerId = 0xAABBCCDD,
     .rateLabel = ESME_PRICE_RATE_LABEL,
 	.issuerEventId = 0xFFEEDDCC,
-    .currentTime = 1698409278,				// 2023-10-27 13:21:18
+    .currentTime = 751724488,				// 2023-10-27 12:21:18
     .unitsOfMeasure = UOM_KWH_OR_KW,
     .currency = ISO_4217_CURRENCY_GDB,
     .priceTrailingDigitAndPriceTier = 0x21,	// Two decimals, Tier1PriceLabel
     .numPriceTiersAndRegisterTier = 0x21,	// Two tiers, CurerntTier1SummationDelivered attribute in use
-    .startTime = 	1672531200,				// 2023-01-01 00:00:00
+    .startTime = 725846400,					// 2023-01-01 00:00:00
     .durationInMins = 0xFFFF,				// Until changed
     .price = 456,							// £4.56 per kWh!
     .priceRatio = 10,						// Price ratio 1.0 (units of 0.1)
