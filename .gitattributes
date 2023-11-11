@@ -1,0 +1,3 @@
+# Make specific files are needing LF line endings.
+/tlsr8258/build/.metadata/** text eol=lf
+/tlsr8258/**/*.mk text eol=lf
