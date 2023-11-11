@@ -2,6 +2,12 @@
 
 See the documentation at [zbhci].
 
+## Byte Ordering
+It is important to now that byte ordering is as follows.  The value 0x12345678 is sent as 4 bytes, 0x12, 0x34, 0x56, 0x78 but these bytes are ordered as follows:
+
+- ZigBee sends the byyes across the network in little-endian (least-significant byte first) order i.e. 0x78, 0x56, 0x34, 0x12.
+- The Telink `zbhci`` interface exchanges bytes across the serial line in big-endian (most significant byte first) order i.e. 0x12, 0x34, 0x56, 0x78.
+
 ## One of Two Ways!
 The ZGC processing either:
 1. Processes attrbutes directly into variables or
