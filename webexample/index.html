@@ -1,0 +1,30 @@
+<html>
+
+<head>
+    <title>CloudSMETS - Home</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <h1>CloudSMETS</h1>
+    <form action="/wifi.html">
+        <input type="submit" value="WiFi configuration" />
+    </form>
+    <form action="/cloud.html">
+        <input type="submit" value="Cloud(s) configuration" />
+    </form>
+    <form action="/zigbee.html">
+        <input type="submit" value="ZigBee configuration" />
+    </form>
+    <form action="/info.html">
+        <input type="submit" value="Information" />
+    </form>
+    <form action="/debug.html">
+        <input type="submit" value="Debugging" />
+    </form>
+    <form action="/reset.html" onclick="return confirm('Factory reset.\nClear all configuration!\nAre you sure?');">
+        <input type="submit" value="Factory Reset" />
+    </form>
+</body>
+
+</html>

@@ -1,0 +1,62 @@
+<html>
+
+<head>
+    <title>CloudSMETS - ZigBee</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <h1>CloudSMETS - ZigBee</h1>
+
+    <table>
+        <tr>
+            <td>
+                Status:
+            </td>
+            <td>
+                Connected
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Latest message:
+            </td>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Message received:
+            </td>
+            <td>
+                2022/11/12 11:33:44 UTZ
+            </td>
+        </tr>
+    </table>
+
+
+    <form action="./zigbee.html">
+        <table>
+            <tr>
+                <td>
+                    <label for="guid">GUID:</label><br />
+                    <input type="text" id="guid" name="guid" pattern="[\da-fA-F]{2}(?:-[\da-fA-F]{2}){5}" title="format: xx-xx-xx-xx-xx-xx (hex digits)"><br><br>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="key">Key:</label><br />
+                    <input type="text" id="key" name="key"><br><br>
+                </td>
+            </tr>
+        </table>
+        <input type="submit" value="Submit">
+    </form>
+    <p>Click on the submit button to submit the form.</p>
+    <br />
+    <form action="/index.html">
+        <input type="submit" value="Home" />
+    </form>
+</body>
+
+</html>
