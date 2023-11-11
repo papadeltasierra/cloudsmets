@@ -54,12 +54,6 @@ static void relay_task(void *arg)
     // seem to get confused.
     vTaskDelay(configTICK_RATE_HZ * 2);
 
-    // Turn on the power to the tlsr8258
-    ESP_ERROR_CHECK(gpio_set_level(TLSR8258_POWER, 1));
-
-    // Turn on the blue LED connected to the ESP32-C3
-    ESP_ERROR_CHECK(gpio_set_level(BLUE_LED, 1));
-
     /* Configure parameters of an UART driver,
      * communication pins and install the driver */
     uart_config_t uart_config = {
@@ -83,6 +77,15 @@ static void relay_task(void *arg)
     ESP_ERROR_CHECK(uart_driver_install(RELAY_UART_PORT1_NUM, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
     ESP_ERROR_CHECK(uart_param_config(RELAY_UART_PORT1_NUM, &uart_config));
     ESP_ERROR_CHECK(uart_set_pin(RELAY_UART_PORT1_NUM, RELAY_TEST_TXD1, RELAY_TEST_RXD1, RELAY_TEST_RTS1, RELAY_TEST_CTS1));
+
+    // Give 1/2 seconds for the pins to settle down before we power up the tlsr8258.
+    vTaskDelay(configTICK_RATE_HZ / 2);
+
+    // Turn on the power to the tlsr8258
+    ESP_ERROR_CHECK(gpio_set_level(TLSR8258_POWER, 1));
+
+    // Turn on the blue LED connected to the ESP32-C3
+    ESP_ERROR_CHECK(gpio_set_level(BLUE_LED, 1));
 
     // Configure a temporary buffer for the incoming data
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);

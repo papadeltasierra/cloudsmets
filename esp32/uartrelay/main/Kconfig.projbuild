@@ -30,7 +30,7 @@ menu "UART Relay Configuration"
     config EXAMPLE_UART_BAUD_RATE
         int "UART communication speed"
         range 1200 1000000
-        default 115200
+        default 1000000
         help
             UART communication speed for Modbus example.
 
