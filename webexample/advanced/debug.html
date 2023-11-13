@@ -1,11 +1,13 @@
 <html>
+    <script src="/w3-include-html.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
 
 <head>
     <title>CloudSMETS - Debugging</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
-
-<body>
+<body onload="includeHTML();"">
+    <div w3-include-html="/menu.html"></div>
     <h1>CloudSMETS - Debugging</h1>
 
     <form action="/debug.html">
@@ -75,9 +77,6 @@
 
     <p>Click on the submit button to submit the form.</p>
     <br />
-    <form action="/index.html">
-        <input type="submit" value="Home" />
-    </form>
 </body>
 
 </html>

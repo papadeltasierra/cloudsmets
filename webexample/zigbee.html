@@ -1,11 +1,15 @@
 <html>
+    <script src="/w3-include-html.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
 
 <head>
     <title>CloudSMETS - ZigBee</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 
-<body>
+<body onload="includeHTML();"">
+    <div w3-include-html="/menu.html"></div>
+
     <h1>CloudSMETS - ZigBee</h1>
 
     <table>
@@ -35,7 +39,7 @@
     </table>
 
 
-    <form action="./zigbee.html">
+    <form action="/zigbee.html">
         <table>
             <tr>
                 <td>
@@ -54,9 +58,6 @@
     </form>
     <p>Click on the submit button to submit the form.</p>
     <br />
-    <form action="/index.html">
-        <input type="submit" value="Home" />
-    </form>
 </body>
 
 </html>

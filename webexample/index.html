@@ -1,37 +1,14 @@
 <html>
+  <script src="/w3-include-html.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
 
 <head>
     <title>CloudSMETS - Home</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 
-<body>
-    <div class="navbar">
-        <div class="menu">
-        <a href="/index.html">Home</a>
-        <a href="/wifi.html">WiFi</a>
-        <div class="dropdown">
-            <button class="dropbtn">Cloud
-              <i class="fa fa-caret-down"></i>
-            </button>
-            <div class="dropdown-content">
-              <a href="/cloud/aws.html">AWS (Amazon)</a>
-              <a href="/cloud/azure.html">Azure (Microsoft)</a>
-              <a href="/cloud/gcp.html">GCP (Google)</a>
-            </div>
-          </div>
-          <a href="zigbee.html">ZigBee</a>
-        <div class="dropdown">
-            <button class="dropbtn">Advanced
-              <i class="fa fa-caret-down"></i>
-            </button>
-            <div class="dropdown-content">
-              <a href="/advanced/debug.html">Debug</a>
-              <a href="/advanced/reset.html">Reset</a>
-            </div>
-        </div>
-        <a href="/info.html">Info</a>
-    </div></div>
+<body onload="includeHTML();"">
+  <div w3-include-html="/menu.html"></div>
     <h1>CloudSMETS</h1>
 </body>
 
