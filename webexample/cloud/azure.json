@@ -1,0 +1,7 @@
+{
+    "azFunc": 1,
+    "azIotHub": "myhub.iothub.azure.com",
+    "azDevice": "CloudSMETS",
+    "azCnct1": "HostName=myhub.iothub.1some-very-long-string",
+    "azCnct2": "HostName=myhub.iothub.2some-very-long-string"
+}

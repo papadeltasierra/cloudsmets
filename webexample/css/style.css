@@ -14,6 +14,37 @@ td {
   text-align: left;
 }
 
+input {
+  width: 256;
+}
+
+.submit {
+  width: 64;
+}
+
+.factory_submit {
+  width: 96;
+}
+
+div.warning {
+  border-style: solid;
+  border-width: 2px;
+  border-color: red;
+  width: 256;
+  margin: auto;
+  text-align: center;
+  font-family: Arial;
+  font-size: 13px;
+}
+
+.ipaddr {
+  width: 128;
+}
+
+.ipport {
+  width: 64;
+}
+
 /* Navbar container */
 .navbar {
   overflow: hidden;

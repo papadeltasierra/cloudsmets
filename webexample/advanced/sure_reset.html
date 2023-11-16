@@ -1,0 +1,35 @@
+<html>
+    <script src="/w3-include-html.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+
+    <head>
+        <title>CloudSMETS - Factory Reset</title>
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
+
+    <body onload="includeHTML();"">
+    <div w3-include-html=" /menu.html">
+        </div>
+        <h1>Factory Reset</h1>
+        <form method="post" action="/advanced/sure_reset.html">
+            <table>
+                <tr>
+                    <td>
+                        <div class="warning">
+                            Are you sure that you want to remove all configuration from CloudSMETS and perform a full
+                            factory reset?<br /><br />
+                            Please enter "CloudSMETS" into the input box before submitting to confirm this.
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="sure" name="sure">
+                    </td>
+                </tr>
+            </table>
+            <input class="factory_submit" type="submit" id="reset" value="Factory Reset">
+        </form>
+    </body>
+
+</html>

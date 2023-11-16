@@ -1,82 +1,99 @@
 <html>
     <script src="/w3-include-html.js"></script>
+    <script src="/getdata.js"></script>
+    <script src="/onload.js"></script>
     <link rel="stylesheet" href="/css/style.css">
 
-<head>
-    <title>CloudSMETS - Debugging</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body onload="includeHTML();"">
-    <div w3-include-html="/menu.html"></div>
-    <h1>CloudSMETS - Debugging</h1>
+    <head>
+        <title>CloudSMETS - Debugging</title>
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
 
-    <form action="/debug.html">
-        <table>
-            <tr>
-                <td>
-                    <label for="enabled">Debugging Enabled:</label><br />
-                    <input type="checkbox" id="enabled" name="enabled">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="baud">Baudrate:</label><br />
-                    <select name="baud" id="baud">
-                        <option value=460800>460800</option>
-                        <option value=230400>230400</option>
-                        <option value=115200>115200</option>
-                        <option value=576000>57600</option>
-                        <option value=19200>19200</option>
-                        <option value=9600>9600</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="esp32_c3">ESP32-C3:</label><br />
-                    <select name="esp32_c3" id="esp32_c3">
-                        <option value=0>Disabled</option>
-                        <option value=1>Error</option>
-                        <option value=2>Info</option>
-                        <option value=3>Debug</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="tlsr8258">TLSR8258:</label><br />
-                    <select name="tlsr8258" id="tlsr8258">
-                        <option value=0>Disabled</option>
-                        <option value=1>Error</option>
-                        <option value=2>Info</option>
-                        <option value=3>Debug</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="network">Network Debugging Enabled:</label><br />
-                    <input type="checkbox" id="network" name="network">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="ip_addr">IP address:</label><br />
-                    <input type="text" id="ip_addr" name="ip_addr" pattern="[0-9]{1,3}(?:\.[0-9]{1,3}){3}" title="format: dd.dd.dd.dd (0-254))">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="ip_port">IP port:</label><br />
-                    <input type="number" id="ip_port" name="ip_port" min="1", max="65534" title="valid ports are 1-65534">
-                </td>
-            </tr>
-        </table>
-        <input type="submit" value="Submit">
-    </form>
+    <body onload="onload('debug.json');">
+        <div w3-include-html=" /menu.html">
+        </div>
+        <h1>Debugging</h1>
 
-    <p>Click on the submit button to submit the form.</p>
-    <br />
-</body>
+        <form action="/debug.html">
+            <table>
+                <tr>
+                    <td>
+                        Debugging:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <select name="dbgFunc" id="dbgFunc">
+                            <option value=0>None</option>
+                            <option value=1>Serial</option>
+                            <option value=2>Network</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Baudrate:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <select name="dbgBaud" id="dbgBaud">
+                            <option value=1000000>1000000</option>
+                            <option value=460800>460800</option>
+                            <option value=230400>230400</option>
+                            <option value=115200>115200</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        IP address:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="ipaddr" type="text" id="dbgIpAddr" name="dbgIpAddr"
+                            pattern="[0-9]{1,3}(?:\.[0-9]{1,3}){3}" title="format: dd.dd.dd.dd (0-254))">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        IP port:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="ipport" type="number" id="dbgIpPort" name="dbgIpPort" min="1" , max="65534"
+                            title="valid ports are 1-65534">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        ESP32-C3:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <select  id="dbgEsp32c3" name="dbgEsp32c3">
+                            <option value=0>None</option>
+                            <option value=1>Error</option>
+                            <option value=2>Info</option>
+                            <option value=3>Debug</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        TLSR8258:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <select  id="dbgTlsr8258" name="dbgTlsr8258">
+                            <option value=0>None</option>
+                            <option value=1>Error</option>
+                            <option value=2>Info</option>
+                            <option value=3>Debug</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <input class="submit" type="submit" value="Submit">
+        </form>
+    </body>
 
 </html>

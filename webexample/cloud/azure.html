@@ -1,73 +1,96 @@
 <html>
     <script src="/w3-include-html.js"></script>
+    <script src="/getdata.js"></script>
+    <script src="/onload.js"></script>
     <link rel="stylesheet" href="/css/style.css">
 
-<head>
-    <title>CloudSMETS - Microsoft Azure</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
+    <head>
+        <title>CloudSMETS - Microsoft Azure</title>
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
 
-<body onload="includeHTML();"">
-    <div w3-include-html="/menu.html"></div>
-    <h1>CloudSMETS - Microsoft Azure</h1>
+    <body onload="onload('/cloud/azuredata.json');"">
+        <div w3-include-html=" /menu.html">
+        </div>
+        <h1>Microsoft Azure</h1>
 
-    <table>
-        <tr>
-            <td>
-                Status:
-            </td>
-            <td>
-                Unknown
-            </td>
-        </tr>
-        <tr>
-            <td>
-                Latest message:
-            </td>
-            <td>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                Message sent:
-            </td>
-            <td>
-            </td>
-        </tr>
-    </table>
+        <form method="post" action="/azure.html">
+            <table>
+                <tr>
+                    <td>
+                        Functionality:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <select id="azFunc" name="azFunc">
+                            <option value=0>Disabled</option>
+                            <option value=1>Enable</option>
+                        </select>
 
-    <form action="/cloud/azure.html">
-        <table>
-            <tr>
-                <td>
-                    <label for="enabled">Enabled: </label>
-                    <input type="checkbox" id="enabled" name="enabled"><br><br>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="iothub">IoT hub</label><br />
-                    <input type="text" id="iothub" name="iothub" placeholder="my-iot-hub"><br><br>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="dev">Device Name:</label><br />
-                    <input type="text" id="dev" name="dev" placeholder="cloudsmets"><br><br>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="con">Connection String:</label><br />
-                    <input type="text" id="con" name="con" placeholder="HostName=my-iot-hub..."><br><br>
-                </td>
-            </tr>
-        </table>
-        <input type="submit" value="Submit">
-    </form>
-
-    <p>Click on the submit button to submit the form.</p>
-    <br />
-</body>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        IoT hub:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="azIotHub" name="azIotHub" placeholder="name.iothub.azure.com">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Device Name:</label></td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="azDevice" name="azDevice" placeholder="CloudSMETS">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Connection Strings:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="azCnct1" name="azCnct1" placeholder="HostName=name.iothub...">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="azCnct2" name="azCnct2" placeholder="HostName=name.iothub...">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Status:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input disabled type="text" id="status" value="Unknown">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Latest message:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input disabled type="text" id="latest" value="....">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Message sent:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input disabled type="text" id="sent" value="2023/11/10 12:13:14 UTZ">
+                    </td>
+                </tr>
+            </table>
+            <input class="submit" type="submit" value="Submit">
+        </form>
+    </body>
 
 </html>

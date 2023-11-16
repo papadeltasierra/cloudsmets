@@ -1,38 +1,42 @@
 <html>
     <script src="/w3-include-html.js"></script>
+    <script src="/getdata.js"></script>
+    <script src="/onload.js"></script>
     <link rel="stylesheet" href="/css/style.css">
 
-<head>
-    <title>CloudSMETS - information</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
+    <head>
+        <title>CloudSMETS - information</title>
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
 
-<body onload="includeHTML();"">
-    <div w3-include-html="/menu.html"></div>
-    <h1>CloudSMETS - Information</h1>
+    <body onload="onload('/info.json');">
+    <div w3-include-html=" /menu.html">
+        </div>
+        <h1>Information</h1>
 
-    <table>
-        <tr>
-            <td>
-                ESP32-C2 firmware:
-            </td>
-            <td>
-                1.2.3
-            </td>
-        </tr>
-        <td></td>
-        <tr>
-        </tr>
-        <tr>
-            <td>
-                TLSR8258 firmware:
-            </td>
-            <td>
-                gfjgkjdfg.67.8
-            </td>
-        </tr>
-    </table>
-    <br />
-</body>
+        <table>
+            <tr>
+                <td>
+                    ESP32-C3 firmware:
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input disabled type="text" id="infEsp32c3" value="1.2.3-dev2">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    TLSR8258 firmware:
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input disabled type="text" id="infTlsr8258" value="1.2.3-dev2">
+                </td>
+            </tr>
+        </table>
+        <br />
+    </body>
 
 </html>
