@@ -10,22 +10,24 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "msg.h"
+// !!PDS: #include "msg.h"
 
-typedef enum msg_id_t
-{
-    MSG_CFG_READ  = msg_task.CFG | 0x0001,
-    MSG_CFG_WRITE = msg_task.CFG | 0x0002,
-    MSG_CFG_RESET = msg_task.CFG | 0x0003,
-} msg_cfg_id_t;
+// !!PDS: #include "wifi.h"
+
+// typedef enum msg_id_t
+// {
+//     MSG_CFG_READ  = msg_task.CFG | 0x0001,
+//     MSG_CFG_WRITE = msg_task.CFG | 0x0002,
+//     MSG_CFG_RESET = msg_task.CFG | 0x0003,
+// } msg_cfg_id_t;
 
 // Supports up to "123.123.123-dev.123"
-typedef char cfg_firware_version_t[20];
+typedef char cfg_firmware_version_t[20];
 
 // The following are the values that can be returned.
 typedef struct
 {
-    cfg_firmware_version_t version[20];
+    cfg_firmware_version_t version;
 } cfg_cloudsmets_t;
 
 union
@@ -34,17 +36,19 @@ union
     char ipv6[16];
 } cfg_addr_t;
 
-unsigned char enum
+typedef unsigned char cfg_ipv4_or_ipv6_t;
+enum
 {
     ipv4 = 0,
     ipv6 = 1
-} cfg_ipv4_or_ipv6_t
+} cfg_ipv4_or_ipv6_e;
 
-unsigned char enum
+typedef unsigned char cfg_dhcp_t;
+enum
 {
     dhcp = 0,
     no_dhcp = 1
-} cfg_dhcp_t;
+} cfg_dhcp_e;
 
 typedef struct
 {
@@ -76,11 +80,12 @@ typedef struct
     unsigned char key[8];
 } cfg_zigbee_t;
 
-unsigned char enum
+typedef unsigned char cfg_ota_enabled_t;
+enum
 {
-    DISBALED = 0,
-    ENABLED = 1
-} cfg_ota_emabled_t;
+    disabled = 0,
+    enabled = 1
+} cfg_ota_enabled_e;
 
 typedef struct {
     char key1[8];
@@ -89,26 +94,29 @@ typedef struct {
 
 typedef struct
 {
-    cfg_ota_active_t active;
+    cfg_ota_enabled_t enabled;
     char server[128];
     cfg_sign_keys_t signing_keys;
     cfg_firmware_version_t force_version;
 } cfg_ota_t;
 
-union
+typedef union
 {
     cfg_cloudsmets_t cloudsmets;
-    cfg_wifi_t wifi;
-    cfg_cloud_t cloud;
-    cfg_azure_t azure
-    cfg_zigbee_t zigbee;
-    cfg_ota_t ota;
+    // cfg_wifi_t wifi;
+    // !!PDS: cfg_cloud_t cloud;
+    // !!PDS: cfg_azure_t azure
+    // !!PDS: cfg_zigbee_t zigbee;
+    // !!PDS: cfg_ota_t ota;
 } cfg_value_t;
 
 // The message that the configuration task receives.
 typedef struct
 {
-    unsigned short msg_id:
+    unsigned short msg_id;
     unsigned short task;
     cfg_value_t value;
 } cfg_recv_msg_t;
+
+// The actual task.
+void configuration(void *arg);

@@ -13,53 +13,83 @@
 #include "esp_log.h"
 
 // Message passing stack side.
-#define STACK_DEPTH 10
+#define QUEUE_DEPTH 10
 
 static const char* TAG = "WiFi";
-static QueueHandle_t s_xQueue = 0;
 
-typedef struct wifi_msg
-{
-    unsigned short msg:
-    unsigned short field:
-    unsigned char *value[1];
-} MSG_WIFI;
+# States
+#define WIFI_ST_POWER_ON
+#define WIFI_ST_DIRECT_STARTING
+#define WIFI_ST_DIRECT_ACTIVE
+#define WIFI_ST_STARTING
+#define WIFI_ST_ACTIVE
+#define NUM_WIFI_ST 5
 
-static BaseType_t cfg_send(MSG_WIFI *msg)
-{
-    BaseType_t rc;
+# Inputs
+#define WIFI_IN_START
+#define WIFI_IN_CFG_AVAILABLE
+#define WIFI_IN_CFG_REMOVED
+#define WIFI_IN_WIFI_FAILED
+#define WIFI_IN_DISABLE
+#define WIFI_IN_ENABLE
+#define NUM_WIFI_IN 6
 
-    if (0 == s_xQueue)
+# Actions
+#define WIFI_ACT_START_DIRECT
+#define WIFI_ACT_START
+#define WIFI_ACT_STOP
+#define WIFI_ACT_WAIT_5S
+#define NUM_WIFI_ACT 4
+
+int wifi_fsm_table[NUM_WIFI_ST][NUM_WIFI_IN] =
     {
-        ESP_LOGE(TAG, "Queue is not ready");
-        return pdFAIL;
+        {
+            WIFI_ACT_WIFI_ENABLED,
+            WIFI_ACT_INVALID,
+            WIFI_ACT_INVALID,
+            WIFI_ACT_INVALID,
+            WIFI_ACT_INVALID,
+            WIFI_ACT_INVALID
+        }
     }
 
-    rc = xQueueSend(s_xQueue, (void*)msg, (TickType_t)0);
-    if (pdPASS != rc)
+
+
+
+void wifi_fsm(unsigned long msg)
+{
+    static fsm_state = WIFI_ST_POWER_ON;
+    bool enabled = TRUE;
+    bool active = FALSE;
+
+    switch (wifi_fsm_table[fsm_state][input])
     {
-        ESP_LOGE(TAG, "Send queue full");
-    }
-    return rc;
+        case WIFI_ACT_CHECK_STATE:
+            if (enabled) {
+            } else if (active) {
+
+            }
 }
 
 void wifi(void *arg)
 {
-    s_xQueue = xQueueCreate(STACK_DEPTH, sizeof(MSG_WIFI) );
+    static QueueHandle_t s_xQueue = 0;
+    unsigned long msg;
+
+    s_xQueue = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
     if (s_xQueue == 0)
     {
-        ESP_LOGE(TAG, "Enable to create message queue.");
-        // TODO: Reboot?
-        reboot?
+        ESP_LOGE(TAG, "failed to create msg queue");
+        ESP_ERROR_CHECK(ESP_FAIL);
     }
 
     while (1)
     {
         // 6000 ticks is 1min.
-        if( xQueueReceive(s_xQueue, &(rxBuffer), (TickType_t)6000))
+        if( xQueueReceive(s_xQueue, &msg, (TickType_t)6000))
         {
-            ESP_LOGV(TAG, "Message received: %lx", 0x1234);
-            // Todo: log here.
+            ESP_LOGV(TAG, "Message received: %lx", msg);
+            wifi_fsm(msg);
         }
     }
 }
