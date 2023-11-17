@@ -1,0 +1,23 @@
+<html>
+    <script src="/w3-include-html.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+
+    <head>
+        <title>CloudSMETS - Factory Reset</title>
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
+
+    <body onload="includeHTML();"">
+    <div w3-include-html=" /menu.html">
+        </div>
+        <h1>Factory Reset</h1>
+        <div class="warning">
+            All configuration will be erased and CloudSMETS will restart when complete.<br /><br />
+            Note that this will require you to join CloudSMETS to your power network again.
+        </div>
+        <form method="get" action="/advanced/sure_reset.html">
+            <input class="factory_submit" type="submit" id="reset" value="Factory Reset">
+        </form>
+    </body>
+
+</html>

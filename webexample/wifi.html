@@ -1,36 +1,42 @@
 <html>
-
-<head>
-    <title>CloudSMETS - WiFi</title>
+    <script src="/w3-include-html.js"></script>
+    <script src="/getdata.js"></script>
+    <script src="/onload.js"></script>
     <link rel="stylesheet" href="/css/style.css">
-</head>
 
-<body>
-    <h1>CloudSMETS - WiFi</h1>
+    <head>
+        <title>CloudSMETS - WiFi</title>
+    </head>
 
-    <form action="/wifi.html">
-        <table>
-            <tr>
-                <td>
-                    <label for="ssid">SSID:</label><br />
-                    <input type="text" id="ssid" name="ssid"><br><br>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="password">Password:</label><br />
-                    <input type="text" id="password" name="password"><br><br>
-                </td>
-            </tr>
-        </table>
-        <input type="submit" value="Submit">
-    </form>
+    <body onload="onload('/wifi.json');">
+    <div w3-include-html=" /menu.html">
+        </div>
 
-    <p>Click on the submit button to submit the form.</p>
-    <br />
-    <form action="/index.html">
-        <input type="submit" value="Home" />
-    </form>
-</body>
+        <h1>WiFi Settings</h1>
+
+        <form method="post" action="/wifi.html">
+            <table>
+                <tr>
+                    <td>
+                        SSID:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="wifiSsid" name="widiSsid">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Password:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="wifiPwd" name="wifiPwd">
+                    </td>
+                </tr>
+            </table>
+            <input class="submit" type="submit" value="Submit">
+        </form>
+    </body>
 
 </html>

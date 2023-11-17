@@ -1,62 +1,72 @@
 <html>
-
-<head>
-    <title>CloudSMETS - ZigBee</title>
+    <script src="/w3-include-html.js"></script>
+    <script src="/getdata.js"></script>
+    <script src="/onload.js"></script>
     <link rel="stylesheet" href="/css/style.css">
-</head>
 
-<body>
-    <h1>CloudSMETS - ZigBee</h1>
+    <head>
+        <title>CloudSMETS - ZigBee</title>
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
 
-    <table>
-        <tr>
-            <td>
-                Status:
-            </td>
-            <td>
-                Connected
-            </td>
-        </tr>
-        <tr>
-            <td>
-                Latest message:
-            </td>
-            <td>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                Message received:
-            </td>
-            <td>
-                2022/11/12 11:33:44 UTZ
-            </td>
-        </tr>
-    </table>
+    <body onload="onload('/zigbee.json');">
+        <div w3-include-html="/menu.html">
+        </div>
 
+        <h1>ZigBee</h1>
 
-    <form action="./zigbee.html">
         <table>
             <tr>
                 <td>
-                    <label for="guid">GUID:</label><br />
-                    <input type="text" id="guid" name="guid" pattern="[\da-fA-F]{2}(?:-[\da-fA-F]{2}){5}" title="format: xx-xx-xx-xx-xx-xx (hex digits)"><br><br>
+                    Status:</td>
+            </tr>
+            <tr>
+                <td>
+                    <input disabled type="text" id="zbFunc">
+            </td>
+            </tr>
+            <tr>
+                <td>
+                    Latest message:</td>
+            </tr>
+            <tr>
+                <td>
+                    <input disabled type="text" id="zbLatest">
                 </td>
             </tr>
             <tr>
                 <td>
-                    <label for="key">Key:</label><br />
-                    <input type="text" id="key" name="key"><br><br>
+                    Message received:</td>
+            </tr>
+            <tr>
+                <td>
+                    <input disabled type="text" id="zbRcvd">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    EU164:</td>
+            </tr>
+            <tr>
+                <td>
+                    <input disabled type="text" id="zbEu164">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Link Keys:</td>
+            </tr>
+            <tr>
+                <td>
+                    <input disabled type="text" id="zbKey1">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input disabled type="text" id="zbKey2">
                 </td>
             </tr>
         </table>
-        <input type="submit" value="Submit">
-    </form>
-    <p>Click on the submit button to submit the form.</p>
-    <br />
-    <form action="/index.html">
-        <input type="submit" value="Home" />
-    </form>
-</body>
+    </body>
 
 </html>
