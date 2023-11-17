@@ -1,122 +1,69 @@
 /*
- * Copyright (c) 2023 Paul D.smith (paul@pauldsmith.org.uk).
- * License: Free to copy providing the author is acknowledged.
- *
- * Configuration store using ESP-IDF no-volatile storage.
- * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html?highlight=non%20volatile
+ * Namespaces
  */
-#pragma once
+extern const char *cfgSoftAp;
+extern const char *cfgWifi;
+extern const char *cfgWeb;
+extern const char *cfgDbg;
+extern const char *cfgOta;
+extern const char *cfgAz;
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#define CFG_NMSP_SOFTAP         cfgSoftAo
+#define CFG_NMSP_WIFI           cfgWifi
+#define CFG_NMSP_WEB            cfgWeb
+#define CFG_NMSP_DBG            cfgDbg
+#define CFG_NMSP_OTA            cfgOta
+#define CFG_NMSP_AZURE          cfgAz
 
-// !!PDS: #include "msg.h"
+/*
+ * Keys
+ */
+extern const char *cfgSoftApSsid;
+extern const char *cfgSoftApPwd;
+extern const char *cfgWifiSsid;
+extern const char *cfgWifiPwd;
+extern const char *cfgWebUser;
+extern const char *cfgWebPwd;
+extern const char *cfgDbgFunc;
+extern const char *cfgDbgBaud;
+extern const char *cfgDbgIpPort;
+extern const char *cfgDbgEsp32c3;
+extern const char *cfgDbgTlsr8258;
+extern const char *cfgOtaFunc;
+extern const char *cfgOtaUrl;
+extern const char *cfgOtaRel;
+extern const char *cfgAzFunc;
+extern const char *cfgAzIotHub;
+extern const char *cfgAzDevice;
+extern const char *cfgAzCnct1;
+extern const char *cfgAzCnct2;
 
-// !!PDS: #include "wifi.h"
+#define CFG_KEY_SOFTAP_SSID     cfgSoftApSsid
+#define CFG_KEY_SOFTAP_PWD      cfgSoftApPwd
+#define CFG_KEY_WIFI_SSID       cfgWifiSsid
+#define CFG_KEY_WIFI_PWD        cfgWifiPwd
+#define CFG_KEY_WEB_USER        cfgWebUser
+#define CFG_KEY_WEB_PWD         cfgWebPwd
+#define CFG_KEY_DBG_FUNC        cfgDbgFunc
+#define CFG_KEY_DBG_BAUD        cfgDbgBaud
+#define CFG_KEY_DBG_IP_PORT     cfgDbgIpPort
+#define CFG_KEY_DBG_ESP32C3     cfgDbgEsp32c3
+#define CFG_KEY_DBG_TLSR8258    cfgDbgTlsr8258
+#define CFG_KEY_OTA_FUNC        cfgOtaFunc
+#define CFG_KEY_OTA_URL         cfgOtaUrl
+#define CFG_KEY_OTA_REL         cfgOtaRel
+#define CFG_KEY_AZURE_FUNC      cfgAzFunc
+#define CFG_KEY_AZURE_IOTHUB    cfgAzIotHub
+#define CFG_KEY_AZURE_DEVICE    cfgAzDevice
+#define CFG_KEY_AZURE_CON1      cfgAzCnct1
+#define CFG_KEY_AZURE_CON2      cfgAzCnct2
 
-// typedef enum msg_id_t
-// {
-//     MSG_CFG_READ  = msg_task.CFG | 0x0001,
-//     MSG_CFG_WRITE = msg_task.CFG | 0x0002,
-//     MSG_CFG_RESET = msg_task.CFG | 0x0003,
-// } msg_cfg_id_t;
+/*
+ * Interface
+ */
 
-// Supports up to "123.123.123-dev.123"
-typedef char cfg_firmware_version_t[20];
-
-// The following are the values that can be returned.
-typedef struct
-{
-    cfg_firmware_version_t version;
-} cfg_cloudsmets_t;
-
-union
-{
-    char ipv4[4];
-    char ipv6[16];
-} cfg_addr_t;
-
-typedef unsigned char cfg_ipv4_or_ipv6_t;
-enum
-{
-    ipv4 = 0,
-    ipv6 = 1
-} cfg_ipv4_or_ipv6_e;
-
-typedef unsigned char cfg_dhcp_t;
-enum
-{
-    dhcp = 0,
-    no_dhcp = 1
-} cfg_dhcp_e;
-
-typedef struct
-{
-    char ssid[33];
-    char password[64];
-    cfg_dhcp_t dhcp;
-    cfg_ipv4_or_ipv6_t ipv4_ipv6;
-    cfg_ipv4_or_ipv6_t subnet;
-    cfg_ipv4_or_ipv6_t bitmask;
-    cfg_ipv4_or_ipv6_t address;
-} cgf_wifi_t;
-
-typedef struct
-{
-    // Time, in minutes, between sending updates to the cloud systems.
-    unsigned short period;
-} cfg_cloud_t;
-
-typedef struct
-{
-    char iot_hub[64];
-    char device_name[64];
-    char connection_string[128];
-} cfg_azure_t;
-
-typedef struct
-{
-    unsigned char guid[8];
-    unsigned char key[8];
-} cfg_zigbee_t;
-
-typedef unsigned char cfg_ota_enabled_t;
-enum
-{
-    disabled = 0,
-    enabled = 1
-} cfg_ota_enabled_e;
-
-typedef struct {
-    char key1[8];
-    char key2[8];
-} cfg_sign_keys_t;
-
-typedef struct
-{
-    cfg_ota_enabled_t enabled;
-    char server[128];
-    cfg_sign_keys_t signing_keys;
-    cfg_firmware_version_t force_version;
-} cfg_ota_t;
-
-typedef union
-{
-    cfg_cloudsmets_t cloudsmets;
-    // cfg_wifi_t wifi;
-    // !!PDS: cfg_cloud_t cloud;
-    // !!PDS: cfg_azure_t azure
-    // !!PDS: cfg_zigbee_t zigbee;
-    // !!PDS: cfg_ota_t ota;
-} cfg_value_t;
-
-// The message that the configuration task receives.
-typedef struct
-{
-    unsigned short msg_id;
-    unsigned short task;
-    cfg_value_t value;
-} cfg_recv_msg_t;
-
-// The actual task.
-void configuration(void *arg);
+extern void cfgInit(void);
+extern void cfgReadUnint8(char *namespace, char *key);
+extern void cfgReadStr(char *namespace, char *key);
+extern void cfgWriteUint8(char *namespace, char *key, );
+extern void cfgWriteStr(char *namespace, char *key);
