@@ -63,6 +63,8 @@ extern const char *cfgAzCnct2;
  */
 
 extern void cfgInit(void);
+extern void cfgDefaultUint8(char *namespace, char *key, uint8_t default);
+extern void cfgDefaultStr(char *namespace, char *key, char * default);
 extern void cfgReadUnint8(char *namespace, char *key);
 extern void cfgReadStr(char *namespace, char *key);
 extern void cfgWriteUint8(char *namespace, char *key, );

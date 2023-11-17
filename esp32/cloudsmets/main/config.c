@@ -84,8 +84,48 @@ const char *cfgAzCnct2 = "azCnct2";
 void cfgInit(void)
 {
     /*
-     * No configuration required.
+     * Read NVS stats to confirm that the partition is correctly set-up.
      */
+    nvs_stats_t nvs_stats;
+
+    ESP_ERROR_CHECK(nvs_get_stats(NULL, &nvs_stats));
+
+    ESP_LOGI(TAG, "Count: UsedEntries = (%d), FreeEntries = (%d), AllEntries = (%d)",
+          nvs_stats.used_entries, nvs_stats.free_entries, nvs_stats.total_entries);
+}
+
+void cfgDefaultUint8(char *namespace, char *key, uint8_t default)
+{
+    static nvs_handle_t handle;
+    uint8_t existing;
+    err_t err_rc;
+
+    ESP_ERROR_CHECK(nvs_open(namespace, NVS_READWRITE, &handle);
+    err_rc = nvs_get_u8(handle, key, existing);
+    if (err_rc == ESP_ERR_NVS_NOT_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_set_u8(handle, key, default));
+        err_rc = nvs_commit(handle);
+    }
+    nvs_close(handle);
+    ESP_ERROR_CHECK(err_rc);
+}
+
+void cfgDefaultStr(char *namespace, char *key, char * default)
+{
+    static nvs_handle_t handle;
+    size_t length;
+    err_t err_rc;
+
+    ESP_ERROR_CHECK(nvs_open(namespace, NVS_READWRITE, &handle);
+    err_rc = nvs_get_str(handle, key, NULL, &length);
+    if (err_rc == ESP_ERR_NVS_NOT_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_set_str(handle, key, default));
+        err_rc = nvs_commit(handle);
+    }
+    nvs_close(handle);
+    ESP_ERROR_CHECK(err_rc);
 }
 
 void cfgReadUnint8(char *namespace, char *key, uint8_t *value);
@@ -96,7 +136,7 @@ void cfgReadUnint8(char *namespace, char *key, uint8_t *value);
     nvs_close(handle);
 }
 
-extern void cfgReadStr(char *namespace, char *key, char *value, size_t *length);
+void cfgReadStr(char *namespace, char *key, char *value, size_t *length);
 {
     static nvs_handle_t handle;
 
@@ -106,7 +146,7 @@ extern void cfgReadStr(char *namespace, char *key, char *value, size_t *length);
 }
 
 
-extern void cfgWriteUint8(char *namespace, char *key, )
+void cfgWriteUint8(char *namespace, char *key, )
 {
     static nvs_handle_t handle;
 
@@ -116,7 +156,7 @@ extern void cfgWriteUint8(char *namespace, char *key, )
     nvs_close(handle);
 }
 
-extern void cfgWriteStr(char *namespace, char *key, char *value)
+void cfgWriteStr(char *namespace, char *key, char *value)
 {
     static nvs_handle_t handle;
 

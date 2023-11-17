@@ -24,3 +24,6 @@ azIotHub,data,string,
 azDevice,data,string,
 azCnct1,data,string,
 azCnct2,data,string,
+certificates,namespace,,
+DGRG2,file,string,../certs/DigiCertGlobalRootG2.crt
+MswRSARoot2017,file,string,../certs/MicrosoftRSARootCertificateAuthority2017.crt
