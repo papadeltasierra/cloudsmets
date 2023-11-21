@@ -4,6 +4,7 @@
 sequenceDiagram;
 
     participant m;
+    participant cl;
 
     create participant cl;
     m->>cl: Create
