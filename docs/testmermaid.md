@@ -6,9 +6,9 @@ sequenceDiagram;
     participant m as main;
 
     create participant cl as cloud;
-    m->>cl: Create<br/>(queueId);
+    m->>cl: Create
 
     create participant az as Azure;
-    cl->>az: Create<br/>(queueId);
-    az->>cl: Created<br/>(queueId);
+    cl->>az: Create
+    az->>cl: Created
 ```
