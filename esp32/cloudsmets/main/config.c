@@ -78,6 +78,50 @@ const char *cfgAzCnct1 = "azCnct1";
 const char *cfgAzCnct2 = "azCnct2";
 
 /*
+ * Web server helper definitions.
+ */
+cfgDefinitions_t cfgSoftApDefinitions[] =
+{
+    { CFG_KEY_SOFTAP_SSID, NVS_TYPE_STR, 63 },
+    { CFG_KEY_SOFTAP_PWD, NVS_TYPE_STR, 32 },
+    { NULL, NVS_TYPE_ANY, -1 }
+};
+
+cfgDefinitions_t cfgWifiDefinitions[] =
+{
+    { CFG_KEY_WIFI_SSID, NVS_TYPE_STR, 63 },
+    { CFG_KEY_WIFI_PWD, NVS_TYPE_STR, 32 },
+    { NULL, NVS_TYPE_ANY, -1 }
+};
+
+cfgDefinitions_t cfgWebDefinitions[] =
+{
+    { CFG_KEY_WEB_USER, 32 },
+    { CFG_KEY_WEB_PWD, 32 },
+    { NULL, -1 }
+};
+
+cfgDefinitions_t cfgDbgDefinitions[] =
+{
+    { CFG_KEY_DBG_FUNC, NVS_TYPE_U8, -1 },
+    { CFG_KEY_DBG_BAUD, NVS_TYPE_U32, -1 },
+    { CFG_KEY_DBG_IP_PORT, NVS_TYPE_U16, -1 },
+    { CFG_KEY_DBG_ESP32C3, NVS_TYPE_U8, -1 },
+    { CFG_KEY_DBG_TLSR8258, NVS_TYPE_U8, -1 },
+    { NULL, -1 }
+};
+
+cfgDefinitions_t cfgWifiDefinitions[] =
+{
+    { CFG_KEY_WIFI_SSID, 63 },
+    { CFG_KEY_WIFI_PWD, 32 },
+    { NULL, -1 }
+};
+
+
+
+
+/*
  * AWS and GCP are unsupported at this time so no configuration required.
  */
 

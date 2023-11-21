@@ -59,6 +59,25 @@ extern const char *cfgAzCnct2;
 #define CFG_KEY_AZURE_CON2      cfgAzCnct2
 
 /*
+ * Define some structures to make writing the web server simpler.
+ */
+typedef struct cfgDefinitions_t
+{
+    const char *key;
+    nvs_type_t type;
+    size_t length;
+};
+
+/*
+ * Web server helper definitions.
+ */
+extern cfgDefinitions_t cfgSoftApDefinitions[];
+extern cfgDefinitions_t cfgWifiDefinitions[];
+extern cfgDefinitions_t cfgWebDefinitions[];
+extern cfgDefinitions_t cfgDbgDefinitions[];
+extern cfgDefinitions_t cfgWifiDefinitions[];
+
+/*
  * Interface
  */
 

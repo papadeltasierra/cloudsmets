@@ -1,6 +1,8 @@
 # CloudSMETS NVS Generation
 Ref: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_partition_gen.html
 
+> TODO: Document how we set-up a T-ZigBee and configure it using the CSV file.
+
 ESP32's non-Volatile Storage (NVS) can be preloaded based on a CSV file and this is used by CloudSMETS as follows.
 
 - Version 0 of CloudSMETS creates an initial NVS partition complete with the namespaces and keys expected

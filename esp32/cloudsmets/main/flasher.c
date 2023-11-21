@@ -8,8 +8,9 @@
  */
 #include "esp_timer.h"
 
-#define SHORT_PERIOD
-#define LONG_PERIOD
+// ESP32 timers rnu in microseconds.
+#define SHORT_PERIOD    500000          // 0.5 seconds
+#define LONG_PERIOD     1500000         // 1.5 seconds
 
 #define BLUE_LED        GPIO_NUM_3
 

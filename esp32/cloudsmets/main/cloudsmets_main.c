@@ -27,6 +27,7 @@
 
 void app_main(void)
 {
+    static SOMETHING webTaskParms;
     /*
      * Perform start-of-day checking.
      */
@@ -52,7 +53,7 @@ void app_main(void)
     // PD_ERROR_CHECK(xTaskCreate(wifiTask, "Wifi", 4096, NULL, 10, &myTaskHandle));
     // PD_ERROR_CHECK(xTaskCreate(softApTask, "SoftAp", 4096, NULL, 10, &myTaskHandle));
     // PD_ERROR_CHECK(xTaskCreate(stnTask, "Stn", 4096, NULL, 10, &myTaskHandle));
-    // PD_ERROR_CHECK(xTaskCreate(webTask, "Web", 4096, NULL, 10, &myTaskHandle));
+    // PD_ERROR_CHECK(xTaskCreate(webTask, "Web", 4096, &webTaskParms, 10, &myTaskHandle));
     // PD_ERROR_CHECK(xTaskCreate(zbTask, "ZigBee", 4096, NULL, 10, &myTaskHandle));
     // PD_ERROR_CHECK(xTaskCreate(cloudTask, "Cloud", 4096, NULL, 10, &myTaskHandle));
     // PD_ERROR_CHECK(xTaskCreate(azTask, "Azure", 4096, NULL, 10, &myTaskHandle));
