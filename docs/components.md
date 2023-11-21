@@ -1,5 +1,5 @@
 # Component Creation etc.
-```mermaid
+```mermaid 
 
 sequenceDiagram;
 
