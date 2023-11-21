@@ -3,13 +3,12 @@
 
 sequenceDiagram;
 
-    participant m;
-    participant cl;
+    participant m as main;
 
-    create participant cl;
-    m->>cl: Create
+    participant cl as cloud;
+    m->>cl: Create<br/>(queueId);
 
-    participant az;
-    cl->>az: Create
-    az->>cl: Created
+    participant az as Azure;
+    cl->>az: Create<br/>(queueId);
+    az->>cl: Created<br/>(queueId);
 ```
