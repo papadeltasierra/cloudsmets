@@ -5,10 +5,10 @@ sequenceDiagram;
 
     participant m;
 
-    create participant cl;
+    participant cl;
     m->>cl: Create
 
-    create participant az;
+    participant az;
     cl->>az: Create
     az->>cl: Created
 ```
