@@ -24,10 +24,102 @@
 #define TAG "HB"
 #define QUEUE_DEPTH 10
 
+#define Q_ERROR_CHECK(QUEUE, TASK)                                            \
+    if ((QUEUE) == 0)                                                         \
+    {                                                                         \
+        ESP_LOGE(TAG, "Queue creation for '%s' task failed.", (TASK));        \
+        ESP_ERROR_CHECK(ESP_FAIL);                                            \
+    }
+
+
+
+typedef struct
+{
+    int msgType;
+    QueueHandle_t cloud_q;
+    QueueHandle_t main_q;
+} CloudCreateMsg_t;
+
+typedef struct
+{
+    int msgType;
+    QueueHandle_t azure_q;
+    QueueHandle_t cloud_q;
+} AzureCreateMsg_t;
+
+typedef struct
+{
+    int msgType;
+    QueueHandle_t zigbee_q;
+    QueueHandle_t cloud_q;
+} ZigBeeCreateMsg_t;
+
+typedef struct
+{
+    int msgType;
+    QueueHandle_t zbhci_q;
+    QueueHandle_t zigbee_q;
+} ZbhciCreateMsg_t;
+
+typedef struct
+{
+    int msgType;
+    QueueHandle_t stn_q;
+    QueueHandle_t wifi_q;
+} StnCreateMsg_t;
+
+typedef struct
+{
+    int msgType;
+    QueueHandle_t softap_q;
+    QueueHandle_t wifi_q;
+} SoftApCreateMsg_t;
+
+typedef struct
+{
+    int msgType;
+    QueueHandle_t wifi_q;
+    QueueHandle_t softap_q;
+    QueueHandle_t station_q;
+    QueueHandle_t web_q;
+} WiFiCreateMsg_t;
+
+typedef struct
+{
+    int msgType;
+    QueueHandle_t stn_q;
+    QueueHandle_t web_q;
+    QueueHandle_t softap_q;
+    QueueHandle_t azure_q;
+} WebCreateMsg_t;
+
+typedef struct {
+    int msgType;
+} StartMsg_t;
+
+union {
+    CloudCreateMsg_t cloud;
+    AzureCreateMsg_t azure;
+    ZigBeeCreateMsg_t zigbee;
+    ZbhciCreateMsg_t zbhic;
+    StnCreateMsg_t stn;
+    SoftApCreateMsg_t softap;
+    WiFiCreateMsg_t wifi;
+    WebCreateMsg_t web;
+    StartMsg_t start;
+} Msg_t;
+
 
 void app_main(void)
 {
     static SOMETHING webTaskParms;
+    static QueueHandle_t main_q = 0;
+    static QueueHandle_t wifi_q = 0;
+    Msg_t msg;
+    /*
+     * The remaining queue handles are only used during initialization.
+     */
+    QueueHandle_t
     /*
      * Perform start-of-day checking.
      */
@@ -36,37 +128,74 @@ void app_main(void)
     startOfDay();
 
     /*
-     * Now start the processes that form CloudSMETs.
-     *
-     * - wifi; the WiFi co-ordinator
-     * - softAP; the local soft-access-point
-     * - stn; the WiFi client that normally connects to your router AP.
-     * - web; the web server used to configure CloudSMETS
-     * - zb; the ZigBee handler
-     * - cloud; the cloud connection(s) co-ordinator
-     * - az; the Azure handler
-     * - aws; the Amazon web services handler
-     * - gcp; the Google Cloud Platform handler.
-     *
+     * Now start the processes that form CloudSMETs.  To do this we use this process:
+     * - Create all the queues on which the tasks will listen
+     * - On creation, pass each task the queue that it will listen on plus
+     *   any queues that it needs to send to in oder to communicate with other
+     *   processes.
      */
-    ESP_LOGI(MAIN, "Creating tasks...");
-    // PD_ERROR_CHECK(xTaskCreate(wifiTask, "Wifi", 4096, NULL, 10, &myTaskHandle));
-    // PD_ERROR_CHECK(xTaskCreate(softApTask, "SoftAp", 4096, NULL, 10, &myTaskHandle));
-    // PD_ERROR_CHECK(xTaskCreate(stnTask, "Stn", 4096, NULL, 10, &myTaskHandle));
-    // PD_ERROR_CHECK(xTaskCreate(webTask, "Web", 4096, &webTaskParms, 10, &myTaskHandle));
-    // PD_ERROR_CHECK(xTaskCreate(zbTask, "ZigBee", 4096, NULL, 10, &myTaskHandle));
-    // PD_ERROR_CHECK(xTaskCreate(cloudTask, "Cloud", 4096, NULL, 10, &myTaskHandle));
-    // PD_ERROR_CHECK(xTaskCreate(azTask, "Azure", 4096, NULL, 10, &myTaskHandle));
-    // PD_ERROR_CHECK(xTaskCreate(awsTask, "AWS", 4096, NULL, 10, &myTaskHandle));
-    // PD_ERROR_CHECK(xTaskCreate(gcpTask, "GCP", 4096, NULL, 10, &myTaskHandle));
+    ESP_LOGI(TAG, "Creating queues...");
+    main_q = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
+    cloud_q = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
+    azure_q = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
+    zigbee_q = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
+    zbhci_q = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
+    wifi_q = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
+    stn_q = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
+    softap_q = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
+    web_q = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
+    Q_ERROR_CHECK(cloud_q, "Cloud");
+    Q_ERROR_CHECK(azure_q, "Azure");
+    Q_ERROR_CHECK(zigbee_q, "ZigBee");
+    Q_ERROR_CHECK(zbhci_q, "zbhci");
+    Q_ERROR_CHECK(wifi_q, "Wifi");
+    Q_ERROR_CHECK(stn_q, "Stn");
+    Q_ERROR_CHECK(softap_q, "SoftAP");
+    Q_ERROR_CHECK(web_q, "Web");
 
     /*
-     * Start the ball rolling by asking the wiFi co-ordinator to connect us
-     * to the internet or start a softAP for configuration purposes.
+     * Note that we don't care about the task handles.
      */
+    ESP_LOGI(TAG, "Creating tasks...");
+    msg.cloud.type = MSG_TASK_CREATE;
+    msg.cloud.cloud_q = cloud_q;
+    msg.cloud.main_q = main_q;
+    PD_ERROR_CHECK(xTaskCreate(cloudTask, "Cloud", 4096, &msg, 10, &myTaskHandle));
 
-    // Do we want a heartbeat monitor and if so, for what?  Probably the
-    // ZigBee and cloud services that are active?
+    msg.azure.azure_q = azure_q;
+    msg.azure.cloud_q = cloud_q;
+    PD_ERROR_CHECK(xTaskCreate(azTask, "Azure", 4096, &msg, 10, &myTaskHandle));
+
+    msg.zigbee.zigbee_q = zigbee_q;
+    msg.zigbee.cloud_q = cloud_q;
+    PD_ERROR_CHECK(xTaskCreate(zbTask, "ZigBee", 4096, &msg, 10, &myTaskHandle));
+
+    msg.wifi.wifi_q = wifi_q;
+    msg.wifi.main_q = main_q;
+    PD_ERROR_CHECK(xTaskCreate(wifiTask, "Wifi", 4096, &msg, 10, &myTaskHandle));
+
+    msg.softap.softap_q = azure_q;
+    msg.softap.wifi_q = cloud_q;
+    PD_ERROR_CHECK(xTaskCreate(softApTask, "SoftAp", 4096, &msg, 10, &myTaskHandle));
+
+    msg.stn.stn_q = azure_q;
+    msg.stn.wifi_q = cloud_q;
+    PD_ERROR_CHECK(xTaskCreate(stnTask, "Stn", 4096, &msg, 10, &myTaskHandle));
+
+    /*
+     * Web server needs to know about any task that can be configured.
+     */
+    msg.web.web_q = web_q;
+    msg.web.stn_q = stn_q;
+    msg.web.softap_q = softap_q;
+    msg.web.azure_q = azure_q;
+    PD_ERROR_CHECK(xTaskCreate(webTask, "Web", 4096, &msg, 10, &myTaskHandle));
+
+    /*
+     * Start the ball rolling by starting WiFi.
+     */
+    msg.start.type = MSG_TYPE_START;
+    xQueueSend(wifi_q, &msg, 1000);
 }
 
 void startOfDay()
