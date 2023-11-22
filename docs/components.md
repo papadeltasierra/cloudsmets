@@ -14,7 +14,7 @@ sequenceDiagram;
     m->>az: Create<br/>(cloud/Azure Qs);
 
     create participant zb as ZigBee;
-    m->>zb: Create<br/>(ZigBee Q);
+    m->>zb: Create<br/>(ZigBee/cloud Qs);
 
     create participant zh as zbhci<br/>Serial port;
     m->>zh: Create<br/>(ZigBee/serial Qs);
