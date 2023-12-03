@@ -26,6 +26,8 @@
 /* Link to the web source files, embedded in the image. */
 extern const uint8_t index_html_start[]   asm("_binary_index_html_start");
 extern const uint8_t index_html_end[]     asm("_binary_index_html_end");
+extern const uint8_t menu_html_start[]    asm("_binary_menu_html_start");
+extern const uint8_t menu_html_end[]      asm("_binary_menu_html_end");
 extern const uint8_t wifi_html_start[]    asm("_binary_wifi_html_start");
 extern const uint8_t wifi_html_end[]      asm("_binary_wifi_html_end");
 extern const uint8_t web_html_start[]     asm("_binary_web_html_start");
@@ -34,12 +36,19 @@ extern const uint8_t ota_html_start[]     asm("_binary_ota_html_start");
 extern const uint8_t ota_html_end[]       asm("_binary_ota_html_end");
 extern const uint8_t style_css_start[]    asm("_binary_style_css_start");
 extern const uint8_t style_css_end[]      asm("_binary_style_css_end");
+extern const uint8_t getdata_js_start[]   asm("_binary_getdata_js_start");
+extern const uint8_t getdata_js_end[]     asm("_binary_getdata_js_end");
+extern const uint8_t w3_include_html_js_start[] asm("_binary_w3_include_html_js_start");
+extern const uint8_t w3_include_html_js_end[]   asm("_binary_w3_include_html_js_end");
 
 #define index_html_len  (size_t)(index_html_end - index_html_start)
+#define menu_html_len   (size_t)(menu_html_end - menu_html_start)
 #define wifi_html_len   (size_t)(wifi_html_end - wifi_html_start)
 #define web_html_len    (size_t)(web_html_end - web_html_start)
 #define ota_html_len    (size_t)(ota_html_end - ota_html_start)
 #define style_css_len   (size_t)(style_css_end - style_css_start)
+#define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start)
+#define w3_include_html_js_len  (size_t)(w3_include_html_js_end - w3_include_html_js_start)
 
 /* Event loops (exccept for the default loop, used by Wifi) */
 esp_event_loop_handle_t web_event_loop_handle = NULL;
@@ -54,6 +63,13 @@ static esp_err_t get_index_html_handler(httpd_req_t *req)
     ESP_LOGV(TAG, "GET index.html");
     return httpd_resp_send(req, (char *)index_html_start, index_html_len);
 }
+
+static esp_err_t get_menu_html_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "GET menu.html");
+    return httpd_resp_send(req, (char *)menu_html_start, menu_html_len);
+}
+
 static esp_err_t get_wifi_html_handler(httpd_req_t *req)
 {
     ESP_LOGV(TAG, "GET wifi.html");
@@ -74,8 +90,20 @@ static esp_err_t get_ota_html_handler(httpd_req_t *req)
 
 static esp_err_t get_style_css_handler(httpd_req_t *req)
 {
-    ESP_LOGV(TAG, "GET stye.css");
+    ESP_LOGV(TAG, "GET style.css");
     return httpd_resp_send(req, (char *)style_css_start, style_css_len);
+}
+
+static esp_err_t get_getdata_js_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "GET getdata.js");
+    return httpd_resp_send(req, (char *)getdata_js_start, getdata_js_len);
+}
+
+static esp_err_t get_w3_include_html_js_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "GET w3_include_html_js");
+    return httpd_resp_send(req, (char *)w3_include_html_js_start, w3_include_html_js_len);
 }
 
 static esp_err_t get_json_handler(
@@ -279,6 +307,13 @@ static httpd_uri_t uri_get_index_html = {
     .user_ctx = NULL
 };
 
+static httpd_uri_t uri_get_menu_html = {
+    .uri      = "/menu.html",
+    .method   = HTTP_GET,
+    .handler  = get_menu_html_handler,
+    .user_ctx = NULL
+};
+
 static httpd_uri_t uri_get_wifi_html = {
     .uri      = "/wfi.html",
     .method   = HTTP_GET,
@@ -304,6 +339,20 @@ static httpd_uri_t uri_get_style_css = {
     .uri      = "/style.css",
     .method   = HTTP_GET,
     .handler  = get_style_css_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_get_w3_include_html_js = {
+    .uri      = "/w3-include-html.js",
+    .method   = HTTP_GET,
+    .handler  = get_w3_include_html_js_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_get_getdata_js = {
+    .uri      = "/getdata.js",
+    .method   = HTTP_GET,
+    .handler  = get_getdata_js_handler,
     .user_ctx = NULL
 };
 
@@ -414,10 +463,13 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
      */
     ESP_ERROR_CHECK(httpd_start(&server, &config));
     ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_index_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_menu_html));
     ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_wifi_html));
     ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_web_html));
     ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_ota_html));
     ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_style_css));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_getdata_js));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_w3_include_html_js));
     ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_wifi_json));
     ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_web_json));
     ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_ota_json));
