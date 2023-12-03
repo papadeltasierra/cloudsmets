@@ -5,58 +5,95 @@
  * Configuration store using ESP-IDF no-volatile storage.
  * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html?highlight=non%20volatile
  */
-#pragma once
-
 // TODO: Are these headers correct?
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
-#include "web.h"
-#include "cfg.h"
+#include "esp_http_server.h"
+#include "esp_netif.h"
+#include "http_parser.h"
+#include "cs_web.h"
+#include "cs_cfg.h"
 
-// Message passing stack side.
-#define STACK_DEPTH 10
+#define TAG cs_web_task_name
 
-static const char* TAG = "Web";
-static QueueHandle_t s_xQueue = 0;
+/* Task configuration */
+#define CS_TASK_TICKS_TO_WAIT       CONFIG_CS_TASK_TICKS_TO_WAIT
 
-typedef field_t
+/* Web server configuration */
+#define CS_WEB_LISTEN_PORT          CONFIG_CS_WEB_LISTEN_PORT
+
+/* Link to the web source files, embedded in the image. */
+extern const uint8_t index_html_start[]   asm("_binary_index_html_start");
+extern const uint8_t index_html_end[]     asm("_binary_index_html_end");
+extern const uint8_t wifi_html_start[]    asm("_binary_wifi_html_start");
+extern const uint8_t wifi_html_end[]      asm("_binary_wifi_html_end");
+extern const uint8_t web_html_start[]     asm("_binary_web_html_start");
+extern const uint8_t web_html_end[]       asm("_binary_web_html_end");
+extern const uint8_t ota_html_start[]     asm("_binary_ota_html_start");
+extern const uint8_t ota_html_end[]       asm("_binary_ota_html_end");
+extern const uint8_t style_css_start[]    asm("_binary_style_css_start");
+extern const uint8_t style_css_end[]      asm("_binary_style_css_end");
+
+#define index_html_len  (size_t)(index_html_end - index_html_start)
+#define wifi_html_len   (size_t)(wifi_html_end - wifi_html_start)
+#define web_html_len    (size_t)(web_html_end - web_html_start)
+#define ota_html_len    (size_t)(ota_html_end - ota_html_start)
+#define style_css_len   (size_t)(style_css_end - style_css_start)
+
+/* Event loops (exccept for the default loop, used by Wifi) */
+esp_event_loop_handle_t web_event_loop_handle = NULL;
+esp_event_loop_handle_t ota_event_loop_handle = NULL;
+
+/**
+ * We could have a table look-up for pages but it is far simpler to just have
+ * a handler per page and be done with it.
+*/
+static esp_err_t get_index_html_handler(httpd_req_t *req)
 {
-    char *key;
-    int type;
+    ESP_LOGV(TAG, "GET index.html");
+    return httpd_resp_send(req, (char *)index_html_start, index_html_len);
+}
+static esp_err_t get_wifi_html_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "GET wifi.html");
+    return httpd_resp_send(req, (char *)wifi_html_start, wifi_html_len);
 }
 
-field_t wifi_map[] = {
-    {CFG_KEY_WIFI_SSID, NVS_TYPE_STR},
-    {CFG_KEY_WIFI_PWD, NVS_TYPE_STR},
-    {NULL, NVS_TYPE_ANY}
-};
-
-// TODO: requires URL encode/decode functionality.
-
-esp_err_t get_handler_wifi_html(httpd_req_t *req)
+static esp_err_t get_web_html_handler(httpd_req_t *req)
 {
-    // Where does the file come from?
-    httpd_resp_send(req, buffer, HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
+    ESP_LOGV(TAG, "GET web.html");
+    return httpd_resp_send(req, (char *)web_html_start, web_html_len);
 }
 
-esp_err_t get_handler_wifi_json(httpd_req_t *req)
+static esp_err_t get_ota_html_handler(httpd_req_t *req)
 {
-    return get_handler_json(req, CFG_NMSP_WWIFI, cfgWiFiDefinitions);
+    ESP_LOGV(TAG, "GET ota.html");
+    return httpd_resp_send(req, (char *)ota_html_start, ota_html_len);
 }
 
-esp_err_t get_handler_json(httpd_req_t *req, const char *namespace, const cfgDefinitions_t *definitions)
+static esp_err_t get_style_css_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "GET stye.css");
+    return httpd_resp_send(req, (char *)style_css_start, style_css_len);
+}
+
+static esp_err_t get_json_handler(
+    httpd_req_t *req,
+    const char *namespace,
+    const cs_cfg_definitions_t *definitions)
 {
     esp_err_t esp_rc = ESP_OK;
-    bool first = TRUE;
     size_t s_length;
 
     int length;
+    char buffer[128];
     char *ptr = buffer;
-    u8_t u8_val;
+    uint8_t u8_value;
+    uint16_t u16_value;
+    uint32_t u32_value;
 
-    length = sprintf(ptr, "{\"%s\":", map->key);
+    length = sprintf(ptr, "{\"%s\":", definitions->key);
     ptr += length;
     do
     {
@@ -64,37 +101,36 @@ esp_err_t get_handler_json(httpd_req_t *req, const char *namespace, const cfgDef
         {
             case NVS_TYPE_STR:
                 *ptr++ = '"';
-                cfgReadStr(namespace, definitions->key, ptr, &s_length);
+                cs_cfg_read_str(namespace, definitions->key, ptr, &s_length);
                 ptr += s_length;
                 *ptr++ = '"';
                 *ptr++ = ',';
                 break;
 
             case NVS_TYPE_U8:
-                cfgReadStr(namespace, definitions->key, &u8_value);
-                length = sprintf("%hd,", (unsigned short)u8_value);
+                cs_cfg_read_uint8(namespace, definitions->key, &u8_value);
+                length = sprintf(ptr, "%hd,", (unsigned short)u8_value);
                 ptr += s_length;
                 break;
 
             case NVS_TYPE_U16:
-                cfgReadStr(namespace, definitions->key, &u16_value);
-                length = sprintf("%hd,", (unsigned short)u16_value);
+                cs_cfg_read_uint16(namespace, definitions->key, &u16_value);
+                length = sprintf(ptr, "%hd,", (unsigned short)u16_value);
                 ptr += s_length;
                 break;
 
             case NVS_TYPE_U32:
-                cfgReadStr(namespace, definitions->key, &u32_value);
-                length = sprintf("%ld,", (unsigned long)u32_value);
+                cs_cfg_read_uint32(namespace, definitions->key, &u32_value);
+                length = sprintf(ptr, "%ld,", (unsigned long)u32_value);
                 ptr += s_length;
                 break;
 
             default:
                 ESP_LOGE(TAG, "Unsupported type: %d", definitions->type);
-                httpd_resp_send_err(r, HTTPD_400_BAD_REQUEST, NULL);
-                rc = ESP_FAIL;
+                esp_rc = ESP_FAIL;
                 break;
         }
-    } while ((++definitions)->field != NULL);
+    } while ((++definitions)->key != NULL);
 
     if (esp_rc == ESP_OK)
     {
@@ -108,13 +144,31 @@ esp_err_t get_handler_json(httpd_req_t *req, const char *namespace, const cfgDef
     return esp_rc;
 }
 
-/* Our URI handler function to be called during POST /uri request */
-esp_err_t post_wif_html_handler(httpd_req_t *req)
+static esp_err_t get_wifi_json_handler(httpd_req_t *req)
 {
-    return post_html_handler(req, CFG_NMSP_WIFI, wifi_map);
+    ESP_LOGV(TAG, "GET wifi.json");
+    return get_json_handler(req, CS_CFG_NMSP_WIFI, cs_cfg_wifi_definitions);
 }
 
-esp_err_t post_html_handler(httpd_req_t *req, char *namespace, const cfgDefinitions_t *definitions)
+static esp_err_t get_web_json_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "GET web.json");
+    return get_json_handler(req, CS_CFG_NMSP_WEB, cs_cfg_web_definitions);
+}
+
+static esp_err_t get_ota_json_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "GET ota.json");
+    return get_json_handler(req, CS_CFG_NMSP_OTA, cs_cfg_ota_definitions);
+}
+
+static esp_err_t post_html_handler(
+    httpd_req_t *req,
+    const char *namespace,
+    const cs_cfg_definitions_t *definitions,
+    esp_event_loop_handle_t event_loop_handle,
+    esp_event_base_t event_base,
+    int32_t event_id)
 {
     /* Destination buffer for content of HTTP POST request.
      * httpd_req_recv() accepts char* only, but content could
@@ -124,9 +178,11 @@ esp_err_t post_html_handler(httpd_req_t *req, char *namespace, const cfgDefiniti
     esp_err_t esp_rc = ESP_OK;
     char content[1024];
     char value[1024];
+    uint16_t u16_value;
+    uint32_t u32_value;
 
     /* Truncate if content length larger than the buffer */
-    size_t recv_size = MIN(req->content_len, sizeof(content));
+    size_t recv_size = req->content_len < sizeof(content) ? req->content_len : sizeof(content);
 
     int ret = httpd_req_recv(req, content, recv_size);
     if (ret <= 0) {  /* 0 return value indicates connection closed */
@@ -143,110 +199,229 @@ esp_err_t post_html_handler(httpd_req_t *req, char *namespace, const cfgDefiniti
 
     do
     {
-        ESP_ERROR_CHECK(httpd_query_key_value(buffer, definitions->key, value, sizeof(value));
+        ESP_ERROR_CHECK(httpd_query_key_value(content, definitions->key, value, sizeof(value)));
         switch (definitions->type)
         {
             case NVS_TYPE_STR:
-                cfgWriteStr(namespace, definitions->field, buffer, ????);
+                /* Strings must be NULL terminated. */
+                cs_cfg_write_str(namespace, definitions->key, value);
                 break;
 
             case NVS_TYPE_U8:
-                sscanf(buffer, "%hd", &u16_value);
-                cfgWriteU8(namespace, definitions->field, (u8_t)u16_value);
+                sscanf(value, "%hd", &u16_value);
+                cs_cfg_write_uint8(namespace, definitions->key, (uint8_t)u16_value);
                 break;
 
             case NVS_TYPE_U16:
-                sscanf(buffer, "%hd", &u16_value);
-                cfgWriteU16(namespace, definitions->field, (u16_t)u16_value);
+                sscanf(value, "%hd", &u16_value);
+                cs_cfg_write_uint16(namespace, definitions->key, (uint16_t)u16_value);
                 break;
 
             case NVS_TYPE_U32:
-                sscanf(buffer, "%ld", &u32_value);
-                cfgWriteU32(namespace, definitions->field, u32_value);
+                sscanf(value, "%ld", &u32_value);
+                cs_cfg_write_uint32(namespace, definitions->key, u32_value);
                 break;
 
             default:
                 ESP_LOGE(TAG, "Unsupported type: %d", definitions->type);
-                httpd_resp_send_err(r, HTTPD_400_BAD_REQUEST, NULL);
-                rc = ESP_FAIL;
+                esp_rc = ESP_FAIL;
                 break;
         }
-    } while ((++definitions)->field != NULL);
+    } while ((++definitions)->key != NULL);
 
     if (esp_rc == ESP_OK)
     {
         httpd_resp_send(req, NULL, 0);
     }
+    else
+    {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, NULL);
+    }
+
+    /* Finally, send a config change notification to the appropriate component. */
+    if (event_loop_handle == NULL)
+    {
+        /* Component uses the default loop. */
+        esp_event_post(event_base, event_id, NULL, 0, CS_TASK_TICKS_TO_WAIT);
+    }
+    else
+    {
+        esp_event_post_to(event_loop_handle, event_base, event_id, NULL, 0, CS_TASK_TICKS_TO_WAIT);
+    }
+
     return ESP_OK;
 }
 
-/* URI handler structure for GET /uri */
-httpd_uri_t uri_get_wifi_html = {
-    .uri      = "/wifi.html",
+/* Our URI handler function to be called during POST /uri request */
+static esp_err_t post_wifi_html_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "POST wifi.html");
+    return post_html_handler(req, CS_CFG_NMSP_WIFI, cs_cfg_wifi_definitions, NULL, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
+}
+
+static esp_err_t post_ota_html_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "POST ota.html");
+    return post_html_handler(req, CS_CFG_NMSP_OTA, cs_cfg_ota_definitions, ota_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
+}
+
+static esp_err_t post_web_html_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "POST web.html");
+    return post_html_handler(req, CS_CFG_NMSP_WEB, cs_cfg_web_definitions, web_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
+}
+
+/* URI handler structures for GET /... */
+static httpd_uri_t uri_get_index_html = {
+    .uri      = "/index.html",
     .method   = HTTP_GET,
-    .handler  = web_get_wifi_html_handler,
+    .handler  = get_index_html_handler,
     .user_ctx = NULL
 };
 
-httpd_uri_t uri_get_wifi_json = {
+static httpd_uri_t uri_get_wifi_html = {
+    .uri      = "/wfi.html",
+    .method   = HTTP_GET,
+    .handler  = get_wifi_html_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_get_web_html = {
+    .uri      = "/web.html",
+    .method   = HTTP_GET,
+    .handler  = get_web_html_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_get_ota_html = {
+    .uri      = "/ota.html",
+    .method   = HTTP_GET,
+    .handler  = get_ota_html_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_get_style_css = {
+    .uri      = "/style.css",
+    .method   = HTTP_GET,
+    .handler  = get_style_css_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_get_wifi_json = {
     .uri      = "/wifi.json",
     .method   = HTTP_GET,
-    .handler  = web_get_wifi_json_handler,
+    .handler  = get_wifi_json_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_get_web_json = {
+    .uri      = "/web.json",
+    .method   = HTTP_GET,
+    .handler  = get_web_json_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_get_ota_json = {
+    .uri      = "/ota.json",
+    .method   = HTTP_GET,
+    .handler  = get_ota_json_handler,
     .user_ctx = NULL
 };
 
 /* URI handler structure for POST /uri */
-httpd_uri_t uri_post_wifi_html = {
-    .uri      = "/wifi.html",
+static httpd_uri_t uri_post_wifi_html = {
+    .uri      = "/wifi_html",
     .method   = HTTP_POST,
-    .handler  = web_post_wifi_html_handler,
+    .handler  = post_wifi_html_handler,
     .user_ctx = NULL
 };
 
-// TODO: We want the argument to include the ID of a queue to which we can
-//       send responses.  See the API - the variable needs to be static in
-//       the "main()" that creats this task.
-void webTask(void *arg)
+static httpd_uri_t uri_post_ota_html = {
+    .uri      = "/ota.html",
+    .method   = HTTP_POST,
+    .handler  = post_ota_html_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_post_web_html = {
+    .uri      = "/web.html",
+    .method   = HTTP_POST,
+    .handler  = post_web_html_handler,
+    .user_ctx = NULL
+};
+
+/**
+ * Catch events from the default event loop and immediately report to the event
+ * loop for this task.
+*/
+static void wifi_event_handler(void *arg, esp_event_base_t event_base,
+                               int32_t event_id, void *event_data)
 {
-    httpd_config_t config =
-    {
-    };
-    httpd_handle_t handle = NULL;
+    ESP_ERROR_CHECK(esp_event_post_to(
+        web_event_loop_handle,
+        event_base,
+        event_id,
+        event_data,
+        sizeof(ip_event_got_ip_t *),
+        CS_TASK_TICKS_TO_WAIT));
+}
 
-    // Note that we are defining the full size of the message here.
-    s_xQueue = xQueueCreate(STACK_DEPTH, sizeof(MSG_WIFI) );
-    if (s_xQueue == 0)
-    {
-        ESP_LOGE(TAG, "Enable to create message queue.");
-        // TODO: Reboot?
-        reboot?
-    }
+static void web_event_handler(void *arg, esp_event_base_t event_base,
+                               int32_t event_id, void *event_data)
+{
+    /* STA has gotten an IP address so make sure we are listening on it. */
+    ESP_LOGI(TAG, "Restarting HTTP server.");
+}
 
-    while (1)
-    {
-        // 6000 ticks is 1min.
-        if( xQueueReceive(s_xQueue, &(rxBuffer), (TickType_t)6000))
-        {
-            ESP_LOGV(TAG, "Message received: %lx", 0x1234);
-            // Todo: log here.
-            switch (msg)
-            {
-                case WIFI_ACTIVE:
-                    ESP_CHECK_ERROR(httpd_start(&handle, &config));
-                    httpd_register_uri_handle(handle, &uri_get_wifi_html);
-                    httpd_register_uri_handle(handle, &uri_get_wifi_json);
-                    httpd_register_uri_handle(handle, &uri_post_wifi_html);
-                    break;
+/**
+ * To catch WiFi events, we have to catch the default event loop but we pass
+ * immediately to our local loop to ensure (FreeRTOS) task separation.
+*/
+void cs_web_task(cs_web_create_parms_t *create_parms)
+{
+    /* Save the event handles that we need to send notifications to. */
+    web_event_loop_handle = create_parms->web_event_loop_handle;
+    ota_event_loop_handle = create_parms->ota_event_loop_handle;
 
-                case WIFI_FAILED:
-                    httpd_stop(handle);
-                    handle = NULL;
-                    break;
+    /**
+     * TODO: Is this really true?  Remove this if not.
+     *
+     * The web server needs to restart each time the STN WiFi server connects
+     * so that is a now listening on the new IP address so register for the
+     * appropriate events.
+    */
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                IP_EVENT,
+                IP_EVENT_STA_GOT_IP,
+                &wifi_event_handler,
+                NULL,
+                NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
+                web_event_loop_handle,
+                IP_EVENT,
+                IP_EVENT_STA_GOT_IP,
+                &web_event_handler,
+                NULL,
+                NULL));
 
-                default:
-                    ESP_LOGE(TAG, "Unrecognised event: %lx", msg);
-                    break;
-            }
-        }
-    }
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.server_port = CS_WEB_LISTEN_PORT;
+    httpd_handle_t server = NULL;
+
+    /**
+     * We are using WiFi STA+SoftAP mode so the Web server should be able to run
+     * providing either SoftAP and/or STA are active.
+     */
+    ESP_ERROR_CHECK(httpd_start(&server, &config));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_index_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_wifi_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_web_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_ota_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_style_css));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_wifi_json));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_web_json));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_ota_json));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_post_wifi_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_post_web_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_post_ota_html));
 }

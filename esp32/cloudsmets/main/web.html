@@ -1,0 +1,33 @@
+<html>
+    <script src="/w3-include-html.js"></script>
+    <script src="/getdata.js"></script>
+    <script src="/onload.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+
+    <head>
+        <title>CloudSMETS - Web</title>
+    </head>
+
+    <body onload="onload('/web.json');">
+    <div w3-include-html=" /menu.html">
+        </div>
+
+        <h1>HTTP Server Settings</h1>
+
+        <form method="post" action="/web.html">
+            <table>
+                <tr>
+                    <td>
+                        Port:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="integer" min="80" max="65534" id="wedPort" name="webport">
+                    </td>
+                </tr>
+            </table>
+            <input class="submit" type="submit" value="Submit">
+        </form>
+    </body>
+
+</html>

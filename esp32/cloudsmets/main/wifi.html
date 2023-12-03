@@ -1,0 +1,42 @@
+<html>
+    <script src="/w3-include-html.js"></script>
+    <script src="/getdata.js"></script>
+    <script src="/onload.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+
+    <head>
+        <title>CloudSMETS - WiFi</title>
+    </head>
+
+    <body onload="onload('/wifi.json');">
+    <div w3-include-html=" /menu.html">
+        </div>
+
+        <h1>WiFi Settings</h1>
+
+        <form method="post" action="/wifi.html">
+            <table>
+                <tr>
+                    <td>
+                        SSID:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="wifiSsid" name="widiSsid">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Password:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="wifiPwd" name="wifiPwd">
+                    </td>
+                </tr>
+            </table>
+            <input class="submit" type="submit" value="Submit">
+        </form>
+    </body>
+
+</html>

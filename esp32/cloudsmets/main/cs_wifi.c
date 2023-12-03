@@ -5,150 +5,246 @@
  * Configuration store using ESP-IDF no-volatile storage.
  * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html?highlight=non%20volatile
  */
-#pragma once
 
-// TODO: Are these headers correct?
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/event_groups.h"
+#include "esp_system.h"
+#include "esp_wifi.h"
+#include "esp_event.h"
+#include "esp_timer.h"
+#include "esp_netif.h"
+#include "esp_netif_types.h"
+#include "esp_netif_ip_addr.h"
+#include "esp_mac.h"
 #include "esp_log.h"
+#include "cs_wifi.h"
+#include "cs_cfg.h"
 
-// Message passing stack side.
-#define QUEUE_DEPTH 10
+#define TAG cs_wifi_task_name
 
-static const char* TAG = "WiFi";
-static bool wifiSoftAp = FALSE;
-static bool wifiSoftApFailed = FALSE;
-static bool wifiStn = FALSE;
-static bool wifiStnFailed = FALSE;
+static esp_netif_t *s_netif_ap = NULL;
+static esp_netif_t *s_netif_sta = NULL;
+static esp_timer_handle_t s_netif_sta_timer = NULL;
+static int s_retry_num = 0;
 
-bool wifiMaybeStn(void)
+/* AP Configuration */
+#define CS_WIFI_AP_MAX_CONN         CONFIG_CS_WIFI_AP_MAX_CONN
+
+/* STA configuration */
+#define CS_WIFI_STA_MAX_CONN        CONFIG_CS_WIFI_STA_MAX_CONN
+#define CS_WIFI_STA_MAXIMUM_RETRY   CONFIG_CS_WIFI_STA_MAXIMUM_RETRY
+#define CS_WIFI_STA_RETRY_INTERVAL  CONFIG_CS_WIFI_STA_RETRY_INTERVAL
+
+// TODO: What about the SoftAP addresses and masks?
+
+static void wifi_config_sta()
 {
-    bool status = FALSE;
-    char ssid[64];
-    char password[33];
     size_t length;
+    wifi_config_t wifi_sta_config = {
+        .sta = {
+            .scan_method = WIFI_ALL_CHANNEL_SCAN,
+            .failure_retry_cnt = CS_WIFI_STA_MAXIMUM_RETRY,
+            /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
+             * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
+             * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
+            * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
+             */
+            .threshold.authmode = WIFI_AUTH_WPA2_WPA3_PSK,
+            .sae_pwe_h2e = WPA3_SAE_PWE_BOTH,
+        },
+    };
 
-    // Can we start a connection to a router?
-    cfgReadStr(CFG_NM_WIFISTN, CFS_KEY_WIFI_SSID, ssid, &length);
-    if (length)
-    {
-        cfgReadStr(CFG_NM_WIFISTN, CFS_KEY_WIFI_PWD, password, &length);
-        if (length)
-        {
-            // Might need to stop the SoftAP first.
-            wifiMaybeStopSoftAP();
-        }
-    }
-    return status;
+    length = sizeof(wifi_sta_config.ap.ssid);
+    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_SSID, (char *)wifi_sta_config.sta.ssid, &length);
+    length = sizeof(wifi_sta_config.ap.password);
+    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_PWD, (char *)wifi_sta_config.sta.password, &length);
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_sta_config) );
 }
 
-
-void wifiTask(void *arg)
+static void wifi_event_handler(void *arg, esp_event_base_t event_base,
+                               int32_t event_id, void *event_data)
 {
+    wifi_event_ap_staconnected_t *sta_conn_event;
+    wifi_event_ap_stadisconnected_t *sta_disconn_event;
 
-    static QueueHandle_t s_xQueue = 0;
-    unsigned long msg;
-
-    s_xQueue = xQueueCreate(QUEUE_DEPTH, sizeof(unsigned long) );
-    if (s_xQueue == 0)
+    if (event_base == WIFI_EVENT)
     {
-        ESP_LOGE(TAG, "failed to create msg queue");
-        ESP_ERROR_CHECK(ESP_FAIL);
-    }
-
-    while (1)
-    {
-        // 6000 ticks is 1min.
-        if( xQueueReceive(s_xQueue, &msg, (TickType_t)6000))
+        switch (event_id)
         {
-            ESP_LOGV(TAG, "Message received: %lx", msg);
-            switch (msg)
-            {
-                case WIFI_START:
-                    /*
-                     * System is starting to start WiFi, preferable Station but
-                     * SoftAP is not.
-                     */
-                    ESP_LOGI(TAG, "Starting Wifi.");
-                    assert(!wifiSoftAp);
-                    assert(!wifiStn);
-                    xQueueSend(WIFI_STN_QUEUE, EVT_START, 1000);
-                    break;
+            case WIFI_EVENT_AP_STACONNECTED:
+                sta_conn_event = (wifi_event_ap_staconnected_t *) event_data;
+                ESP_LOGI(TAG, "Station "MACSTR" joined, AID=%d",
+                    MAC2STR(sta_conn_event->mac), sta_conn_event->aid);
+                s_retry_num = 0;
 
-                case WIFI_STN_STARTED:
-                    ESP_LOGI(TAG, "WiFi started in station mode.");
-                    wifiStn = TRUE;
-                    break;
+                /*
+                 * We are connected to the router so we want traffic to flow
+                 * there and not to the SoftAP.  SoftAP connectivity should only
+                 * be inbound!
+                 *
+                 * Set sta as the default interface
+                 */
+                esp_netif_set_default_netif(s_netif_sta);
+                break;
 
-                case WIFI_STN_FAILED:
-                    /*
-                     * For some reason we have disconnected from the router and
-                     * cannot reconnect so fall back to softAP mode.
-                     */
-                    ESP_LOGE(TAG, "WiFi station mode failed.");
-                    wifiStn = FALSE;
-                    xQueueSend(WIFI_SOFTAP_QUEUE, EVT_START, 1000);
-                    break;
+            case WIFI_EVENT_AP_STADISCONNECTED:
+                sta_disconn_event = (wifi_event_ap_stadisconnected_t *) event_data;
+                ESP_LOGI(TAG, "Station "MACSTR" left, AID=%d",
+                        MAC2STR(sta_disconn_event->mac), sta_disconn_event->aid);
+                break;
 
-                case WIFI_SOFTAP_FAILED:
-                    /*
-                     * SoftAP has failed.  We only run softAP is Station mode 
-                     * does not work so all we can try at this point is
-                     * rebooting in case there was some error.
-                     */
-                    ESP_LOGE(TAG, "WiFi SoftAP mode has failed - rebooting.");
-                    abort();
-                    break;
+            case WIFI_EVENT_STA_DISCONNECTED:
+                if (s_retry_num < CS_WIFI_STA_MAXIMUM_RETRY) {
+                    ESP_LOGI(TAG, "retry to connect to the AP");
+                    esp_wifi_connect();
+                    s_retry_num++;
+                } else {
+                    ESP_LOGE(TAG, "Connectivity to router lost.");
+                    esp_netif_set_default_netif(s_netif_ap);
 
-                case WIFI_SOFTAP_STARTED:
-                    /*
-                     * SoftAP has started.
-                     */
-                    ESP_LOGI(TAG, "WiFi started in SoftAP mode.");
-                    wifiSoftAp = TRUE;
-                    break;
+                    /* Interval has to be given in microseconds! */
+                    uint64_t interval = CS_WIFI_STA_RETRY_INTERVAL * 1000 * 1000;
+                    ESP_ERROR_CHECK(esp_timer_start_once(s_netif_sta_timer, interval));
+                }
+                break;
 
-                case WIFI_SOFTAP_STOPPED:
-                    /*
-                     * SoftAP has stopped, which only happens if we are
-                     * about to try and switch to Station mode/
-                     */
-                    ESP_LOGI(TAG, "WiFi stopped in SoftAP mode; start station mode.");
-                    wifiSoftAp = FALSE;
-                    xQueueSend(WIFI_STN_QUEUE, EVT_START, 1000);
-                    break;
+            case WIFI_EVENT_STA_START:
+                esp_wifi_connect();
+                ESP_LOGI(TAG, "Station started");
+                break;
 
-                case WIFI_STN_CONFIG:
-                    /*
-                     * Station WiFi configuration has changed to we should try
-                     * and run Station Wifi with the new configuration.
-                     */
-                    ESP_LOGI(TAG, "Station mod econfig changed.")
-                    if (wifiSoftAp)
-                    {
-                        xQueueSend(WIFI_STN_QUEUE, EVT_STOP, 1000);
-                    }
-                    else if (wifiStn)
-                    {
-                        xQueueSend(WIFI_STN_QUEUE, EVT_RESTRT, 1000);
-                    }
-                    break;
-
-                case WIFI_SOFTAP_CONFIG:
-                    /*
-                     * SoftAP WiFI configuration has changed so if we are
-                     * currently running the SoftAP, restart it.
-                     */
-                    if (wifiSoftAp)
-                    {
-                        xQueueSend(WIFI_STN_QUEUE, EVT_RESTART, 1000);
-                    }
-                    break;
-
-                default:
-                    ESP_LOGE(TAG, "Message type %lx is unrecognised.", %lx);
-                    break;
-            }
+            default:
+                ESP_LOGI(TAG, "Other WiFi event: %d", event_id);
+                break;
         }
     }
+    else if (event_base == IP_EVENT)
+    {
+        switch (event_id)
+        {
+            case IP_EVENT_STA_GOT_IP:
+                ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
+                ESP_LOGI(TAG, "Got IP:" IPSTR, IP2STR(&event->ip_info.ip));
+                break;
+
+            default:
+                ESP_LOGE(TAG, "Unexpected IP event: %d", event_id);
+                break;
+        }
+    }
+    else if (event_base == CS_CONFIG)
+    {
+        /*
+         * Any configuration chnaged means stop and attempt a restart of the
+         * STA.
+         */
+        ESP_LOGI(TAG, "Config. change; restart STA.");
+        esp_timer_stop(s_netif_sta_timer);
+        esp_wifi_disconnect();
+        wifi_config_sta();
+        s_retry_num = 0;
+        esp_wifi_connect();
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Unexpected event_base: %s", event_base);
+    }
+}
+
+/* Initialize soft AP */
+static esp_netif_t *wifi_init_softap()
+{
+    size_t length;
+    esp_netif_t *s_netif_ap = esp_netif_create_default_wifi_ap();
+    wifi_config_t wifi_ap_config = {
+        .ap = {
+            .max_connection = CS_WIFI_STA_MAX_CONN,
+            .authmode = WIFI_AUTH_WPA2_PSK,
+            .pmf_cfg = {
+                .required = false,
+            },
+        },
+    };
+
+    // Read SoftAP configuration.
+    cs_cfg_read_uint8(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_CHNL, &wifi_ap_config.ap.channel);
+    length = sizeof(wifi_ap_config.ap.ssid);
+    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_SSID, (char *)wifi_ap_config.ap.ssid, &length);
+    wifi_ap_config.ap.ssid_len = (uint8_t)length;
+    length = sizeof(wifi_ap_config.ap.password);
+    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_PWD, (char *)wifi_ap_config.ap.password, &length);
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_ap_config));
+
+    return s_netif_ap;
+}
+
+/* Try and reconnect the STA WiFi connection. */
+static void esp_netif_timer_cb(void *arg)
+{
+    ESP_LOGI(TAG, "Timer retrying connect for STA");
+    s_retry_num = 0;
+    esp_wifi_connect();
+}
+
+/* Initialize wifi station */
+static esp_netif_t *wifi_init_sta(void)
+{
+    esp_netif_t *s_netif_sta = esp_netif_create_default_wifi_sta();
+
+    wifi_config_sta();
+
+    /* We will use a timer to try and reconnect when the connection fails. */
+    esp_timer_create_args_t esp_timer_create_args = {
+        .callback = esp_netif_timer_cb,
+        .arg = NULL,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "WiFiStaTimer",
+        .skip_unhandled_events = false
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &s_netif_sta_timer));
+
+    ESP_LOGI(TAG, "wifi_init_sta finished.");
+
+    return s_netif_sta;
+}
+
+/**
+ * As noted elsewhere, the esp-idf library hard-codes WiFi to use the default
+ * event loop and we cannot change that.
+*/
+void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
+{
+    /* Register Event handler */
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                    WIFI_EVENT,
+                    ESP_EVENT_ANY_ID,
+                    &wifi_event_handler,
+                    NULL,
+                    NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                    IP_EVENT,
+                    IP_EVENT_STA_GOT_IP,
+                    &wifi_event_handler,
+                    NULL,
+                    NULL));
+
+    /*Initialize WiFi */
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
+
+    /* Initialize AP */
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_AP");
+    s_netif_ap = wifi_init_softap();
+
+    /* Initialize STA */
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    s_netif_sta = wifi_init_sta();
+
+    /* Start WiFi */
+    ESP_ERROR_CHECK(esp_wifi_start());
 }

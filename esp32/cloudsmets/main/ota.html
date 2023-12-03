@@ -1,0 +1,56 @@
+<html>
+    <script src="/w3-include-html.js"></script>
+    <script src="/getdata.js"></script>
+    <script src="/onload.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+
+    <head>
+        <title>CloudSMETS - WiFi</title>
+    </head>
+
+    <body onload="onload('/ota.json');">
+    <div w3-include-html=" /menu.html">
+        </div>
+
+        <h1>OTA Update Settings</h1>
+
+        <form method="post" action="/ota.html">
+            <table>
+                <tr>
+                    <td>
+                        Functionality:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <select id="otaFunc" name="otaFunc">
+                            <option value=0>Disabled</option>
+                            <option value=1>Enable</option>
+                        </select>
+
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        URL:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="otaUrl" name="otaUrl">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Release:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="otaRel" name="otaRel">
+                    </td>
+                </tr>
+            </table>
+            <input class="submit" type="submit" value="Submit">
+        </form>
+    </body>
+
+</html>

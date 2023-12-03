@@ -7,35 +7,15 @@
  */
 #pragma once
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
-// !!PDS: #include "msg.h"
-
-// Sent message values.
-// !!PDS: typedef enum msd_id_t
-// !!PDS: {
-// !!PDS:     MSG_WIFI_ADHOC_UP = msg_task.WEB | 0x0001,
-// !!PDS:     MSG_WIFI_AP_UP    = msg_task.WEB | 0x0002,
-// !!PDS:     MSG_WIFI_DOWN     = msg_task.WEB | 0x0003,
-// !!PDS: } wifi_msg_id_t;
+#include <stdio.h>
 
 typedef struct
 {
-    char dummy[1];
-} cfg_wifi_t;
+    esp_event_loop_handle_t dummy;
+} cs_wifi_create_parms_t;
 
-// Received messages.
-union {
-    cfg_wifi_t cfg;
-} wifi_value_t;
-
-typedef struct
-{
-    common_msg_t common;
-    wifi_value_t value;
-} wifi_recv_msg_t;
+extern const char *cs_wifi_task_name;
 
 // The actual task.
-void wifi(void *arg);
+void cs_wifi_task(cs_wifi_create_parms_t *arg);
 

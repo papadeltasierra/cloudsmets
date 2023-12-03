@@ -9,18 +9,14 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
-#include "msg.h"
-
-typedef enum msg_id_t
-{
-    MSG_WEB_REBOOT = msg_task.WEB | 0x0001,
-    MSG_WEB_RESET  = msg_task.WEB | 0x0001,
-    MSG_WEB_CONFIG = msg_task.WEB | 0x0002,
-} msg_web_id_t;
+#include "esp_event.h"
 
 typedef struct
 {
-    unsigned short msg:
-    unsigned short field:
-} msg_web_t;
+    esp_event_loop_handle_t web_event_loop_handle;
+    esp_event_loop_handle_t ota_event_loop_handle;
+} cs_web_create_parms_t;
+
+extern const char *cs_web_task_name;
+
+extern void cs_web_task(cs_web_create_parms_t *create_parms);
