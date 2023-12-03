@@ -1,5 +1,7 @@
 # Ignore ESP32 build configuration files, which may contain secrets!
-sdkconfig*
+**/sdkconfig*
+**/sdkconfig
 
 # Ignore ESP32 build output
 build/
+.vscode/
