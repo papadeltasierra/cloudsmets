@@ -17,7 +17,7 @@ typedef enum {
 /**
  * @brief Ethernet event base declaration
  */
-ESP_EVENT_DECLARE_BASE(CS_CONFIG);
+ESP_EVENT_DECLARE_BASE(CS_CONFIG_EVENT);
 
 /*
  * Namespaces and task names.
@@ -105,6 +105,7 @@ extern cs_cfg_definitions_t cs_cfg_ota_definitions[];
  */
 extern void cs_cfg_init(void);
 extern void cs_cfg_default_uint8(const char *ns, const char *key, uint8_t def);
+extern void cs_cfg_default_uint16(const char *ns, const char *key, uint16_t def);
 extern void cs_cfg_default_str(const char *ns, const char *key, const char * def);
 extern void cs_cfg_read_uint8(const char *ns, const char *key, uint8_t *value);
 extern void cs_cfg_read_uint16(const char *ns, const char *key, uint16_t *value);

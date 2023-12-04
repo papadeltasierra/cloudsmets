@@ -38,9 +38,13 @@ static int s_retry_num = 0;
 
 // TODO: What about the SoftAP addresses and masks?
 
-static void wifi_config_sta()
+static bool wifi_config_sta()
 {
+    bool rc = true;
     size_t length;
+
+    ESP_LOGI(TAG, "Config STA");
+
     wifi_config_t wifi_sta_config = {
         .sta = {
             .scan_method = WIFI_ALL_CHANNEL_SCAN,
@@ -57,10 +61,17 @@ static void wifi_config_sta()
 
     length = sizeof(wifi_sta_config.ap.ssid);
     cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_SSID, (char *)wifi_sta_config.sta.ssid, &length);
+    rc = length > 8 ? rc : false;
     length = sizeof(wifi_sta_config.ap.password);
     cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_PWD, (char *)wifi_sta_config.sta.password, &length);
+    rc = length > 8 ? rc : false;
 
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_sta_config) );
+    if (rc)
+    {
+        ESP_LOGV(TAG, "Have config, start STA");
+        ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_sta_config) );
+    }
+    return rc;
 }
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
@@ -68,6 +79,8 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 {
     wifi_event_ap_staconnected_t *sta_conn_event;
     wifi_event_ap_stadisconnected_t *sta_disconn_event;
+
+    ESP_LOGI(TAG, "Event: %s, %d", event_base, event_id);
 
     if (event_base == WIFI_EVENT)
     {
@@ -134,7 +147,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 break;
         }
     }
-    else if (event_base == CS_CONFIG)
+    else if (event_base == CS_CONFIG_EVENT)
     {
         /*
          * Any configuration chnaged means stop and attempt a restart of the
@@ -168,6 +181,8 @@ static esp_netif_t *wifi_init_softap()
         },
     };
 
+    ESP_LOGV(TAG, "Read configuration");
+
     // Read SoftAP configuration.
     cs_cfg_read_uint8(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_CHNL, &wifi_ap_config.ap.channel);
     length = sizeof(wifi_ap_config.ap.ssid);
@@ -177,6 +192,7 @@ static esp_netif_t *wifi_init_softap()
     cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_PWD, (char *)wifi_ap_config.ap.password, &length);
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_ap_config));
+    ESP_LOGV(TAG, "AP configured");
 
     return s_netif_ap;
 }
@@ -194,19 +210,20 @@ static esp_netif_t *wifi_init_sta(void)
 {
     esp_netif_t *s_netif_sta = esp_netif_create_default_wifi_sta();
 
-    wifi_config_sta();
+    if (wifi_config_sta())
+    {
+        /* We will use a timer to try and reconnect when the connection fails. */
+        esp_timer_create_args_t esp_timer_create_args = {
+            .callback = esp_netif_timer_cb,
+            .arg = NULL,
+            .dispatch_method = ESP_TIMER_TASK,
+            .name = "WiFiStaTimer",
+            .skip_unhandled_events = false
+        };
+        ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &s_netif_sta_timer));
 
-    /* We will use a timer to try and reconnect when the connection fails. */
-    esp_timer_create_args_t esp_timer_create_args = {
-        .callback = esp_netif_timer_cb,
-        .arg = NULL,
-        .dispatch_method = ESP_TIMER_TASK,
-        .name = "WiFiStaTimer",
-        .skip_unhandled_events = false
-    };
-    ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &s_netif_sta_timer));
-
-    ESP_LOGI(TAG, "wifi_init_sta finished.");
+        ESP_LOGI(TAG, "wifi_init_sta finished.");
+    }
 
     return s_netif_sta;
 }
@@ -217,6 +234,9 @@ static esp_netif_t *wifi_init_sta(void)
 */
 void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
 {
+    ESP_LOGI(TAG, "Init. WiFi task");
+
+    ESP_LOGI(TAG, "Register event handlers");
     /* Register Event handler */
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                     WIFI_EVENT,
@@ -230,21 +250,29 @@ void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
                     &wifi_event_handler,
                     NULL,
                     NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                    CS_CONFIG_EVENT,
+                    CS_CONFIG_CHANGE,
+                    &wifi_event_handler,
+                    NULL,
+                    NULL));
 
     /*Initialize WiFi */
+    ESP_LOGI(TAG, "Init. WiFi");
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 
     /* Initialize AP */
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_AP");
+    ESP_LOGI(TAG, "Init ESP_WIFI_MODE_AP");
     s_netif_ap = wifi_init_softap();
 
     /* Initialize STA */
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    ESP_LOGI(TAG, "Init ESP_WIFI_MODE_STA");
     s_netif_sta = wifi_init_sta();
 
     /* Start WiFi */
+    ESP_LOGI(TAG, "start WiFi");
     ESP_ERROR_CHECK(esp_wifi_start());
 }

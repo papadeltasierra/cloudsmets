@@ -36,7 +36,7 @@ menu "CloudSMETS"
 
         # TODO: Maybe clean this up?  Are these correct?  What about the defaults file?
 
-        config CS_WIFI_AP_WIFI_CHANNEL
+        config CS_WIFI_AP_CHANNEL
             int "WiFi Channel"
             range 1 13
             default 6

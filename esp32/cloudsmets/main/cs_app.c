@@ -85,6 +85,7 @@ static void start_of_day()
     /*
      * Throw start-of-day debugging, which we may not see if we are using IP.
      */
+    ESP_LOGI(TAG, "start-of-day");
     esp32_info();
 }
 

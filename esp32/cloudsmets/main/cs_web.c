@@ -54,6 +54,9 @@ extern const uint8_t w3_include_html_js_end[]   asm("_binary_w3_include_html_js_
 esp_event_loop_handle_t web_event_loop_handle = NULL;
 esp_event_loop_handle_t ota_event_loop_handle = NULL;
 
+/* Handle to the web server. */
+httpd_handle_t httpd_server = NULL;
+
 /**
  * We could have a table look-up for pages but it is far simpler to just have
  * a handler per page and be done with it.
@@ -121,10 +124,13 @@ static esp_err_t get_json_handler(
     uint16_t u16_value;
     uint32_t u32_value;
 
+    ESP_LOGI(TAG, "GET JSON handler");
+
     length = sprintf(ptr, "{\"%s\":", definitions->key);
     ptr += length;
     do
     {
+        ESP_LOGV(TAG, "Key, type: %s, %d", definitions->key, definitions->type);
         switch (definitions->type)
         {
             case NVS_TYPE_STR:
@@ -166,7 +172,14 @@ static esp_err_t get_json_handler(
         ptr--;
         length = sprintf(ptr,"\"}");
         s_length = (size_t)(ptr - buffer);
+
+        ESP_LOGV(TAG, "Send successful response");
         httpd_resp_send(req, buffer, s_length);
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Send 500 Internal error");
+        httpd_resp_send_500(req);
     }
 
     return esp_rc;
@@ -209,6 +222,8 @@ static esp_err_t post_html_handler(
     uint16_t u16_value;
     uint32_t u32_value;
 
+    ESP_LOGI(TAG, "POST HTML handler");
+
     /* Truncate if content length larger than the buffer */
     size_t recv_size = req->content_len < sizeof(content) ? req->content_len : sizeof(content);
 
@@ -218,16 +233,19 @@ static esp_err_t post_html_handler(
             /* In case of timeout one can choose to retry calling
              * httpd_req_recv(), but to keep it simple, here we
              * respond with an HTTP 408 (Request Timeout) error */
+            ESP_LOGE(TAG, "Timed out receiving request");
             httpd_resp_send_408(req);
         }
         /* In case of error, returning ESP_FAIL will
          * ensure that the underlying socket is closed */
+        ESP_LOGE(TAG, "Non-timeout error: %d", ret);
         return ESP_FAIL;
     }
 
     do
     {
         ESP_ERROR_CHECK(httpd_query_key_value(content, definitions->key, value, sizeof(value)));
+        ESP_LOGV(TAG, "Value: %s", value);
         switch (definitions->type)
         {
             case NVS_TYPE_STR:
@@ -259,10 +277,12 @@ static esp_err_t post_html_handler(
 
     if (esp_rc == ESP_OK)
     {
+        ESP_LOGV(TAG, "Send success response");
         httpd_resp_send(req, NULL, 0);
     }
     else
     {
+        ESP_LOGE(TAG, "Send 400 Bad request");
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, NULL);
     }
 
@@ -270,11 +290,13 @@ static esp_err_t post_html_handler(
     if (event_loop_handle == NULL)
     {
         /* Component uses the default loop. */
-        esp_event_post(event_base, event_id, NULL, 0, CS_TASK_TICKS_TO_WAIT);
+        ESP_LOGV(TAG, "Nudge default event loop");
+        esp_event_post(CS_CONFIG_EVENT, CS_CONFIG_CHANGE, NULL, 0, CS_TASK_TICKS_TO_WAIT);
     }
     else
     {
-        esp_event_post_to(event_loop_handle, event_base, event_id, NULL, 0, CS_TASK_TICKS_TO_WAIT);
+        ESP_LOGV(TAG, "Nudge specific event loop");
+        esp_event_post_to(event_loop_handle, CS_CONFIG_EVENT, CS_CONFIG_CHANGE, NULL, 0, CS_TASK_TICKS_TO_WAIT);
     }
 
     return ESP_OK;
@@ -399,6 +421,48 @@ static httpd_uri_t uri_post_web_html = {
     .user_ctx = NULL
 };
 
+void web_start()
+{
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+
+    /**
+     * Read the listen port.
+    */
+    cs_cfg_read_uint16(CS_CFG_NMSP_WEB, CS_CFG_KEY_WEB_PORT, &config.server_port);
+    ESP_LOGV(TAG, "Listen on port: %hu", config.server_port);
+
+    /**
+     * Stop the server if already running.
+     */
+    if (httpd_server != NULL)
+    {
+        ESP_LOGV(TAG, "Stopping existing server");
+        httpd_stop(httpd_server);
+        httpd_server = NULL;
+    }
+
+    /**
+     * We are using WiFi STA+SoftAP mode so the Web server should be able to run
+     * providing either SoftAP and/or STA are active.
+     */
+    ESP_LOGI(TAG, "Registering URI handlers");
+    ESP_ERROR_CHECK(httpd_start(&httpd_server, &config));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_index_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_menu_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_wifi_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_web_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_ota_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_style_css));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_getdata_js));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_w3_include_html_js));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_wifi_json));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_web_json));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_ota_json));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_wifi_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_web_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_ota_html));
+}
+
 /**
  * Catch events from the default event loop and immediately report to the event
  * loop for this task.
@@ -406,12 +470,13 @@ static httpd_uri_t uri_post_web_html = {
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
 {
+    ESP_LOGV(TAG, "Relay event to web event loop");
     ESP_ERROR_CHECK(esp_event_post_to(
         web_event_loop_handle,
         event_base,
         event_id,
         event_data,
-        sizeof(ip_event_got_ip_t *),
+        sizeof(ip_event_got_ip_t),
         CS_TASK_TICKS_TO_WAIT));
 }
 
@@ -420,6 +485,14 @@ static void web_event_handler(void *arg, esp_event_base_t event_base,
 {
     /* STA has gotten an IP address so make sure we are listening on it. */
     ESP_LOGI(TAG, "Restarting HTTP server.");
+    if (event_base == CS_CONFIG_EVENT)
+    {
+        /**
+         * A config change means we need to restart the server and listen on
+         * a new port.
+         */
+        web_start();
+    }
 }
 
 /**
@@ -428,6 +501,7 @@ static void web_event_handler(void *arg, esp_event_base_t event_base,
 */
 void cs_web_task(cs_web_create_parms_t *create_parms)
 {
+    ESP_LOGI(TAG, "init. Web task");
     /* Save the event handles that we need to send notifications to. */
     web_event_loop_handle = create_parms->web_event_loop_handle;
     ota_event_loop_handle = create_parms->ota_event_loop_handle;
@@ -439,6 +513,7 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
      * so that is a now listening on the new IP address so register for the
      * appropriate events.
     */
+    ESP_LOGI(TAG, "Register event handlers");
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                 IP_EVENT,
                 IP_EVENT_STA_GOT_IP,
@@ -452,28 +527,15 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
                 &web_event_handler,
                 NULL,
                 NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
+                web_event_loop_handle,
+                CS_CONFIG_EVENT,
+                CS_CONFIG_CHANGE,
+                &web_event_handler,
+                NULL,
+                NULL));
 
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.server_port = CS_WEB_LISTEN_PORT;
-    httpd_handle_t server = NULL;
+    web_start();
 
-    /**
-     * We are using WiFi STA+SoftAP mode so the Web server should be able to run
-     * providing either SoftAP and/or STA are active.
-     */
-    ESP_ERROR_CHECK(httpd_start(&server, &config));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_index_html));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_menu_html));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_wifi_html));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_web_html));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_ota_html));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_style_css));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_getdata_js));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_w3_include_html_js));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_wifi_json));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_web_json));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_get_ota_json));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_post_wifi_html));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_post_web_html));
-    ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_post_ota_html));
+    ESP_LOGV(TAG, "Initialization completed");
 }
