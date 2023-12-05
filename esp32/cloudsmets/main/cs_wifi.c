@@ -241,19 +241,19 @@ void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                     WIFI_EVENT,
                     ESP_EVENT_ANY_ID,
-                    &wifi_event_handler,
+                    wifi_event_handler,
                     NULL,
                     NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                     IP_EVENT,
                     IP_EVENT_STA_GOT_IP,
-                    &wifi_event_handler,
+                    wifi_event_handler,
                     NULL,
                     NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                     CS_CONFIG_EVENT,
                     CS_CONFIG_CHANGE,
-                    &wifi_event_handler,
+                    wifi_event_handler,
                     NULL,
                     NULL));
 

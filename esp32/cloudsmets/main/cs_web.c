@@ -517,14 +517,14 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                 IP_EVENT,
                 IP_EVENT_STA_GOT_IP,
-                &wifi_event_handler,
+                wifi_event_handler,
                 NULL,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                 web_event_loop_handle,
                 IP_EVENT,
                 IP_EVENT_STA_GOT_IP,
-                &web_event_handler,
+                web_event_handler,
                 NULL,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(

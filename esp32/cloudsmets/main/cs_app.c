@@ -117,6 +117,7 @@ void app_main(void)
      * repost the event to break the dependency on the default loop.
      */
     ESP_LOGI(TAG, "Creating event loops...");
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
     esp_event_loop_args_t esp_event_loop_args = {
         .queue_size = CS_APP_TASK_QUEUE_SIZE,
         .task_name = cs_app_task_name,
