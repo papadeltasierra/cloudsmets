@@ -289,8 +289,8 @@ static void cs_cfg_default(void)
     cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_PWD, CS_WIFI_AP_PWD);
 
     /* Default STA is no SSID or Password. */
-    cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_SSID, "");
-    cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_PWD, "");
+    cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_SSID, "");
+    cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_PWD, "");
 }
 
 void cs_cfg_init(void)
