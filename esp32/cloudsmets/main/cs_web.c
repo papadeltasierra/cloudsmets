@@ -327,6 +327,13 @@ static esp_err_t post_web_html_handler(httpd_req_t *req)
 }
 
 /* URI handler structures for GET /... */
+static httpd_uri_t uri_get_root_html = {
+    .uri      = "/",
+    .method   = HTTP_GET,
+    .handler  = get_index_html_handler,
+    .user_ctx = NULL
+};
+
 static httpd_uri_t uri_get_index_html = {
     .uri      = "/index.html",
     .method   = HTTP_GET,
@@ -451,6 +458,10 @@ void web_start()
      */
     ESP_LOGI(TAG, "Registering URI handlers");
     ESP_ERROR_CHECK(httpd_start(&httpd_server, &httpd_config));
+
+    // TODO: This is not pretty; we need a better solution!
+    ESP_LOGV(TAG, "Debug 0");
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_root_html));
     ESP_LOGV(TAG, "Debug 1");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_index_html));
     ESP_LOGV(TAG, "Debug 2");
@@ -565,6 +576,7 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
     /**
      * Increase the number of supported URI handlers.
     */
+   // TODO: Do we want to do this?
    httpd_config.max_uri_handlers = 20;
 
     ESP_LOGI(TAG, "init. Web task");
