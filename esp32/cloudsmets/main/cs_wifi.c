@@ -69,6 +69,7 @@ static bool wifi_config_sta()
     if (rc)
     {
         ESP_LOGV(TAG, "Have config, start STA");
+        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
         ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_sta_config) );
     }
     return rc;
@@ -77,8 +78,8 @@ static bool wifi_config_sta()
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
 {
-    wifi_event_ap_staconnected_t *sta_conn_event;
-    wifi_event_ap_stadisconnected_t *sta_disconn_event;
+    wifi_event_ap_staconnected_t *ap_conn_event;
+    wifi_event_ap_stadisconnected_t *ap_disconn_event;
 
     ESP_LOGI(TAG, "Event: %s, %d", event_base, event_id);
 
@@ -87,9 +88,19 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         switch (event_id)
         {
             case WIFI_EVENT_AP_STACONNECTED:
-                sta_conn_event = (wifi_event_ap_staconnected_t *) event_data;
-                ESP_LOGI(TAG, "Station "MACSTR" joined, AID=%d",
-                    MAC2STR(sta_conn_event->mac), sta_conn_event->aid);
+                ap_conn_event = (wifi_event_ap_staconnected_t *) event_data;
+                ESP_LOGI(TAG, "SoftAP: station "MACSTR" joined, AID=%d",
+                    MAC2STR(ap_conn_event->mac), ap_conn_event->aid);
+                break;
+
+            case WIFI_EVENT_AP_STADISCONNECTED:
+                ap_disconn_event = (wifi_event_ap_stadisconnected_t *) event_data;
+                ESP_LOGI(TAG, "SoftAP: Station "MACSTR" left, AID=%d",
+                        MAC2STR(ap_disconn_event->mac), ap_disconn_event->aid);
+                break;
+
+            case WIFI_EVENT_STA_CONNECTED:
+                ESP_LOGI(TAG, "STA: connected to AP (router)");
                 s_retry_num = 0;
 
                 /*
@@ -102,19 +113,14 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 esp_netif_set_default_netif(s_netif_sta);
                 break;
 
-            case WIFI_EVENT_AP_STADISCONNECTED:
-                sta_disconn_event = (wifi_event_ap_stadisconnected_t *) event_data;
-                ESP_LOGI(TAG, "Station "MACSTR" left, AID=%d",
-                        MAC2STR(sta_disconn_event->mac), sta_disconn_event->aid);
-                break;
-
             case WIFI_EVENT_STA_DISCONNECTED:
                 if (s_retry_num < CS_WIFI_STA_MAXIMUM_RETRY) {
-                    ESP_LOGI(TAG, "retry to connect to the AP");
+                    ESP_LOGI(TAG, "STA: connect to the AP (router)");
                     esp_wifi_connect();
                     s_retry_num++;
                 } else {
-                    ESP_LOGE(TAG, "Connectivity to router lost.");
+                    ESP_LOGE(TAG, "STA: Connectivity to AP (router) lost.");
+                    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
                     esp_netif_set_default_netif(s_netif_ap);
 
                     /* Interval has to be given in microseconds! */
@@ -156,9 +162,12 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "Config. change; restart STA.");
         esp_timer_stop(s_netif_sta_timer);
         esp_wifi_disconnect();
-        wifi_config_sta();
-        s_retry_num = 0;
-        esp_wifi_connect();
+        if (wifi_config_sta())
+        {
+            ESP_LOGV(TAG, "STA config sufficient - try connect");
+            s_retry_num = 0;
+            esp_wifi_connect();
+        }
     }
     else
     {
@@ -192,6 +201,9 @@ static esp_netif_t *wifi_init_softap()
     cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_PWD, (char *)wifi_ap_config.ap.password, &length);
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_ap_config));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+    esp_netif_set_default_netif(s_netif_ap);
+
     ESP_LOGV(TAG, "AP configured");
 
     return s_netif_ap;
@@ -208,21 +220,11 @@ static void esp_netif_timer_cb(void *arg)
 /* Initialize wifi station */
 static esp_netif_t *wifi_init_sta(void)
 {
-    esp_netif_t *s_netif_sta = esp_netif_create_default_wifi_sta();
-
     if (wifi_config_sta())
     {
-        /* We will use a timer to try and reconnect when the connection fails. */
-        esp_timer_create_args_t esp_timer_create_args = {
-            .callback = esp_netif_timer_cb,
-            .arg = NULL,
-            .dispatch_method = ESP_TIMER_TASK,
-            .name = "WiFiStaTimer",
-            .skip_unhandled_events = false
-        };
-        ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &s_netif_sta_timer));
-
-        ESP_LOGI(TAG, "wifi_init_sta finished.");
+        ESP_LOGI(TAG, "Try initial connect");
+        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
+        esp_wifi_connect();
     }
 
     return s_netif_sta;
@@ -234,6 +236,9 @@ static esp_netif_t *wifi_init_sta(void)
 */
 void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
 {
+    // TODO: Remove this.
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+
     ESP_LOGI(TAG, "Init. WiFi task");
 
     ESP_LOGI(TAG, "Register event handlers");
@@ -257,12 +262,25 @@ void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
                     NULL,
                     NULL));
 
+
+    /* We will use a timer to try and reconnect when the connection fails. */
+    ESP_LOGI(TAG, "Create STA reconnect timer");
+    esp_timer_create_args_t esp_timer_create_args = {
+        .callback = esp_netif_timer_cb,
+        .arg = NULL,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "WiFiStaTimer",
+        .skip_unhandled_events = false
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &s_netif_sta_timer));
+
+    ESP_LOGI(TAG, "initialize NETIF");
+    ESP_ERROR_CHECK(esp_netif_init());
+
     /*Initialize WiFi */
     ESP_LOGI(TAG, "Init. WiFi");
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 
     /* Initialize AP */
     ESP_LOGI(TAG, "Init ESP_WIFI_MODE_AP");

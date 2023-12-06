@@ -9,6 +9,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
+#include "esp_wifi.h"
 #include "esp_http_server.h"
 #include "esp_netif.h"
 #include "http_parser.h"
@@ -51,11 +52,15 @@ extern const uint8_t w3_include_html_js_end[]   asm("_binary_w3_include_html_js_
 #define w3_include_html_js_len  (size_t)(w3_include_html_js_end - w3_include_html_js_start)
 
 /* Event loops (exccept for the default loop, used by Wifi) */
-esp_event_loop_handle_t web_event_loop_handle = NULL;
-esp_event_loop_handle_t ota_event_loop_handle = NULL;
+static esp_event_loop_handle_t web_event_loop_handle = NULL;
+static esp_event_loop_handle_t ota_event_loop_handle = NULL;
+
+/* Server configuration. */
+static httpd_config_t httpd_config = HTTPD_DEFAULT_CONFIG();
 
 /* Handle to the web server. */
-httpd_handle_t httpd_server = NULL;
+static httpd_handle_t httpd_server = NULL;
+
 
 /**
  * We could have a table look-up for pages but it is far simpler to just have
@@ -423,13 +428,12 @@ static httpd_uri_t uri_post_web_html = {
 
 void web_start()
 {
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
     /**
      * Read the listen port.
     */
-    cs_cfg_read_uint16(CS_CFG_NMSP_WEB, CS_CFG_KEY_WEB_PORT, &config.server_port);
-    ESP_LOGV(TAG, "Listen on port: %hu", config.server_port);
+    cs_cfg_read_uint16(CS_CFG_NMSP_WEB, CS_CFG_KEY_WEB_PORT, &httpd_config.server_port);
+    ESP_LOGV(TAG, "Listen on port: %hu", httpd_config.server_port);
 
     /**
      * Stop the server if already running.
@@ -446,21 +450,36 @@ void web_start()
      * providing either SoftAP and/or STA are active.
      */
     ESP_LOGI(TAG, "Registering URI handlers");
-    ESP_ERROR_CHECK(httpd_start(&httpd_server, &config));
+    ESP_ERROR_CHECK(httpd_start(&httpd_server, &httpd_config));
+    ESP_LOGV(TAG, "Debug 1");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_index_html));
+    ESP_LOGV(TAG, "Debug 2");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_menu_html));
+    ESP_LOGV(TAG, "Debug 3");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_wifi_html));
+    ESP_LOGV(TAG, "Debug 4");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_web_html));
+    ESP_LOGV(TAG, "Debug 5");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_ota_html));
+    ESP_LOGV(TAG, "Debug 6");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_style_css));
+    ESP_LOGV(TAG, "Debug 7");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_getdata_js));
+    ESP_LOGV(TAG, "Debug 8");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_w3_include_html_js));
+    ESP_LOGV(TAG, "Debug 9");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_wifi_json));
+    ESP_LOGV(TAG, "Debug 10");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_web_json));
+    ESP_LOGV(TAG, "Debug 11");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_ota_json));
+    ESP_LOGV(TAG, "Debug 12");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_wifi_html));
+    ESP_LOGV(TAG, "Debug 13");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_web_html));
+    ESP_LOGV(TAG, "Debug 14");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_ota_html));
+    ESP_LOGV(TAG, "Debug 15");
 }
 
 /**
@@ -471,12 +490,14 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
 {
     ESP_LOGV(TAG, "Relay event to web event loop");
+
+    // TODO: Do we really want to pass the data here?  Requires processing!
     ESP_ERROR_CHECK(esp_event_post_to(
         web_event_loop_handle,
         event_base,
         event_id,
-        event_data,
-        sizeof(ip_event_got_ip_t),
+        NULL,
+        0,
         CS_TASK_TICKS_TO_WAIT));
 }
 
@@ -493,6 +514,43 @@ static void web_event_handler(void *arg, esp_event_base_t event_base,
          */
         web_start();
     }
+    else if (event_base == WIFI_EVENT)
+    {
+        switch (event_id)
+        {
+            case WIFI_EVENT_AP_START:
+                /**
+                 * Signals at least SoftAP up so (re)start the web server.
+                */
+                web_start();
+                break;
+
+
+            default:
+                ESP_LOGE(TAG, "unexpected event: %d", event_id);
+                break;
+        }
+    }
+    else if (event_base == IP_EVENT)
+    {
+        switch (event_id)
+        {
+            case IP_EVENT_STA_GOT_IP:
+                /**
+                 * Ignore for now and hope that the web server listens on the
+                 * new socket once we connect to the AP (router).
+                */
+               break;
+
+            default:
+                ESP_LOGE(TAG, "unexpected event: %d", event_id);
+                break;
+        }
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Unexpected event base: %s, %d", event_base, event_id);
+    }
 }
 
 /**
@@ -501,6 +559,14 @@ static void web_event_handler(void *arg, esp_event_base_t event_base,
 */
 void cs_web_task(cs_web_create_parms_t *create_parms)
 {
+    // TODO: Remove this.
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+
+    /**
+     * Increase the number of supported URI handlers.
+    */
+   httpd_config.max_uri_handlers = 20;
+
     ESP_LOGI(TAG, "init. Web task");
     /* Save the event handles that we need to send notifications to. */
     web_event_loop_handle = create_parms->web_event_loop_handle;
@@ -520,6 +586,12 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
                 wifi_event_handler,
                 NULL,
                 NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                WIFI_EVENT,
+                WIFI_EVENT_AP_START,
+                wifi_event_handler,
+                NULL,
+                NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                 web_event_loop_handle,
                 IP_EVENT,
@@ -529,8 +601,22 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                 web_event_loop_handle,
+                WIFI_EVENT,
+                WIFI_EVENT_AP_START,
+                web_event_handler,
+                NULL,
+                NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
+                web_event_loop_handle,
                 CS_CONFIG_EVENT,
                 CS_CONFIG_CHANGE,
+                &web_event_handler,
+                NULL,
+                NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
+                web_event_loop_handle,
+                IP_EVENT,
+                ESP_NETIF_IP_EVENT_GOT_IP,
                 &web_event_handler,
                 NULL,
                 NULL));

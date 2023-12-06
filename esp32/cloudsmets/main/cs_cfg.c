@@ -295,6 +295,9 @@ static void cs_cfg_default(void)
 
 void cs_cfg_init(void)
 {
+    // TODO: Remove this.
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+
     esp_err_t esp_rc;
     nvs_stats_t nvs_stats;
 

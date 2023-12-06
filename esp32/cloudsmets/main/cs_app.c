@@ -95,6 +95,9 @@ void app_main(void)
     static esp_event_loop_handle_t web_event_loop_handle = NULL;
     static esp_event_loop_handle_t ota_event_loop_handle = NULL;
 
+    // TODO: Remove this.
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+
     /*
      * Perform start-of-day checking.
      */
@@ -118,11 +121,12 @@ void app_main(void)
      */
     ESP_LOGI(TAG, "Creating event loops...");
     ESP_ERROR_CHECK(esp_event_loop_create_default());
+    // .task_stack_size = CS_APP_TASK_STACK_SIZE,
     esp_event_loop_args_t esp_event_loop_args = {
         .queue_size = CS_APP_TASK_QUEUE_SIZE,
         .task_name = cs_app_task_name,
         .task_priority = CS_APP_TASK_PRIORITY_DEFAULT,
-        .task_stack_size = CS_APP_TASK_STACK_SIZE,
+        .task_stack_size = 32768,
         .task_core_id = tskNO_AFFINITY
     };
     esp_event_loop_args.task_name = cs_web_task_name;
