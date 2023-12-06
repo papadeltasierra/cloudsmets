@@ -535,7 +535,8 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
                 NULL,
                 NULL));
 
-    web_start();
+    // TODO: We cannot start the server until there is an IP address.
+    // web_start();
 
     ESP_LOGV(TAG, "Initialization completed");
 }
