@@ -126,6 +126,7 @@ void app_main(void)
         .queue_size = CS_APP_TASK_QUEUE_SIZE,
         .task_name = cs_app_task_name,
         .task_priority = CS_APP_TASK_PRIORITY_DEFAULT,
+        // TODO: Do we really need this big a stack?  Do we care?
         .task_stack_size = 32768,
         .task_core_id = tskNO_AFFINITY
     };
