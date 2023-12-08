@@ -37,10 +37,8 @@ extern const uint8_t ota_html_start[]     asm("_binary_ota_html_start");
 extern const uint8_t ota_html_end[]       asm("_binary_ota_html_end");
 extern const uint8_t style_css_start[]    asm("_binary_style_css_start");
 extern const uint8_t style_css_end[]      asm("_binary_style_css_end");
-extern const uint8_t getdata_js_start[]   asm("_binary_getdata_js_start");
-extern const uint8_t getdata_js_end[]     asm("_binary_getdata_js_end");
-extern const uint8_t w3_include_html_js_start[] asm("_binary_w3_include_html_js_start");
-extern const uint8_t w3_include_html_js_end[]   asm("_binary_w3_include_html_js_end");
+extern const uint8_t tools_js_start[]     asm("_binary_tools_js_start");
+extern const uint8_t tools_js_end[]     asm("_binary_tools_js_end");
 
 #define index_html_len  (size_t)(index_html_end - index_html_start)
 #define menu_html_len   (size_t)(menu_html_end - menu_html_start)
@@ -49,7 +47,7 @@ extern const uint8_t w3_include_html_js_end[]   asm("_binary_w3_include_html_js_
 #define ota_html_len    (size_t)(ota_html_end - ota_html_start)
 #define style_css_len   (size_t)(style_css_end - style_css_start)
 #define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start)
-#define w3_include_html_js_len  (size_t)(w3_include_html_js_end - w3_include_html_js_start)
+#define tools_js_len    (size_t)(tools_js_end - tools_js_start)
 
 /* Event loops (exccept for the default loop, used by Wifi) */
 static esp_event_loop_handle_t web_event_loop_handle = NULL;
@@ -102,16 +100,10 @@ static esp_err_t get_style_css_handler(httpd_req_t *req)
     return httpd_resp_send(req, (char *)style_css_start, style_css_len);
 }
 
-static esp_err_t get_getdata_js_handler(httpd_req_t *req)
+static esp_err_t get_tools_js_handler(httpd_req_t *req)
 {
-    ESP_LOGV(TAG, "GET getdata.js");
-    return httpd_resp_send(req, (char *)getdata_js_start, getdata_js_len);
-}
-
-static esp_err_t get_w3_include_html_js_handler(httpd_req_t *req)
-{
-    ESP_LOGV(TAG, "GET w3_include_html_js");
-    return httpd_resp_send(req, (char *)w3_include_html_js_start, w3_include_html_js_len);
+    ESP_LOGV(TAG, "GET tools.js");
+    return httpd_resp_send(req, (char *)tools_js_start, tools_js_len);
 }
 
 static esp_err_t get_json_handler(
@@ -349,7 +341,7 @@ static httpd_uri_t uri_get_menu_html = {
 };
 
 static httpd_uri_t uri_get_wifi_html = {
-    .uri      = "/wfi.html",
+    .uri      = "/wifi.html",
     .method   = HTTP_GET,
     .handler  = get_wifi_html_handler,
     .user_ctx = NULL
@@ -370,23 +362,16 @@ static httpd_uri_t uri_get_ota_html = {
 };
 
 static httpd_uri_t uri_get_style_css = {
-    .uri      = "/style.css",
+    .uri      = "/css/style.css",
     .method   = HTTP_GET,
     .handler  = get_style_css_handler,
     .user_ctx = NULL
 };
 
-static httpd_uri_t uri_get_w3_include_html_js = {
-    .uri      = "/w3-include-html.js",
+static httpd_uri_t uri_get_tools_js = {
+    .uri      = "/tools.js",
     .method   = HTTP_GET,
-    .handler  = get_w3_include_html_js_handler,
-    .user_ctx = NULL
-};
-
-static httpd_uri_t uri_get_getdata_js = {
-    .uri      = "/getdata.js",
-    .method   = HTTP_GET,
-    .handler  = get_getdata_js_handler,
+    .handler  = get_tools_js_handler,
     .user_ctx = NULL
 };
 
@@ -460,37 +445,20 @@ void web_start()
     ESP_ERROR_CHECK(httpd_start(&httpd_server, &httpd_config));
 
     // TODO: This is not pretty; we need a better solution!
-    ESP_LOGV(TAG, "Debug 0");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_root_html));
-    ESP_LOGV(TAG, "Debug 1");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_index_html));
-    ESP_LOGV(TAG, "Debug 2");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_menu_html));
-    ESP_LOGV(TAG, "Debug 3");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_wifi_html));
-    ESP_LOGV(TAG, "Debug 4");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_web_html));
-    ESP_LOGV(TAG, "Debug 5");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_ota_html));
-    ESP_LOGV(TAG, "Debug 6");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_style_css));
-    ESP_LOGV(TAG, "Debug 7");
-    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_getdata_js));
-    ESP_LOGV(TAG, "Debug 8");
-    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_w3_include_html_js));
-    ESP_LOGV(TAG, "Debug 9");
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_tools_js));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_wifi_json));
-    ESP_LOGV(TAG, "Debug 10");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_web_json));
-    ESP_LOGV(TAG, "Debug 11");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_ota_json));
-    ESP_LOGV(TAG, "Debug 12");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_wifi_html));
-    ESP_LOGV(TAG, "Debug 13");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_web_html));
-    ESP_LOGV(TAG, "Debug 14");
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_ota_html));
-    ESP_LOGV(TAG, "Debug 15");
 }
 
 /**

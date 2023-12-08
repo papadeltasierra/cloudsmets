@@ -12,8 +12,7 @@ idf_component_register(
     EMBED_TXTFILES wifi.html
     EMBED_TXTFILES web.html
     EMBED_TXTFILES ota.html
-    EMBED_TXTFILES getdata.js
-    EMBED_TXTFILES w3-include-html.js
+    EMBED_TXTFILES tools.js
     EMBED_TXTFILES style.css)
 
 target_compile_options(${COMPONENT_LIB} PRIVATE "-Wno-format")
