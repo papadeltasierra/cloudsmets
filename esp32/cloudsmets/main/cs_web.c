@@ -398,7 +398,7 @@ static httpd_uri_t uri_get_ota_json = {
 
 /* URI handler structure for POST /uri */
 static httpd_uri_t uri_post_wifi_html = {
-    .uri      = "/wifi_html",
+    .uri      = "/wifi.html",
     .method   = HTTP_POST,
     .handler  = post_wifi_html_handler,
     .user_ctx = NULL
