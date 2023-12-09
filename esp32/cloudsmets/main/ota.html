@@ -31,6 +31,15 @@
 
                 <tr>
                     <td>
+                        Acceptence Period (minutes):</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="otaAcpt" name="otaAcpt">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
                         URL:</td>
                 </tr>
                 <tr>
@@ -44,7 +53,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="text" id="otaRel" name="otaRel">
+                        <input type="text" id="otaRel" name="otaRel" pattern="^(?:\d+\.\d+\.\d+(?:\-dev\d+)?)?$">
                     </td>
                 </tr>
             </table>

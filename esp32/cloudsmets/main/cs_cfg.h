@@ -74,6 +74,7 @@ extern const char cs_cfg_ota_rel[];
 // #define CS_CFG_KEY_DBG_ESP32C3     cfgDbgEsp32c3
 // #define CS_CFG_KEY_DBG_TLSR8258    cfgDbgTlsr8258
 #define CS_CFG_KEY_OTA_FUNC        cs_cfg_ota_func
+#define CS_CFG_KEY_OTA_ACPT        cs_cfg_ota_acpt
 #define CS_CFG_KEY_OTA_URL         cs_cfg_ota_url
 #define CS_CFG_KEY_OTA_REL         cs_cfg_ota_rel
 // #define CS_CFG_KEY_AZURE_FUNC      cfgAzFunc

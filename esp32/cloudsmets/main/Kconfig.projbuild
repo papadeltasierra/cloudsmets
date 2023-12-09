@@ -1,6 +1,6 @@
 menu "CloudSMETS"
 
-    menu "tasks"
+    menu "Tasks"
 
         config CS_TASK_QUEUE_SIZE
             int "Event loop queue size"
@@ -96,6 +96,22 @@ menu "CloudSMETS"
             default 8000
             help
                 Port on which the web server listens.
+
+    endmenu
+
+    menu "OTA"
+
+        config CS_OTA_SERVER_URL
+            int "OTA image server URL"
+            default "https://cloudsmets.blob.core.windows.net/cloudsmets/"
+            help
+                Server from which OTA images are downloaded.
+
+        config CS_OTA_ACCEPT
+            int "OTA acceptence period"
+            default 60
+            help
+                Time, in minutes, that an image must run before being accepted.
 
     endmenu
 

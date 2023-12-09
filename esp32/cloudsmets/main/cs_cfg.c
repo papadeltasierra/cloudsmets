@@ -23,6 +23,8 @@ const char* TAG = "Cfg";
 #define CS_WIFI_AP_SSID             CONFIG_CS_WIFI_AP_SSID
 #define CS_WIFI_AP_PWD              CONFIG_CS_WIFI_AP_PWD
 #define CS_WEB_LISTEN_PORT          CONFIG_CS_WEB_LISTEN_PORT
+#define CS_OTA_ACCEPT               CONFIG_CS_OTA_ACCEPT
+#define CS_OTA_SERVER_URL           CONFIG_CS_OTA_SERVER_URL
 
 /**
 * @brief Ethernet event base definition
@@ -80,6 +82,7 @@ const char cs_cfg_web_pwd[] = "webPwd";
  * OTA, Over-the-air upgrade configuration.
  */
 const char cs_cfg_ota_func[] = "otaFunc";
+const char cs_cfg_ota_acpt[] = "otaAcpt";
 const char cs_cfg_ota_url[] = "otaUrl";
 const char cs_cfg_ota_rel[] = "otaRel";
 
@@ -277,6 +280,12 @@ static void cs_cfg_default(void)
     /* Default STA is no SSID or Password. */
     cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_SSID, "");
     cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_PWD, "");
+
+    // OTA.
+    cs_cfg_default_u8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_FUNC, 0);
+    cs_cfg_default_u32(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA, CS_OTA_ACCEPT);
+    cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_URL, CS_OTA_SERVER_URL);
+    cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REL, "");
 }
 
 void cs_cfg_init(void)
@@ -309,4 +318,3 @@ void cs_cfg_init(void)
     ESP_LOGI(TAG, "Count: UsedEntries = (%d), FreeEntries = (%d), AllEntries = (%d)",
           nvs_stats.used_entries, nvs_stats.free_entries, nvs_stats.total_entries);
 }
-
