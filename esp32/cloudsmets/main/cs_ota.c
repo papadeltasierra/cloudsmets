@@ -25,4 +25,6 @@ void cs_ota_task(cs_ota_create_parms_t *create_parms)
 {
     ESP_LOGI(TAG, "Creating OTA task");
     create_parms = create_parms;
+
+    // TODO: OTA confirmation perdio should perhaps be configurable.
 }

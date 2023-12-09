@@ -203,6 +203,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 /* Initialize soft AP */
 static void wifi_init_softap()
 {
+    // TODO: How do we set the network mask?  Or at last force to always 192.168.4.xxx
     size_t length;
     s_netif_ap = esp_netif_create_default_wifi_ap();
 
