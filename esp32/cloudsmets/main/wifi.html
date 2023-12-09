@@ -8,7 +8,7 @@
     </head>
 
     <body onload="onload('/wifi.json');">
-    <div w3-include-html="/menu.html">
+        <div w3-include-html="/menu.html">
         </div>
 
         <h1>WiFi Settings</h1>
@@ -17,11 +17,25 @@
             <table>
                 <tr>
                     <td>
+                        <h2>SoftAP (peer-to-peer)</h2>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Channel:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="int" id="wifiApChnl" name="wifiApChnl">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
                         SSID:</td>
                 </tr>
                 <tr>
                     <td>
-                        <input type="text" id="wifiSsid" name="widiSsid">
+                        <input type="text" id="wifiApSsid" name="wifiApSsid">
                     </td>
                 </tr>
                 <tr>
@@ -30,7 +44,30 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="text" id="wifiPwd" name="wifiPwd">
+                        <input type="text" id="wifiApPwd" name="wifiApPwd">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h2>AP (router)</h2>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        SSID:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="wifiStaSsid" name="wifiStaSsid">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Password:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="wifiStaPwd" name="wifiStaPwd">
                     </td>
                 </tr>
             </table>

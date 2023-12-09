@@ -40,6 +40,9 @@ const char *cs_web_task_name  = "Web";
 const char *cs_ota_task_name  = "Ota";
 // const char *cs_cfg__azure_task_name = "Azure";
 
+// TODO: We are going to have to mutex protect here!
+static nvs_handle_t handle;
+
 /*
  * Keys for each namespace.
  * Duplicate keys are commented out after the first definition but shown to
@@ -92,7 +95,7 @@ const char cs_cfg_ota_rel[] = "otaRel";
 /*
  * Web server helper definitions.
  */
-cs_cfg_definitions_t cs_cfg_wifi_definitions[] =
+const cs_cfg_definitions_t cs_cfg_wifi_definitions[] =
 {
     { CS_CFG_KEY_WIFI_AP_CHNL, NVS_TYPE_U8, -1 },
     { CS_CFG_KEY_WIFI_AP_SSID, NVS_TYPE_STR, 63 },
@@ -102,13 +105,13 @@ cs_cfg_definitions_t cs_cfg_wifi_definitions[] =
     { NULL, NVS_TYPE_ANY, -1 }
 };
 
-cs_cfg_definitions_t cs_cfg_web_definitions[] =
+const cs_cfg_definitions_t cs_cfg_web_definitions[] =
 {
     { CS_CFG_KEY_WEB_PORT, NVS_TYPE_U16, -1 },
     { NULL, NVS_TYPE_ANY, -1 }
 };
 
-// cs_cfg_definitions_t cs_cfg_log_definitions[] =
+// const cs_cfg_definitions_t cs_cfg_log_definitions[] =
 // {
 //     { CFG_KEY_LOG_FUNC, NVS_TYPE_U8, -1 },
 //     { CFG_KEY_LOG_BAUD, NVS_TYPE_U32, -1 },
@@ -118,7 +121,7 @@ cs_cfg_definitions_t cs_cfg_web_definitions[] =
 //     { NULL,NVS_TYPE_ANY -1 }
 // };
 
-cs_cfg_definitions_t cs_cfg_ota_definitions[] =
+const cs_cfg_definitions_t cs_cfg_ota_definitions[] =
 {
     { CS_CFG_KEY_OTA_FUNC, NVS_TYPE_U8, -1 },
     { CS_CFG_KEY_OTA_URL, NVS_TYPE_STR, 256 },
@@ -132,7 +135,6 @@ cs_cfg_definitions_t cs_cfg_ota_definitions[] =
 
 void cs_cfg_default_uint8(const char *ns, const char *key, uint8_t def)
 {
-    nvs_handle_t handle;
     uint8_t existing;
     esp_err_t err_rc;
 
@@ -150,7 +152,6 @@ void cs_cfg_default_uint8(const char *ns, const char *key, uint8_t def)
 
 void cs_cfg_default_uint16(const char *ns, const char *key, uint16_t def)
 {
-    nvs_handle_t handle;
     uint16_t existing;
     esp_err_t err_rc;
 
@@ -168,7 +169,6 @@ void cs_cfg_default_uint16(const char *ns, const char *key, uint16_t def)
 
 void cs_cfg_default_str(const char *ns, const char *key, const char * def)
 {
-    nvs_handle_t handle;
     size_t length;
     esp_err_t err_rc;
 
@@ -186,41 +186,33 @@ void cs_cfg_default_str(const char *ns, const char *key, const char * def)
 
 void cs_cfg_read_uint8(const char *ns, const char *key, uint8_t *value)
 {
-    nvs_handle_t handle;
-
     ESP_LOGV(TAG, "Read u8 value: %s, %s", ns, key);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READONLY, &handle));
     ESP_ERROR_CHECK(nvs_get_u8(handle, key, value));
-    ESP_LOGV(TAG, "Value: %u", (uint)value);
+    ESP_LOGV(TAG, "Value: %u", (uint)(*value));
     nvs_close(handle);
 }
 
 void cs_cfg_read_uint16(const char *ns, const char *key, uint16_t *value)
 {
-    nvs_handle_t handle;
-
     ESP_LOGV(TAG, "Read u16 value: %s, %s", ns, key);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READONLY, &handle));
     ESP_ERROR_CHECK(nvs_get_u16(handle, key, value));
-    ESP_LOGV(TAG, "Value: %hu", value);
+    ESP_LOGV(TAG, "Value: %hu", (*value));
     nvs_close(handle);
 }
 
 void cs_cfg_read_uint32(const char *ns, const char *key, uint32_t *value)
 {
-    nvs_handle_t handle;
-
     ESP_LOGV(TAG, "Read u32 value: %s, %s", ns, key);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READONLY, &handle));
     ESP_ERROR_CHECK(nvs_get_u32(handle, key, value));
-    ESP_LOGV(TAG, "Value: %lu", value);
+    ESP_LOGV(TAG, "Value: %lu", (*value));
     nvs_close(handle);
 }
 
 void cs_cfg_read_str(const char *ns, const char *key, char *value, size_t *length)
 {
-    nvs_handle_t handle;
-
     ESP_LOGV(TAG, "Read str value: %s, %s", ns, key);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READWRITE, &handle));
     ESP_ERROR_CHECK(nvs_get_str(handle, key, value, length));
@@ -228,11 +220,8 @@ void cs_cfg_read_str(const char *ns, const char *key, char *value, size_t *lengt
     nvs_close(handle);
 }
 
-
 void cs_cfg_write_uint8(const char *ns, const char *key, uint8_t value)
 {
-    nvs_handle_t handle;
-
     ESP_LOGV(TAG, "Write u8 value: %s, %s: %u", ns, key, (uint)value);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READWRITE, &handle));
     ESP_ERROR_CHECK(nvs_set_u8(handle, key, value));
@@ -242,8 +231,6 @@ void cs_cfg_write_uint8(const char *ns, const char *key, uint8_t value)
 
 void cs_cfg_write_uint16(const char *ns, const char *key, uint16_t value)
 {
-    nvs_handle_t handle;
-
     ESP_LOGV(TAG, "Write u16 value: %s, %s: %hu", ns, key, value);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READWRITE, &handle));
     ESP_ERROR_CHECK(nvs_set_u16(handle, key, value));
@@ -253,8 +240,6 @@ void cs_cfg_write_uint16(const char *ns, const char *key, uint16_t value)
 
 void cs_cfg_write_uint32(const char *ns, const char *key, uint32_t value)
 {
-    nvs_handle_t handle;
-
     ESP_LOGV(TAG, "Write u32 value: %s, %s: %lu", ns, key, value);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READWRITE, &handle));
     ESP_ERROR_CHECK(nvs_set_u32(handle, key, value));
@@ -268,8 +253,6 @@ void cs_cfg_write_uint32(const char *ns, const char *key, uint32_t value)
  */
 void cs_cfg_write_str(const char *ns, const char *key, const char *value)
 {
-    nvs_handle_t handle;
-
     ESP_LOGV(TAG, "Write u32 value: %s, %s: %s", ns, key, value);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READWRITE, &handle));
     ESP_ERROR_CHECK(nvs_set_str(handle, key, value));
@@ -283,7 +266,10 @@ void cs_cfg_write_str(const char *ns, const char *key, const char *value)
 */
 static void cs_cfg_default(void)
 {
+    /* Default web server listen port. */
     cs_cfg_default_uint16(CS_CFG_NMSP_WEB, CS_CFG_KEY_WEB_PORT, CS_WEB_LISTEN_PORT);
+
+    /* Default SoftAP. */
     cs_cfg_default_uint8(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_CHNL, CS_WIFI_AP_CHANNEL);
     cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_SSID, CS_WIFI_AP_SSID);
     cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_PWD, CS_WIFI_AP_PWD);

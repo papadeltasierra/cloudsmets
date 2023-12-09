@@ -95,10 +95,10 @@ typedef struct
 /*
  * Web server helper definitions.
  */
-extern cs_cfg_definitions_t cs_cfg_wifi_definitions[];
-extern cs_cfg_definitions_t cs_cfg_web_definitions[];
-// extern cs_cfg_definitions_t cs_cfg_log_definitions[];
-extern cs_cfg_definitions_t cs_cfg_ota_definitions[];
+extern const cs_cfg_definitions_t cs_cfg_wifi_definitions[];
+extern const cs_cfg_definitions_t cs_cfg_web_definitions[];
+// extern const cs_cfg_definitions_t cs_cfg_log_definitions[];
+extern const cs_cfg_definitions_t cs_cfg_ota_definitions[];
 
 /*
  * Interface

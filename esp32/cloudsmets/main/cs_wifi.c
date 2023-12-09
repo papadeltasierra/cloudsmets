@@ -38,6 +38,22 @@ static int s_retry_num = 0;
 
 // TODO: What about the SoftAP addresses and masks?
 
+static wifi_config_t wifi_sta_config = {
+    .sta = {
+        .scan_method = WIFI_ALL_CHANNEL_SCAN,
+        .failure_retry_cnt = CS_WIFI_STA_MAXIMUM_RETRY,
+        /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
+            * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
+            * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
+        * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
+            */
+        // .threshold.authmode = WIFI_AUTH_WPA2_WPA3_PSK,
+        // TODO: Do we make this cnofigurable?  Certainly want better than this.
+        .threshold.authmode = WIFI_AUTH_OPEN,
+        .sae_pwe_h2e = WPA3_SAE_PWE_BOTH,
+    },
+};
+
 static bool wifi_config_sta()
 {
     bool rc = true;
@@ -45,25 +61,17 @@ static bool wifi_config_sta()
 
     ESP_LOGI(TAG, "Config STA");
 
-    wifi_config_t wifi_sta_config = {
-        .sta = {
-            .scan_method = WIFI_ALL_CHANNEL_SCAN,
-            .failure_retry_cnt = CS_WIFI_STA_MAXIMUM_RETRY,
-            /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
-             * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
-             * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
-            * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
-             */
-            .threshold.authmode = WIFI_AUTH_WPA2_WPA3_PSK,
-            .sae_pwe_h2e = WPA3_SAE_PWE_BOTH,
-        },
-    };
-
     length = sizeof(wifi_sta_config.ap.ssid);
+    ESP_LOGV(TAG, "B SSID: %d", length);
     cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_SSID, (char *)wifi_sta_config.sta.ssid, &length);
+    ESP_LOGV(TAG, "A SSID: %d", length);
+    wifi_sta_config.sta.ssid[length] = 0;
     rc = length > 8 ? rc : false;
     length = sizeof(wifi_sta_config.ap.password);
+    ESP_LOGV(TAG, "B PWD: %d", length);
     cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_PWD, (char *)wifi_sta_config.sta.password, &length);
+    ESP_LOGV(TAG, "A PWD: %d", length);
+    wifi_sta_config.sta.password[length] = 0;
     rc = length > 8 ? rc : false;
 
     if (rc)
@@ -87,6 +95,15 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     {
         switch (event_id)
         {
+            case WIFI_EVENT_AP_START:
+                // esp_wifi_connect();
+                ESP_LOGI(TAG, "SoftAP: Started");
+                break;
+
+            case WIFI_EVENT_AP_STOP:
+                ESP_LOGI(TAG, "SoftAP: Stopped");
+                break;
+
             case WIFI_EVENT_AP_STACONNECTED:
                 ap_conn_event = (wifi_event_ap_staconnected_t *) event_data;
                 ESP_LOGI(TAG, "SoftAP: station "MACSTR" joined, AID=%d",
@@ -114,8 +131,9 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 break;
 
             case WIFI_EVENT_STA_DISCONNECTED:
+                    esp_wifi_disconnect();
                 if (s_retry_num < CS_WIFI_STA_MAXIMUM_RETRY) {
-                    ESP_LOGI(TAG, "STA: connect to the AP (router)");
+                    ESP_LOGI(TAG, "STA: retry connected from the AP (router)");
                     esp_wifi_connect();
                     s_retry_num++;
                 } else {
@@ -130,8 +148,14 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 break;
 
             case WIFI_EVENT_STA_START:
+                ESP_LOGI(TAG, "STA: Started");
+                // esp_wifi_disconnect();
                 esp_wifi_connect();
-                ESP_LOGI(TAG, "Station started");
+                break;
+
+            case WIFI_EVENT_STA_STOP:
+                ESP_LOGI(TAG, "STA: Stopped");
+                esp_wifi_disconnect();
                 break;
 
             default:
@@ -162,11 +186,12 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "Config. change; restart STA.");
         esp_timer_stop(s_netif_sta_timer);
         esp_wifi_disconnect();
+        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
         if (wifi_config_sta())
         {
             ESP_LOGV(TAG, "STA config sufficient - try connect");
             s_retry_num = 0;
-            esp_wifi_connect();
+            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
         }
     }
     else
@@ -176,10 +201,11 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 }
 
 /* Initialize soft AP */
-static esp_netif_t *wifi_init_softap()
+static void wifi_init_softap()
 {
     size_t length;
-    esp_netif_t *s_netif_ap = esp_netif_create_default_wifi_ap();
+    s_netif_ap = esp_netif_create_default_wifi_ap();
+
     wifi_config_t wifi_ap_config = {
         .ap = {
             .max_connection = CS_WIFI_STA_MAX_CONN,
@@ -206,7 +232,7 @@ static esp_netif_t *wifi_init_softap()
 
     ESP_LOGV(TAG, "AP configured");
 
-    return s_netif_ap;
+    return;
 }
 
 /* Try and reconnect the STA WiFi connection. */
@@ -214,20 +240,21 @@ static void esp_netif_timer_cb(void *arg)
 {
     ESP_LOGI(TAG, "Timer retrying connect for STA");
     s_retry_num = 0;
-    esp_wifi_connect();
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 }
 
 /* Initialize wifi station */
-static esp_netif_t *wifi_init_sta(void)
+static void wifi_init_sta(void)
 {
+    s_netif_sta = esp_netif_create_default_wifi_sta();
+
     if (wifi_config_sta())
     {
         ESP_LOGI(TAG, "Try initial connect");
         ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
-        esp_wifi_connect();
     }
 
-    return s_netif_sta;
+    return;
 }
 
 /**
@@ -284,11 +311,11 @@ void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
 
     /* Initialize AP */
     ESP_LOGI(TAG, "Init ESP_WIFI_MODE_AP");
-    s_netif_ap = wifi_init_softap();
+    wifi_init_softap();
 
     /* Initialize STA */
     ESP_LOGI(TAG, "Init ESP_WIFI_MODE_STA");
-    s_netif_sta = wifi_init_sta();
+    wifi_init_sta();
 
     /* Start WiFi */
     ESP_LOGI(TAG, "start WiFi");

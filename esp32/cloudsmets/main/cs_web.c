@@ -38,16 +38,17 @@ extern const uint8_t ota_html_end[]       asm("_binary_ota_html_end");
 extern const uint8_t style_css_start[]    asm("_binary_style_css_start");
 extern const uint8_t style_css_end[]      asm("_binary_style_css_end");
 extern const uint8_t tools_js_start[]     asm("_binary_tools_js_start");
-extern const uint8_t tools_js_end[]     asm("_binary_tools_js_end");
+extern const uint8_t tools_js_end[]       asm("_binary_tools_js_end");
 
-#define index_html_len  (size_t)(index_html_end - index_html_start)
-#define menu_html_len   (size_t)(menu_html_end - menu_html_start)
-#define wifi_html_len   (size_t)(wifi_html_end - wifi_html_start)
-#define web_html_len    (size_t)(web_html_end - web_html_start)
-#define ota_html_len    (size_t)(ota_html_end - ota_html_start)
-#define style_css_len   (size_t)(style_css_end - style_css_start)
-#define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start)
-#define tools_js_len    (size_t)(tools_js_end - tools_js_start)
+// TODO: It appears that length includes a NULL so reduce by 1.
+#define index_html_len  (size_t)(index_html_end - index_html_start - 1)
+#define menu_html_len   (size_t)(menu_html_end - menu_html_start - 1)
+#define wifi_html_len   (size_t)(wifi_html_end - wifi_html_start - 1)
+#define web_html_len    (size_t)(web_html_end - web_html_start - 1)
+#define ota_html_len    (size_t)(ota_html_end - ota_html_start - 1)
+#define style_css_len   (size_t)(style_css_end - style_css_start - 1)
+#define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start - 1)
+#define tools_js_len    (size_t)(tools_js_end - tools_js_start - 1)
 
 /* Event loops (exccept for the default loop, used by Wifi) */
 static esp_event_loop_handle_t web_event_loop_handle = NULL;
@@ -106,78 +107,116 @@ static esp_err_t get_tools_js_handler(httpd_req_t *req)
     return httpd_resp_send(req, (char *)tools_js_start, tools_js_len);
 }
 
-static esp_err_t get_json_handler(
-    httpd_req_t *req,
-    const char *namespace,
-    const cs_cfg_definitions_t *definitions)
+size_t write_field(char *ptr, size_t available, const char *ns, const cs_cfg_definitions_t *definition)
 {
-    esp_err_t esp_rc = ESP_OK;
+    size_t outlen = 0;
     size_t s_length;
-
-    int length;
-    char buffer[128];
-    char *ptr = buffer;
     uint8_t u8_value;
     uint16_t u16_value;
     uint32_t u32_value;
 
+    ESP_LOGV(TAG, "Key, type: %s, %d", definition->key, definition->type);
+    switch (definition->type)
+    {
+        case NVS_TYPE_STR:
+            outlen = snprintf(ptr, available, "\"%s\":\"", definition->key);
+            if (outlen > available)
+            {
+                break;
+            }
+            available -= outlen;
+            ptr += outlen;
+            s_length = available;
+            cs_cfg_read_str(ns, definition->key, ptr, &s_length);
+
+            // Length returned out includes the NULL.
+            s_length--;
+            available -= s_length;
+            ptr+= s_length;
+            outlen += s_length;
+            if (available < 1)
+            {
+                break;
+            }
+            *ptr = '"';
+            outlen++;
+            break;
+
+        case NVS_TYPE_U8:
+            cs_cfg_read_uint8(ns, definition->key, &u8_value);
+            outlen = snprintf(ptr, available, "\"%s\":%hu", definition->key, (unsigned short)u8_value);
+            break;
+
+        case NVS_TYPE_U16:
+            cs_cfg_read_uint16(ns, definition->key, &u16_value);
+            outlen = snprintf(ptr, available, "\"%s\":%hu", definition->key, u16_value);
+            break;
+
+        case NVS_TYPE_U32:
+            cs_cfg_read_uint32(ns, definition->key, &u32_value);
+            outlen = snprintf(ptr, available, "\"%s\":%lu", definition->key, u32_value);
+            break;
+
+        default:
+            ESP_LOGE(TAG, "Unsupported type: %d", definition->type);
+            ESP_ERROR_CHECK(ESP_FAIL);
+            break;
+    }
+    return outlen;
+}
+
+static esp_err_t get_json_handler(
+    httpd_req_t *req,
+    const char *ns,
+    const cs_cfg_definitions_t *definitions)
+{
+    cs_cfg_definitions_t *definition = (cs_cfg_definitions_t *)definitions;
+    esp_err_t esp_rc = ESP_OK;
+    size_t available;
+    size_t outlen = 0;
+    // TODO: Improve this.
+    char *buffer;
+    char *ptr;
+
     ESP_LOGI(TAG, "GET JSON handler");
 
-    length = sprintf(ptr, "{\"%s\":", definitions->key);
-    ptr += length;
-    do
+    buffer = (char *)malloc(1024);
+    available = 1024;
+    ptr = buffer;
+    *ptr++ = '{';
+    available--;
+
+    outlen = write_field(ptr, available, ns, definition);
+
+    while ((available > outlen) && ((++definition)->key != NULL))
     {
-        ESP_LOGV(TAG, "Key, type: %s, %d", definitions->key, definitions->type);
-        switch (definitions->type)
-        {
-            case NVS_TYPE_STR:
-                *ptr++ = '"';
-                cs_cfg_read_str(namespace, definitions->key, ptr, &s_length);
-                ptr += s_length;
-                *ptr++ = '"';
-                *ptr++ = ',';
-                break;
+        available -= outlen;
+        ptr += outlen;
+        *ptr++ = ',';
+        available--;
+        outlen = write_field(ptr, available, ns, definition);
+    }
 
-            case NVS_TYPE_U8:
-                cs_cfg_read_uint8(namespace, definitions->key, &u8_value);
-                length = sprintf(ptr, "%hd,", (unsigned short)u8_value);
-                ptr += s_length;
-                break;
-
-            case NVS_TYPE_U16:
-                cs_cfg_read_uint16(namespace, definitions->key, &u16_value);
-                length = sprintf(ptr, "%hd,", (unsigned short)u16_value);
-                ptr += s_length;
-                break;
-
-            case NVS_TYPE_U32:
-                cs_cfg_read_uint32(namespace, definitions->key, &u32_value);
-                length = sprintf(ptr, "%ld,", (unsigned long)u32_value);
-                ptr += s_length;
-                break;
-
-            default:
-                ESP_LOGE(TAG, "Unsupported type: %d", definitions->type);
-                esp_rc = ESP_FAIL;
-                break;
-        }
-    } while ((++definitions)->key != NULL);
-
-    if (esp_rc == ESP_OK)
+    if (available > outlen)
     {
-        // Remove the final comma.
-        ptr--;
-        length = sprintf(ptr,"\"}");
-        s_length = (size_t)(ptr - buffer);
+        available -= outlen;
+        ptr += outlen;
+        *ptr++ = '}';
+        available--;
+    }
 
-        ESP_LOGV(TAG, "Send successful response");
-        httpd_resp_send(req, buffer, s_length);
+    if (available >= outlen)
+    {
+        outlen = (size_t)(ptr - buffer);
+        ESP_LOGV(TAG, "Send successful response: %d", outlen);
+        httpd_resp_send(req, buffer, outlen);
     }
     else
     {
         ESP_LOGE(TAG, "Send 500 Internal error");
         httpd_resp_send_500(req);
     }
+    free(buffer);
 
     return esp_rc;
 }
@@ -214,17 +253,26 @@ static esp_err_t post_html_handler(
      * In case of string data, null termination will be absent, and
      * content length would give length of string */
     esp_err_t esp_rc = ESP_OK;
-    char content[1024];
-    char value[1024];
+
+    // TODO: Remove this!  This blows stack limits - we should be using allocated memory.
+    // TODO: then reduce stack size for both httpd and cs_web.
+    char *content;
+    char *value;
     uint16_t u16_value;
     uint32_t u32_value;
 
     ESP_LOGI(TAG, "POST HTML handler");
 
-    /* Truncate if content length larger than the buffer */
-    size_t recv_size = req->content_len < sizeof(content) ? req->content_len : sizeof(content);
+    content = (char *)malloc(req->content_len);
+    value = (char *)malloc(req->content_len);
 
-    int ret = httpd_req_recv(req, content, recv_size);
+    /* Truncate if content length larger than the buffer */
+    // TODO: Hard-coded value!
+    // TODO: No point cnotinuing here as truncated data will cause a crash - return an error instead!
+    // TODO: Dynamically allocate based no content length!
+    // size_t recv_size = req->content_len < 1024 ? req->content_len : 1024;
+
+    int ret = httpd_req_recv(req, content, req->content_len);
     if (ret <= 0) {  /* 0 return value indicates connection closed */
         if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
             /* In case of timeout one can choose to retry calling
@@ -241,7 +289,9 @@ static esp_err_t post_html_handler(
 
     do
     {
-        ESP_ERROR_CHECK(httpd_query_key_value(content, definitions->key, value, sizeof(value)));
+        ESP_LOGV(TAG, "Key: %s", definitions->key);
+        // TODO: Need to improve length perhaps?
+        ESP_ERROR_CHECK(httpd_query_key_value(content, definitions->key, value, req->content_len));
         ESP_LOGV(TAG, "Value: %s", value);
         switch (definitions->type)
         {
@@ -295,6 +345,9 @@ static esp_err_t post_html_handler(
         ESP_LOGV(TAG, "Nudge specific event loop");
         esp_event_post_to(event_loop_handle, CS_CONFIG_EVENT, CS_CONFIG_CHANGE, NULL, 0, CS_TASK_TICKS_TO_WAIT);
     }
+
+    free(value);
+    free(content);
 
     return ESP_OK;
 }
