@@ -8,6 +8,10 @@
 // TODO: Are these headers correct?
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+/**
+ * Allow logging in this file; disabled unless explcitly set.
+*/
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 #include "esp_wifi.h"
 #include "esp_http_server.h"

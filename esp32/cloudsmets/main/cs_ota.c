@@ -18,6 +18,10 @@
 #include "esp_netif_ip_addr.h"
 #include "esp_http_client.h"
 #include "esp_mac.h"
+/**
+ * Allow logging in this file; disabled unless explcitly set.
+*/
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 #include "cs_cfg.h"
 #include "cs_ota.h"

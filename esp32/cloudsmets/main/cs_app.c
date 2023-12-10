@@ -12,6 +12,11 @@
 #include "freertos/queue.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
+
+/**
+ * Allow logging in this file; disabled unless explcitly set.
+*/
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 #include "esp_event.h"
 

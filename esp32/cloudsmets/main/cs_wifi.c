@@ -17,6 +17,10 @@
 #include "esp_netif_types.h"
 #include "esp_netif_ip_addr.h"
 #include "esp_mac.h"
+/**
+ * Allow logging in this file; disabled unless explcitly set.
+*/
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 #include "cs_wifi.h"
 #include "cs_cfg.h"
