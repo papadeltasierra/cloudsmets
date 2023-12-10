@@ -2,6 +2,10 @@
 **/sdkconfig*
 !**/sdkconfig.defaults
 
+# Probably want to lock this down somehow.
+**/managed_components
+**/dependencies.lock
+
 # Ignore ESP32 build output
 build/
 .vscode/
