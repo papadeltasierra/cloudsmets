@@ -102,7 +102,7 @@ menu "CloudSMETS"
     menu "OTA"
 
         config CS_OTA_SERVER_URL
-            int "OTA image server URL"
+            string "OTA image server URL"
             default "https://cloudsmets.blob.core.windows.net/cloudsmets/"
             help
                 Server from which OTA images are downloaded.

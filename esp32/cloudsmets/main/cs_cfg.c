@@ -81,10 +81,11 @@ const char cs_cfg_web_pwd[] = "webPwd";
 /*
  * OTA, Over-the-air upgrade configuration.
  */
-const char cs_cfg_ota_func[] = "otaFunc";
-const char cs_cfg_ota_acpt[] = "otaAcpt";
-const char cs_cfg_ota_url[] = "otaUrl";
-const char cs_cfg_ota_rel[] = "otaRel";
+const char cs_cfg_ota_func[]    = "otaFunc";
+const char cs_cfg_ota_image[]   = "otaImage";
+const char cs_cfg_ota_accept[]  = "otaAccept";
+const char cs_cfg_ota_url[]     = "otaUrl";
+const char cs_cfg_ota_rel[]     = "otaRel";
 
 // /*
 //  * Azure
@@ -164,6 +165,23 @@ void cs_cfg_default_uint16(const char *ns, const char *key, uint16_t def)
     if (err_rc == ESP_ERR_NVS_NOT_FOUND)
     {
         ESP_ERROR_CHECK(nvs_set_u16(handle, key, def));
+        err_rc = nvs_commit(handle);
+    }
+    nvs_close(handle);
+    ESP_ERROR_CHECK(err_rc);
+}
+
+void cs_cfg_default_uint32(const char *ns, const char *key, uint32_t def)
+{
+    uint32_t existing;
+    esp_err_t err_rc;
+
+    ESP_LOGV(TAG, "Default u32 value: %s, %s: %hu", ns, key, def);
+    ESP_ERROR_CHECK(nvs_open(ns, NVS_READWRITE, &handle));
+    err_rc = nvs_get_u32(handle, key, &existing);
+    if (err_rc == ESP_ERR_NVS_NOT_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_set_u32(handle, key, def));
         err_rc = nvs_commit(handle);
     }
     nvs_close(handle);
@@ -282,8 +300,11 @@ static void cs_cfg_default(void)
     cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_PWD, "");
 
     // OTA.
-    cs_cfg_default_u8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_FUNC, 0);
-    cs_cfg_default_u32(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA, CS_OTA_ACCEPT);
+#define OTA_ENABLED 1
+#define OTA_IMAGE_PROD_ONLY 0
+    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_FUNC, OTA_ENABLED);
+    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_IMAGE, OTA_IMAGE_PROD_ONLY);
+    cs_cfg_default_uint32(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ACCEPT, CS_OTA_ACCEPT);
     cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_URL, CS_OTA_SERVER_URL);
     cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REL, "");
 }
