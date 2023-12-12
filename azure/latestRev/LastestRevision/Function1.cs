@@ -7,8 +7,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Xml;
-using System.Data.SqlTypes;
-using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 namespace LastestRevision
 {
@@ -31,66 +30,30 @@ namespace LastestRevision
             this.dev = dev;
         }
 
-        static public SemVer FromString(string semver, bool allowDev)
+        public void Latest(UInt32 major, UInt32 minor, UInt32 revision, UInt32 dev, bool allowDev)
         {
-            int devOffset = semver.IndexOf($"-dev");
-            UInt32 major;
-            UInt32 minor;
-            UInt32 revision;
-            UInt32 dev = 0;
-
-            if (devOffset != -1)
-            {
-                if (! allowDev)
-                {
-                    return null;
-                }
-                string devNum = semver[0..^(devOffset + 4)];
-                semver = semver[0..^devOffset];
-                dev = UInt32.Parse(devNum);
-            }
-
-            string[] version = semver.Split('.');
-
-            if (version.Length != 3)
-            {
-                throw new Exception(String.Format("{0} does not match SemVer syntax.", semver));
-            }
-            major = UInt32.Parse(version[0]);
-            minor = UInt32.Parse(version[1]);
-            revision = UInt32.Parse(version[2]);
-            return new SemVer(major, minor, revision, dev);
-        }
-
-
-        public void Latest(SemVer candidate)
-        {
-            if (candidate == null)
-            {
-                return;
-            }
-
             /**
              * SemVer logic is as described below.  Note that any development version
              * is earlier (not as good) as the non-dev version with same major/minor/revision.
              */
-            if ((candidate.major > this.major) ||
-                ((candidate.major == this.major) &&
-                 ((candidate.minor > this.minor) ||
-                  ((candidate.minor == this.minor) &&
-                   ((candidate.revision > this.revision) ||
-                    ((candidate.revision == this.revision) &&
-                     ((candidate.dev == 0) ||
+            if ((major > this.major) ||
+                ((major == this.major) &&
+                 ((minor > this.minor) ||
+                  ((minor == this.minor) &&
+                   ((revision > this.revision) ||
+                    ((revision == this.revision) &&
+                     ((dev == 0) ||
                       ((this.dev != 0) &&
-                       (candidate.dev > this.dev)))))))))
+                       (allowDev) &&
+                       (dev > this.dev)))))))))
             {
                 /**
                  * This is a better version so update.
                  */
-                this.major = candidate.major;
-                this.minor = candidate.minor;
-                this.revision = candidate.revision;
-                this.dev = candidate.dev;
+                this.major = major;
+                this.minor = minor;
+                this.revision = revision;
+                this.dev = dev;
             }
         }
 
@@ -115,7 +78,7 @@ namespace LastestRevision
         private static readonly string containerUrlString = Environment.GetEnvironmentVariable("containerUrl");
         private static readonly string nameElement = $"Name";
         private static readonly string devParam = $"dev";
-
+        private static readonly Regex version = new (@"^(\d+)\.(\d+)\.(\d+)(?:-dev([1-9]\d*))?/$");
 
         /**
          * Azure function to offload the listing of available CloudSMETs images and
@@ -124,7 +87,7 @@ namespace LastestRevision
          * occupies over 80kB.  Doing the work here allows us to save that space
          * in the ESP32 image.
          * 
-         * Ref: https://learn.microsoft.com/en-us/troubleshoot/developer/visualstudio/csharp/language-compilers/read-xml-data-from-url
+         * Ref: https://learn.microsoft.com/en-us/dotnet/api/system.xml.xmlreader?view=net-8.0
          */
         [FunctionName("Function1")]
         public static async Task<IActionResult> Run(
@@ -135,36 +98,51 @@ namespace LastestRevision
             Boolean allowDev;
             SemVer latestRev = new();
 
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
             /**
              * Determine whether to allow development versions.
              */
             allowDev = !String.IsNullOrEmpty(req.Query[devParam]);
 
-            XmlTextReader reader = new(containerUrlString);
+            XmlReaderSettings settings = new() {
+                Async = true
+            };
 
-            while (reader.Read())
+            using (XmlReader reader = XmlReader.Create(containerUrlString, settings))
             {
-                switch (reader.NodeType)
+                while (await reader.ReadAsync())
                 {
-                    case XmlNodeType.Element: // The node is an element.
-                        if (reader.Name.Equals(nameElement))
-                        {
-                            inName = true;
-                        }
-                        break;
+                    switch (reader.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            if (reader.Name.Equals(nameElement))
+                            {
+                                inName = true;
+                            }
+                            break;
 
-                    case XmlNodeType.Text: //Display the text in each element.
-                        if (inName)
-                        {
-                            latestRev.Latest(SemVer.FromString(reader.Value, allowDev));
-                        }
-                        break;
+                        case XmlNodeType.Text:
+                            if (inName)
+                            {
+                                string field = await reader.GetValueAsync();
+                                Match match = version.Match(field);
+                                if (match.Success)
+                                {
+                                    latestRev.Latest(UInt32.Parse(match.Groups[1].Value),
+                                                     UInt32.Parse(match.Groups[2].Value),
+                                                     UInt32.Parse(match.Groups[3].Value),
+                                                     match.Groups[4].Success ? UInt32.Parse(match.Groups[4].Value) : 0,
+                                                     allowDev);
+                                }
+                            }
+                            break;
 
-                    case XmlNodeType.EndElement: //Display the end of the element.
-                        inName = false;
-                        break;
+                        case XmlNodeType.EndElement:
+                            inName = false;
+                            break;
+
+                        default:
+                            break;
+                    }
                 }
             }
 
