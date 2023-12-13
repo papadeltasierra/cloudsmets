@@ -8,21 +8,24 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Xml;
 using System.Text.RegularExpressions;
+using System.Diagnostics.Metrics;
 
 /**
  * TODO:
- * - Rename to cloudsmets/cloudsmets.
+ * - DONE: Rename
+ * - Can we make the URL into https://cloudsmets...?
  * - Increase security - do not need anonymous container listing.
  * - Add documentation in either ESP32 or Azure format.
- * - Can we add metrics to spot when fails?
- * - Add try/catch and log
+ * - DONE: Can we add metrics to spot when fails?
+ * - Where are the metrics?
+ * - DONE: Add try/catch and log
  * - Do we need more logging?
  * - Does CI prevent bad SemVer?
  *   - We should log error when we encounter one "just in case"
  *   - Maybe throw error metric too!  
  * - Need to add unit testing and integration testing
  */
-namespace LastestRevision
+namespace CloudSMETS
 {
 
     /**
@@ -86,12 +89,15 @@ namespace LastestRevision
         }
     }
 
-    public static class Function1
+    public static class LatestRevision
     {
         private static readonly string containerUrlString = Environment.GetEnvironmentVariable("containerUrl");
         private static readonly string nameElement = $"Name";
         private static readonly string devParam = $"dev";
         private static readonly Regex version = new (@"^(\d+)\.(\d+)\.(\d+)(?:-dev([1-9]\d*))?/$");
+        private static readonly Meter s_meter = new ("CloudSMETS");
+        private static readonly Counter<int> s_successes = s_meter.CreateCounter<int>("cloudsmets.latest_revision.success");
+        private static readonly Counter<int> s_failures = s_meter.CreateCounter<int>("cloudsmets.latest_revision.failed");
 
         /**
          * Azure function to offload the listing of available CloudSMETs images and
@@ -102,7 +108,7 @@ namespace LastestRevision
          * 
          * Ref: https://learn.microsoft.com/en-us/dotnet/api/system.xml.xmlreader?view=net-8.0
          */
-        [FunctionName("Function1")]
+        [FunctionName("LatestRevision")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             ILogger log)
@@ -116,51 +122,77 @@ namespace LastestRevision
              */
             allowDev = !String.IsNullOrEmpty(req.Query[devParam]);
 
-            XmlReaderSettings settings = new() {
-                Async = true
-            };
+            try
+            { 
+                XmlReaderSettings settings = new() {
+                    Async = true
+                };
 
-            using (XmlReader reader = XmlReader.Create(containerUrlString, settings))
-            {
-                while (await reader.ReadAsync())
+                using (XmlReader reader = XmlReader.Create(containerUrlString, settings))
                 {
-                    switch (reader.NodeType)
+                    while (await reader.ReadAsync())
                     {
-                        case XmlNodeType.Element:
-                            if (reader.Name.Equals(nameElement))
-                            {
-                                inName = true;
-                            }
-                            break;
-
-                        case XmlNodeType.Text:
-                            if (inName)
-                            {
-                                string field = await reader.GetValueAsync();
-                                Match match = version.Match(field);
-                                if (match.Success)
+                        switch (reader.NodeType)
+                        {
+                            case XmlNodeType.Element:
+                                if (reader.Name.Equals(nameElement))
                                 {
-                                    latestRev.Latest(UInt32.Parse(match.Groups[1].Value),
-                                                     UInt32.Parse(match.Groups[2].Value),
-                                                     UInt32.Parse(match.Groups[3].Value),
-                                                     match.Groups[4].Success ? UInt32.Parse(match.Groups[4].Value) : 0,
-                                                     allowDev);
+                                    inName = true;
                                 }
-                            }
-                            break;
+                                break;
 
-                        case XmlNodeType.EndElement:
-                            inName = false;
-                            break;
+                            case XmlNodeType.Text:
+                                if (inName)
+                                {
+                                    string field = await reader.GetValueAsync();
+                                    Match match = version.Match(field);
+                                    if (match.Success)
+                                    {
+                                        latestRev.Latest(UInt32.Parse(match.Groups[1].Value),
+                                                         UInt32.Parse(match.Groups[2].Value),
+                                                         UInt32.Parse(match.Groups[3].Value),
+                                                         match.Groups[4].Success ? UInt32.Parse(match.Groups[4].Value) : 0,
+                                                         allowDev);
+                                    }
+                                }
+                                break;
 
-                        default:
-                            break;
+                            case XmlNodeType.EndElement:
+                                inName = false;
+                                break;
+
+                            default:
+                                break;
+                        }
                     }
                 }
+
+                /**
+                 * Count successes which will give us a rough idea of the amount of
+                 * usage of CloudSMETs (devices deployed).
+                 */
+                s_successes.Add(1);
+                string responseMessage = latestRev.ToString();
+                return new OkObjectResult(responseMessage);
+            }
+            catch (Exception ex)
+            {
+                /**
+                 * Log the cause of the error and throw a Meter that we can track to 
+                 * alert us to failures.
+                 */
+                log.LogError(
+                    exception: ex,
+                    message: "Unable to process LatestRevision request.",
+                    args: Array.Empty<object>());
+                s_failures.Add(1);
+                ObjectResult response = new("Internal Error")
+                {
+                    StatusCode = 500
+                };
+                return response;
             }
 
-            string responseMessage = latestRev.ToString();
-            return new OkObjectResult(responseMessage);
         }
     }
 }
