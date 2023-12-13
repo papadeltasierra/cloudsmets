@@ -9,6 +9,18 @@ using Microsoft.Extensions.Logging;
 using System.Xml;
 using System.Text.RegularExpressions;
 
+/**
+ * TODO:
+ * - Rename to cloudsmets/cloudsmets.
+ * - Add documentation in either ESP32 or Azure format.
+ * - Can we add metrics to spot when fails?
+ * - Add try/catch and log
+ * - Do we need more logging?
+ * - Does CI prevent bad SemVer?
+ *   - We should log error when we encounter one "just in case"
+ *   - Maybe throw error metric too!  
+ * - Need to add unit testing and integration testing
+ */
 namespace LastestRevision
 {
 
