@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 /**
  * TODO:
  * - Rename to cloudsmets/cloudsmets.
+ * - Increase security - do not need anonymous container listing.
  * - Add documentation in either ESP32 or Azure format.
  * - Can we add metrics to spot when fails?
  * - Add try/catch and log
