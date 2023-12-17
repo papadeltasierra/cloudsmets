@@ -101,14 +101,35 @@ menu "CloudSMETS"
 
     menu "OTA"
 
-        config CS_OTA_SERVER_URL
+        config CS_OTA_ENABLED
+            int "OTA enabled (recommend on!)"
+            range 0 1
+            default 1
+            help
+                Whether OTA functionality is enabled.
+
+        config CS_OTA_DEV_IMAGES
+            int "Development images permitted"
+            range 0 1
+            default 0
+            help
+                Whether OTA should consider developmemt images; recommend 'No' (0).
+
+        config CS_OTA_REVISION_SERVER_URL
+            string "OTA latest-revision server URL"
+            default "https://cloudsmets.azurewebsites.net/api/LatestRevision"
+            help
+                Server that identifies the latest suitable CloudSMETS version.
+
+        config CS_OTA_IMAGE_SERVER_URL
             string "OTA image server URL"
             default "https://cloudsmets.blob.core.windows.net/cloudsmets/"
             help
                 Server from which OTA images are downloaded.
 
         config CS_OTA_ACCEPT
-            int "OTA acceptence period"
+            int "OTA acceptence period (minutes)"
+            range 1 720
             default 60
             help
                 Time, in minutes, that an image must run before being accepted.

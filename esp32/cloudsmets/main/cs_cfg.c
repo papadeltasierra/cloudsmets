@@ -26,9 +26,14 @@ const char* TAG = "Cfg";
 #define CS_WIFI_AP_CHANNEL          CONFIG_CS_WIFI_AP_CHANNEL
 #define CS_WIFI_AP_SSID             CONFIG_CS_WIFI_AP_SSID
 #define CS_WIFI_AP_PWD              CONFIG_CS_WIFI_AP_PWD
+
 #define CS_WEB_LISTEN_PORT          CONFIG_CS_WEB_LISTEN_PORT
+
+#define CS_OTA_ENABLED              CONFIG_CS_OTA_ENABLED
+#define CS_OTA_DEV_IMAGES           CONFIG_CS_OTA_DEV_IMAGES
+#define CS_OTA_REVISION_SERVER_URL  CONFIG_CS_OTA_REVISION_SERVER_URL
+#define CS_OTA_IMAGE_SERVER_URL     CONFIG_CS_OTA_IMAGE_SERVER_URL
 #define CS_OTA_ACCEPT               CONFIG_CS_OTA_ACCEPT
-#define CS_OTA_SERVER_URL           CONFIG_CS_OTA_SERVER_URL
 
 /**
 * @brief Ethernet event base definition
@@ -85,11 +90,12 @@ const char cs_cfg_web_pwd[] = "webPwd";
 /*
  * OTA, Over-the-air upgrade configuration.
  */
-const char cs_cfg_ota_func[]    = "otaFunc";
-const char cs_cfg_ota_image[]   = "otaImage";
-const char cs_cfg_ota_accept[]  = "otaAccept";
-const char cs_cfg_ota_url[]     = "otaUrl";
+const char cs_cfg_ota_ena[]     = "otaEna";
+const char cs_cfg_ota_dev[]     = "otaDev";
 const char cs_cfg_ota_rel[]     = "otaRel";
+const char cs_cfg_ota_rev_url[] = "otaRevUrl";
+const char cs_cfg_ota_img_url[] = "otaImgUrl";
+const char cs_cfg_ota_accept[]  = "otaAccept";
 
 // /*
 //  * Azure
@@ -131,9 +137,12 @@ const cs_cfg_definitions_t cs_cfg_web_definitions[] =
 
 const cs_cfg_definitions_t cs_cfg_ota_definitions[] =
 {
-    { CS_CFG_KEY_OTA_FUNC, NVS_TYPE_U8, -1 },
-    { CS_CFG_KEY_OTA_URL, NVS_TYPE_STR, 256 },
-    { CS_CFG_KEY_OTA_REL, NVS_TYPE_STR, 16 },
+    { CS_CFG_KEY_OTA_ENA, NVS_TYPE_U8, -1 },
+    { CS_CFG_KEY_OTA_DEV, NVS_TYPE_U8, -1 },
+    { CS_CFG_KEY_OTA_REL, NVS_TYPE_STR, 256 },
+    { CS_CFG_KEY_OTA_REV_URL, NVS_TYPE_STR, 256 },
+    { CS_CFG_KEY_OTA_IMG_URL, NVS_TYPE_STR, 256 },
+    { CS_CFG_KEY_OTA_ACCEPT, NVS_TYPE_U16, -1 },
     { NULL, NVS_TYPE_ANY, -1 }
 };
 
@@ -305,12 +314,13 @@ static void cs_cfg_default(void)
 
     // OTA.
 #define OTA_ENABLED 1
-#define OTA_IMAGE_PROD_ONLY 0
-    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_FUNC, OTA_ENABLED);
-    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_IMAGE, OTA_IMAGE_PROD_ONLY);
-    cs_cfg_default_uint32(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ACCEPT, CS_OTA_ACCEPT);
-    cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_URL, CS_OTA_SERVER_URL);
+#define OTA_IMAGE_PROD_ONLY 1
+    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ENA, CS_OTA_ENABLED);
+    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_DEV, CS_OTA_DEV_IMAGES);
     cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REL, "");
+    cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REV_URL, CS_OTA_REVISION_SERVER_URL);
+    cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_IMG_URL, CS_OTA_IMAGE_SERVER_URL);
+    cs_cfg_default_uint16(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ACCEPT, CS_OTA_ACCEPT);
 }
 
 void cs_cfg_init(void)

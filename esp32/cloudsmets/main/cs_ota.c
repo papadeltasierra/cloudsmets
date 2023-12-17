@@ -5,7 +5,6 @@
  * Configuration store using ESP-IDF no-volatile storage.
  * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html?highlight=non%20volatile
  */
-#include <expat.h>
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -18,6 +17,11 @@
 #include "esp_netif_ip_addr.h"
 #include "esp_http_client.h"
 #include "esp_mac.h"
+#include "esp_ota_ops.h"
+#include "esp_https_ota.h"
+#include "esp_app_desc.h"
+#include "esp_timer.h"
+
 /**
  * Allow logging in this file; disabled unless explcitly set.
 */
@@ -25,14 +29,20 @@
 #include "esp_log.h"
 #include "cs_cfg.h"
 #include "cs_ota.h"
-#include "cs_xml_err.h"
 
 #define TAG cs_wifi_task_name
+
+// Only supported SemVer format (-dev can be omitted).
+#define SEMVER_FORMAT  "%hu.%hu.%hu-dev%hu"
+#define SEMVER_FORMAT_NO_DEV  "%hu.%hu.%hu"
 
 // Task config.
 #define CS_TASK_TICKS_TO_WAIT CONFIG_CS_TASK_TICKS_TO_WAIT
 
 static esp_event_loop_handle_t ota_event_loop_handle;
+
+esp_timer_handle_t ota_retry_timer_handle;
+esp_timer_handle_t ota_acceptance_timer_handle;
 
 typedef struct
 {
@@ -41,11 +51,6 @@ typedef struct
     uint16_t    revision;
     uint16_t    dev;
 } ota_version_t;
-
-enum {
-    XML_TAG_UNKNOWN,
-    XML_TAG_NAME
-} xml_tag_e;
 
 typedef struct
 {
@@ -56,6 +61,10 @@ typedef struct
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 {
+    ota_version_t *version;
+    esp_err_t esp_rc = ESP_OK;
+    int ss_rc;
+
     switch (evt->event_id)
     {
     case HTTP_EVENT_ERROR:
@@ -75,13 +84,29 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
         break;
 
     case HTTP_EVENT_ON_DATA:
+        // Is a SemVer formatted latest revision.
         ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
-        XML_ERROR_CHECK(XML_Parse((XML_Parser)(evt->user_data), evt->data, evt->data_len, false));
+        version = (ota_version_t *)evt->user_data;
+        ss_rc = sscanf(
+            evt->data,
+            SEMVER_FORMAT,
+            &version->major,
+            &version->minor,
+            &version->revision,
+            &version->dev);
+        if (ss_rc == 3)
+        {
+            version->dev = 0;
+        }
+        if ((ss_rc < 3) || (ss_rc > 4))
+        {
+            ESP_LOGE(TAG, "Invalid version: %s", evt->data);
+            esp_rc = ESP_FAIL;
+        }
         break;
 
     case HTTP_EVENT_ON_FINISH:
         ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
-        XML_ERROR_CHECK(XML_Parse((XML_Parser)(evt->user_data), NULL, 0, true));
 #if 0
         if (output_buffer != NULL)
         {
@@ -120,127 +145,212 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
         esp_http_client_set_redirection(evt->client);
         break;
     }
-    return ESP_OK;
+    return esp_rc;
 }
 
-static void xml_start_element(void *userData, const XML_Char *name, const XML_Char **atts)
+bool determine_release(ota_version_t *version)
 {
-    xml_user_data_t *user_data;
+    bool success = true;
+    uint8_t allow_dev;
+    char *query = NULL;
+    char *dev = "dev";
+    char *buffer;
+    size_t len;
+    int ss_rc;
+    esp_http_client_handle_t esp_http_client_handle;
+    esp_err_t esp_rc;
 
-    if (0 == strcmp(name, "Name"))
+#define OTA_MAX_URL_LENGTH 1024
+    buffer = (char *)malloc(OTA_MAX_URL_LENGTH);
+    len = OTA_MAX_URL_LENGTH;
+
+    // If there is a specific release requested then we just try for that.
+    cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REL, buffer, &len);
+    if (len > 0)
     {
-        user_data = (xml_user_data_t *)userData;
-        user_data->tag = XML_TAG_NAME;
-    }
-}
-
-static void xml_end_element(void *userData, const XML_Char *name)
-{
-    xml_user_data_t *user_data;
-
-    if (0 == strcmp(name, "Name"))
-    {
-        user_data = (xml_user_data_t *)userData;
-        user_data->tag = XML_TAG_UNKNOWN;
-    }
-}
-
-#define ASCII_LEFT_ANGLE    '<'
-#define ASCII_DASH          '-'
-#define ASCII_SLASH         '/'
-
-void xml_character_data(void *userData, const XML_Char *s, int len)
-{
-    ota_version_t version;
-    char dash_or_slash;
-    char slash;
-    xml_user_data_t *user_data = (xml_user_data_t *)userData;
-    int rc = 0;
-    bool better = false;
-
-    if (user_data->tag == XML_TAG_NAME)
-    {
-        /**
-         * The following expects a string of format:
-         * - 1.2.3/ or...
-         * - 1.2.3-dev4/
-         *
-         * So we extract the 3 or 4 integers but also check for the slash and dash.
-         * Remember to default the dev to zero in case one is not present.
-        */
-        ESP_LOGV(TAG, "Found name: %*s", len, s);
-        version.dev = 0;
-
-        /**
-         * We do not have access to an snscanf() method so so something nasty here!
-         * TODO: Explain this - hope more data!
-        */
-        assert((s[len] == ASCII_LEFT_ANGLE) && "No angle bracket.");
-        rc = sscanf(s, "%hu.%hu.%hu%cdev%hu%c", &version.major, &version.minor, &version.revision, &dash_or_slash, &version.dev, &slash);
-
-        if ((rc > 4) && (!user_data->allow_dev))
+        // TODO: Common code here?
+        ss_rc = sscanf(
+            buffer,
+            SEMVER_FORMAT,
+            &version->major,
+            &version->minor,
+            &version->revision,
+            &version->dev);
+        if (ss_rc == 3)
         {
-            // Do not allow dev releases.
-            rc = 0;
+            version->dev = 0;
         }
-
-        if (((rc == 4) && (dash_or_slash == ASCII_SLASH)) ||
-            ((rc == 6) && (dash_or_slash == ASCII_DASH) && (slash == ASCII_SLASH)))
+        if ((ss_rc < 3) && (ss_rc > 4))
         {
-            ESP_LOGV(TAG, "Parsed version: %hu.%hu.%hu(-dev%hu)", version.major, version.minor, version.revision, version.dev);
-            /**
-             * We found a valid version so is it better than the current one?
-             * - Major version higher means better
-             * - Major same, minor higher means better
-             * - Major, minor save, revision higher means better
-             * - Major, minor, revision same, current dev not zero, current higher means better.
-             *
-             * Note that any dev release is WORSE than a full release so...
-             *
-             * - 1.2.4 > 1.2.3
-             * - 1.3.3 > 1.2.3
-             * - 2.2.3 > 1.2.3
-             * - 1.2.3 > 1.2.3-dev4
-             * - 1.2.3-dev5 > 1.2.3-dev4
-            */
-            if (version.major > user_data->version->major)
-            {
-                better = true;
-            }
-            else if (version.major == user_data->version->major)
-            {
-                if (version.minor > user_data->version->minor)
-                {
-                    better = true;
-                }
-                else if (version.minor == user_data->version->minor)
-                {
-                    if (version.revision > user_data->version->revision)
-                    {
-                        better = true;
-                    }
-                    else if (version.revision == user_data->version->revision)
-                    {
-                        if ((user_data->version->dev != 0) &&
-                            ((version.dev == 0) ||
-                             (version.dev > user_data->version->dev)))
-                        {
-                            better = true;
-                        }
-                    }
-                }
-            }
-
-            if (better)
-            {
-                ESP_LOGI(TAG, "This is a better version");
-                user_data->version->major = version.major;
-                user_data->version->minor = version.minor;
-                user_data->version->revision = version.revision;
-                user_data->version->dev = version.dev;
-            }
+            ESP_LOGE(TAG, "Revision format invalid: %s", buffer);
+            success = false;
         }
     }
+
+    if (success)
+    {
+        // Are development images acceptable?
+        cs_cfg_read_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_DEV, &allow_dev);
+
+        len = OTA_MAX_URL_LENGTH;
+        cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REV_URL, buffer, &len);
+
+        if (allow_dev)
+        {
+            ESP_LOGV(TAG, "Dev images are acceptable");
+            query = dev;
+        }
+
+        esp_http_client_config_t http_client_config = {
+            .url = buffer,
+            // TODO: Move this string.
+            .query = query,
+            .event_handler = http_event_handler,
+            .auth_type = HTTP_AUTH_TYPE_NONE,
+            .user_data = (void *)version
+        };
+
+        esp_http_client_handle = esp_http_client_init(&http_client_config);
+        esp_rc = esp_http_client_perform(esp_http_client_handle);
+        if (esp_rc != ESP_OK)
+        {
+            // Something went wrong!
+            success = false;
+        }
+    }
+
+    ESP_ERROR_CHECK(esp_http_client_cleanup(esp_http_client_handle));
+    free(buffer);
+
+    return success;
+}
+
+bool upgrade_to(ota_version_t *version)
+{
+    char *url;
+    size_t len = 1024;
+    bool success = true;
+    esp_err_t esp_rc;
+
+    url = (char *)malloc(1024);
+
+    cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_IMG_URL, url, &len);
+
+    // Now add the version.
+    if (version->dev)
+    {
+        len += sprintf(&url[len], "/", SEMVER_FORMAT "/esp32/cloudsmets.bin", version->major, version->minor, version->revision, version->dev);
+    }
+    else
+    {
+        len += sprintf(&url[len], "/", SEMVER_FORMAT "/esp32/cloudsmets.bin", SEMVER_FORMAT_NO_DEV, version->major, version->minor, version->revision);
+    }
+
+    if (len > 1024)
+    {
+        ESP_LOGE(TAG, "OTA URL overflow: %d", len);
+        success = false;
+    }
+
+    if (success)
+    {
+        // TODO: Consider using HTTPS.
+        esp_http_client_config_t esp_http_client_config = {
+            .url = url,
+        // #ifdef CONFIG_EXAMPLE_USE_CERT_BUNDLE
+        //         .crt_bundle_attach = esp_crt_bundle_attach,
+        // #else
+        //         .cert_pem = (char *)server_cert_pem_start,
+        // #endif /* CONFIG_EXAMPLE_USE_CERT_BUNDLE */
+            .keep_alive_enable = true,
+        };
+
+        esp_https_ota_config_t esp_https_ota_config = {
+            .http_config = &esp_http_client_config
+        };
+
+        esp_rc = esp_https_ota(&esp_https_ota_config);
+        if (esp_rc == ESP_OK)
+        {
+            ESP_LOGI(TAG, "OTA succeeded; restarting");
+            esp_restart();
+        }
+        else
+        {
+            ESP_LOGE(TAG, "OTA failed: %d", esp_rc);
+            success = false;
+        }
+    }
+    return success;
+}
+
+bool do_we_upgrade(ota_version_t *version, bool *upgrade)
+{
+    // TODO: Better name?
+    bool success;
+    ota_version_t current;
+    const esp_app_desc_t *esp_app_desc;
+    int ss_rc;
+
+    (*upgrade) = false;
+
+    // Determine the correct version that we are running.
+    esp_app_desc = esp_app_get_description();
+
+    // TODO: Common.
+    ss_rc = sscanf(
+        esp_app_desc->version,
+        SEMVER_FORMAT,
+        &current.major,
+        &current.minor,
+        &current.revision,
+        &current.dev);
+
+    if (ss_rc == 3)
+    {
+        current.dev = 0;
+    }
+    if ((ss_rc < 3) || (ss_rc > 4))
+    {
+        ESP_LOGE(TAG, "Invalid version format: %d", esp_app_desc->version);
+        success = false;
+    }
+
+    if (success)
+    {
+        /**
+         * SemVer versioning is that:
+         * - Highest major best or if major is equal
+         * - Highest minor is best or if minor is equal
+         * - Highest revision is best or if revision is equal
+         * - Non-dev is better than dev or if both dev
+         * - Highest dev is best.
+         */
+        if ((version->major > current.major) ||
+            ((version->major == current.major) &&
+             ((version->minor > current.minor) ||
+              ((version->minor == current.minor) &&
+               ((version->revision > current.revision) ||
+                ((version->revision == current.revision) &&
+                 ((current.dev != 0) &&
+                   ((version->dev == 0) ||
+                    (version->dev > current.dev)))))))))
+        {
+            ESP_LOGI(TAG,
+                "Upgrade from: " SEMVER_FORMAT " to " SEMVER_FORMAT,
+                current.major,
+                current.minor,
+                current.revision,
+                current.dev,
+                version->major,
+                version->minor,
+                version->revision,
+                version->dev);
+            (*upgrade) = true;
+        }
+    }
+
+    return success;
 }
 
 /**
@@ -258,68 +368,51 @@ void xml_character_data(void *userData, const XML_Char *s, int len)
  */
 static void start_ota()
 {
-    char *url;
+    bool success = true;
+    bool do_upgrade;
     uint8_t enabled;
-    uint8_t allow_dev;
-    esp_http_client_handle_t client;
     ota_version_t latest_version = {0};
-    XML_Parser XMLCALL xml_parser;
-    size_t len;
+    uint64_t retry_in;
 
-    xml_user_data_t xml_user_data = {
-        // TODO: Use same syntax as ESP tag definitions.
-        .tag = XML_TAG_UNKNOWN,
-        .version = &latest_version,
-    };
+    // Just in case, stop the timer.
+    esp_timer_stop(ota_retry_timer_handle);
 
     // If OTA is disabled then we are done!
-    cs_cfg_read_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_FUNC, &enabled);
+    cs_cfg_read_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ENA, &enabled);
     if (!enabled)
     {
         ESP_LOGI(TAG, "OTA is disabled.");
         return;
     }
-    // Are development images acceptable?
-    cs_cfg_read_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_IMAGE, &allow_dev);
 
-// TODO: Common config used in various places.
-#define OTA_MAX_URL_LENGTH 1024
-    url = (char *)malloc(OTA_MAX_URL_LENGTH);
-    len = OTA_MAX_URL_LENGTH;
-    cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_URL, url, &len);
+    success = determine_release(&latest_version);
+    if (success)
+    {
+        success = do_we_upgrade(&latest_version, &do_upgrade);
+    }
 
-    xml_parser = XML_ParserCreate(NULL);
+    if (success)
+    {
+        success = upgrade_to(&latest_version);
+    }
 
-    // !!PDS: Has to carry more!
-    XML_SetUserData(xml_parser, &xml_user_data);
-    XML_SetElementHandler(xml_parser, xml_start_element, xml_end_element);
-    XML_SetCharacterDataHandler(xml_parser, xml_character_data);
-
-    esp_http_client_config_t http_client_config = {
-        .url = url,
-        // TODO: Move this string.
-        .query = "restype=container&comp=list&delimiter=%2F",
-        .event_handler = http_event_handler,
-        .auth_type = HTTP_AUTH_TYPE_NONE,
-        .user_data = (void *)xml_parser
-    };
-
-    client = esp_http_client_init(&http_client_config);
-    ESP_ERROR_CHECK(esp_http_client_perform(client));
-    XML_ParserFree(xml_parser);
-
-#if 0
-    // We should now have the XML listing of the available versions.
-    https://components.espressif.com/components/espressif/expat
-
-    esp_app_desc = esp_app_get_description()
-                       esp_add_desc->version;
-    esp_add_desc->project_name;
-
-    free(buffer);
-#endif
-    ESP_ERROR_CHECK(esp_http_client_cleanup(client));
-    free(url);
+    // We will try again in future but when depends on whether we encountered
+    // an error or not.
+    //
+    // In fact we expect a success to result n a restart!
+    if (success)
+    {
+        // Success so try in 24 hours.
+        ESP_LOGV(TAG, "Success - retry in 24hrs");
+        retry_in = (uint64_t)24 * 60 * 60 * 1000 * 1000;
+    }
+    else
+    {
+        // Error; assume temporary Azure outage and try again in 1 hour.
+        ESP_LOGV(TAG, "Error - retry in 1hr");
+        retry_in = (uint64_t)1 * 60 * 60 * 1000 * 1000;
+    }
+    esp_timer_start_once(ota_retry_timer_handle, retry_in);
 }
 
 // TODO: How are we ensuring that OTA stuff is checked regularly?
@@ -385,10 +478,42 @@ static void ota_event_handler(void *arg, esp_event_base_t event_base,
     }
 }
 
+// TODO: Use local function prototypes so can order code nicely.
+void ota_retry_timer_callback(void *arg)
+{
+    // (Re)Start the OTA process.
+    start_ota();
+}
+
+void ota_acceptance_timer_callback(void *arg)
+{
+    esp_err_t esp_rc;
+
+    esp_rc = esp_ota_mark_app_valid_cancel_rollback();
+    if (esp_rc != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Unable to acccept OTA: %d", esp_rc);
+    }
+}
+
+static esp_timer_create_args_t esp_ota_timer_create_args = {
+    .callback = ota_retry_timer_callback,
+    .name = "OTA timer"
+};
+
+static esp_timer_create_args_t esp_acceptance_timer_create_args = {
+    .callback = ota_acceptance_timer_callback,
+    .name = "OTA acceptance"
+};
+
 void cs_ota_task(cs_ota_create_parms_t *create_parms)
 {
     ESP_LOGI(TAG, "Creating OTA task");
     ota_event_loop_handle = create_parms->ota_event_loop_handle;
+    uint16_t acceptance_interval_mins;
+    uint64_t acceptance_interval_mics;
+    const esp_partition_t *esp_partition;
+    esp_ota_img_states_t esp_ota_img_state;
 
     // We want to know when we are connected to an AP (router) and when not.
     ESP_LOGI(TAG, "Register event handlers");
@@ -425,53 +550,23 @@ void cs_ota_task(cs_ota_create_parms_t *create_parms)
         wifi_event_handler,
         NULL,
         NULL));
-}
 
-#if 0
-    // TODO: OTA confirmation perdio should perhaps be configurable.
+    // Create the acceptance timer and callback.
+    ESP_ERROR_CHECK(esp_timer_create(&esp_acceptance_timer_create_args, &ota_acceptance_timer_handle));
 
+    // Create the retry timer and callback.
+    ESP_ERROR_CHECK(esp_timer_create(&esp_ota_timer_create_args, &ota_retry_timer_handle));
 
-
-    Ideally we want a self-test...
-    // TODO: On timer.... ESP_ERROR_CHECK(esp_ota_mark_app_valid_cancel_rollback())
-
-    esp_ota_set_boot_partition()
-    esp_restart()
-
-// Get curent application information.
-esp_app_get_description()
-#endif
-
-#if 0
-// We have to create an ESP HTTP client to do the download.
-
-bool image_header_was_checked = false;
-while (1) {
-    int data_read = esp_http_client_read(client, ota_write_data, BUFFSIZE);
-    ...
-    if (data_read > 0) {
-        if (image_header_was_checked == false) {
-            esp_app_desc_t new_app_info;
-            if (data_read > sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t)) {
-                // check current version with downloading
-                if (esp_efuse_check_secure_version(new_app_info.secure_version) == false) {
-                    ESP_LOGE(TAG, "This a new app can not be downloaded due to a secure version is lower than stored in efuse.");
-                    http_cleanup(client);
-                    task_fatal_error();
-                }
-
-                image_header_was_checked = true;
-
-                esp_ota_begin(update_partition, OTA_SIZE_UNKNOWN, &update_handle);
-            }
+    // If this is an OTA image and it is not in accepted state, start the acceptance timer.
+    esp_partition = esp_ota_get_running_partition();
+    if (esp_partition->subtype != ESP_PARTITION_SUBTYPE_APP_FACTORY)
+    {
+        ESP_ERROR_CHECK(esp_ota_get_state_partition(esp_partition, &esp_ota_img_state));
+        if (esp_ota_img_state == ESP_OTA_IMG_VALID)
+        {
+            cs_cfg_read_uint16(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ACCEPT, &acceptance_interval_mins);
+            acceptance_interval_mics = (uint64_t)acceptance_interval_mins * 60 * 1000 * 1000;
+            ESP_ERROR_CHECK(esp_timer_start_once(ota_acceptance_timer_handle, acceptance_interval_mics));
         }
-        esp_ota_write( update_handle, (const void *)ota_write_data, data_read);
     }
 }
-...
-ESP_ERROR_CHECK(esp_ota_end());
-
-// Add these to a status page.
-esp_ota_get_boot_partition()
-esp_ota_get_running_partition()
-#endif

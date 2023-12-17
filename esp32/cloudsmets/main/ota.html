@@ -17,11 +17,11 @@
             <table>
                 <tr>
                     <td>
-                        Functionality:</td>
+                        Enabled:</td>
                 </tr>
                 <tr>
                     <td>
-                        <select id="otaFunc" name="otaFunc">
+                        <select id="otaEna" name="otaEna">
                             <option value=0>Disabled</option>
                             <option value=1>Enable</option>
                         </select>
@@ -30,15 +30,45 @@
                 </tr>
                 <tr>
                     <td>
-                        images accepted:</td>
+                        Images accepted:</td>
                 </tr>
                 <tr>
                     <td>
-                        <select id="otaImage" name="otaImage">
+                        <select id="otaDev" name="otaDev">
                             <option value=0>Prod-only</option>
                             <option value=1>Prod+Dev (caution!)</option>
                         </select>
 
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        Specific Release:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="otaRel" name="otaRel" pattern="^(?:\d+\.\d+\.\d+(?:\-dev\d+)?)?$">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        Revisions URL:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="otaRevUrl" name="otaRevUrl">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        images URL:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="otaImgUrl" name="otaimgUrl">
                     </td>
                 </tr>
 
@@ -49,24 +79,6 @@
                 <tr>
                     <td>
                         <input type="text" id="otaAccept" name="otaAccept">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        URL:</td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type="text" id="otaUrl" name="otaUrl">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Release:</td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type="text" id="otaRel" name="otaRel" pattern="^(?:\d+\.\d+\.\d+(?:\-dev\d+)?)?$">
                     </td>
                 </tr>
             </table>

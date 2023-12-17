@@ -51,11 +51,12 @@ extern const char cs_cfg_web_port[];
 // extern const char cfg_log_ip_port[];
 // extern const char cfg_log_esp32c3[];
 // extern const char cfg_log_tlsr8258[];
-extern const char cs_cfg_ota_func[];
-extern const char cs_cfg_ota_image[];
-extern const char cs_cfg_ota_accept[];
-extern const char cs_cfg_ota_url[];
+extern const char cs_cfg_ota_ena[];
 extern const char cs_cfg_ota_rel[];
+extern const char cs_cfg_ota_dev[];
+extern const char cs_cfg_ota_rev_url[];
+extern const char cs_cfg_ota_img_url[];
+extern const char cs_cfg_ota_accept[];
 // extern const char cfgAzFunc[];
 // extern const char cfgAzIotHub[];
 // extern const char cfgAzDevice[];
@@ -75,11 +76,13 @@ extern const char cs_cfg_ota_rel[];
 // #define CS_CFG_KEY_DBG_IP_PORT     cfgDbgIpPort
 // #define CS_CFG_KEY_DBG_ESP32C3     cfgDbgEsp32c3
 // #define CS_CFG_KEY_DBG_TLSR8258    cfgDbgTlsr8258
-#define CS_CFG_KEY_OTA_FUNC        cs_cfg_ota_func
-#define CS_CFG_KEY_OTA_IMAGE       cs_cfg_ota_image
-#define CS_CFG_KEY_OTA_ACCEPT      cs_cfg_ota_accept
-#define CS_CFG_KEY_OTA_URL         cs_cfg_ota_url
+#define CS_CFG_KEY_OTA_ENA         cs_cfg_ota_ena
+#define CS_CFG_KEY_OTA_DEV         cs_cfg_ota_dev
 #define CS_CFG_KEY_OTA_REL         cs_cfg_ota_rel
+#define CS_CFG_KEY_OTA_IMG_URL     cs_cfg_ota_img_url
+#define CS_CFG_KEY_OTA_REV_URL     cs_cfg_ota_rev_url
+#define CS_CFG_KEY_OTA_ACCEPT      cs_cfg_ota_accept
+
 // #define CS_CFG_KEY_AZURE_FUNC      cfgAzFunc
 // #define CS_CFG_KEY_AZURE_IOTHUB    cfgAzIotHub
 // #define CS_CFG_KEY_AZURE_DEVICE    cfgAzDevice
