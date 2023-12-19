@@ -102,10 +102,10 @@ uint8_t url_quote_plus_hex_map[] = "0123456789ABCDEF";
 static const char *TAG = "IoThub";
 
 
-char *url_quote_plus(char *string)
+char *url_quote_plus(char *in_url)
 {
-    char *escaped;
-    uint8_t *sptr = query->s;
+    char *out_url;
+    uint8_t *sptr = in_url;
     uint8_t *tptr;
     size_t in_len = strlen(string);
     size_t out_len = strlen(string);
@@ -123,13 +123,18 @@ char *url_quote_plus(char *string)
     if (out_len == in_len)
     {
         // No escaping required.
-        return string;
+        return in_url;
     }
 
-    escaped = (char *)malloc(len);
+    out_url = (char *)malloc(out_len);
+    if (out_url == NULL)
+    {
+        ESP_LOGE(TAG, "Cannot malloc out_url: %d", out_len);
+        ESP_ERROR_CHECK(ESP_FAIL);
+    }
 
-    sptr = string;
-    tptr = escaped;
+    sptr = in_url;
+    tptr = out_url;
     for (ii = 0; ii < in_len; ii++)
     {
         if (NULL != memchr(url_quote_plus_esc_chars, (int)(*sptr), sizeof(url_quote_plus_esc_chars)))
@@ -146,59 +151,9 @@ char *url_quote_plus(char *string)
             *tptr++ = *sptr++;
         }
     }
-    free(url);
+    free(in_url);
     return escaped;
 }
-
-// Convert a string which might contain extended ASCII characters to utf-8.
-coap_string_t *_coap_to_utf_8(coap_string_t *input)
-{
-    size_t ii;
-    size_t len;
-    uint8_t *sptr = input->s;
-    uint8_t *tptr = input->s;
-    coap_string_t *utf8;
-
-    // First count the number of bytes that are in the range 0x80 to 0xff as
-    // each of these will be expanded to two bytes.
-    len = input->length;
-    for (ii = 0; ii < input->length; ii++)
-    {
-        if (*sptr++ >= 0x80)
-        {
-            len++;
-        }
-    }
-    if (len == input->length)
-    {
-        // No extended-ASCII so just return the original string.
-        return input;
-    }
-    utf8 = coap_new_string(len);
-    utf8->length = len;
-    sptr = input->s;
-    tptr = utf8->s;
-    for (ii = 0; ii < input->length; ii++)
-    {
-        if (*sptr >= 0x80)
-        {
-            // Encode this extended ASCII byte into 2 UTF-8 bytes.
-            *tptr++ = 0b11000000 | (*sptr >> 6);
-            *tptr++ = 0b10000000 | (*sptr & 0b00111111);
-            sptr++;
-        }
-        else
-        {
-            // Standard ASCII.
-            *tptr++ = *sptr++;
-        }
-    }
-    coap_delete_string(input);
-    return(utf8);
-}
-
-
-
 
 static void generate_sas_token(char *url, char *base64_key)
 {
@@ -224,7 +179,7 @@ static void generate_sas_token(char *url, char *base64_key)
     ttl_len = ssprintf(ttl, "%lu", expiry);
 
     /* The URL has to be escaped. */
-    url = url_escape_url(url);
+    url = url_quote_plus(url);
 
     // The SHA256 digest of an HMAC is a 32 byte string.
     HMAC_digest(key, signed_key, hmac_sig)
@@ -236,9 +191,6 @@ static void generate_sas_token(char *url, char *base64_key)
         ESP_LOGE(TAG, "Enable to BASE64 encode.");
         return;
     }
-
-
-
 
     token_length = 2 + 1 strlen(uri) + 1 + 3 + 1 + b64_len + 1 + 2 + 1 + ttl_len + 1;
     token = (char *)malloc(token_length);
@@ -253,6 +205,24 @@ static void generate_sas_token(char *url, char *base64_key)
 */
 static void cs_mqtt_connect()
 {
+}
+
+static char *access_keys[2] = {NULL, NULL};
+static char *iothub_url = NULL;
+static char *device = NULL;
+
+
+// TODO: Anyway to avoid global variables?
+static void read_configuration()
+{
+    size_t len;
+    uint8_t enabled;
+
+    cs_cfg_read_uint8(CS_CFS_NMSP_AZURE, CFS_CFG_KEY_AZURE_ENA, &enabled);
+    cs_cfg_read_str(CS_CFS_NMSP_AZURE, CFS_CFG_KEY_AZURE_IOTHUB, &iothub_url, &len);
+    cs_cfg_read_str(CS_CFS_NMSP_AZURE, CFS_CFG_KEY_AZURE_DEVICE, &device, &len);
+    cs_cfg_read_str(CS_CFS_NMSP_AZURE, CFS_CFG_KEY_AZURE_KEY1, &access_keys[0], &len);
+    cs_cfg_read_str(CS_CFS_NMSP_AZURE, CFS_CFG_KEY_AZURE_KEY2, &access_keys[1], &len);
 }
 
 
@@ -285,6 +255,11 @@ static void mqtt_event_handler(void *arg, esp_event_base_t event_base,
                 ESP_LOGI(TAG, "Other WiFi event: %d", event_id);
                 break;
         }
+    }
+    else if (event_base == CS_CONFIG)
+    {
+        // Config change so relearn all configuration.
+        read_configuration();
     }
     else if (event_base == CS_TIME)
     {

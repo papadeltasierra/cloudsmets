@@ -97,14 +97,14 @@ const char cs_cfg_ota_rev_url[] = "otaRevUrl";
 const char cs_cfg_ota_img_url[] = "otaImgUrl";
 const char cs_cfg_ota_accept[]  = "otaAccept";
 
-// /*
-//  * Azure
-//  */
-// const char *cs_cfg_az_func = "azFunc";
-// const char *cs_cfg_az_iotHub = "azIotHub";
-// const char *cs_cfg_az_device = "azDevice";
-// const char *cs_cfg_az_cnct1 = "azCnct1";
-// const char *cs_cfg_az_cnct2 = "azCnct2";
+/*
+ * Azure
+ */
+const char *cs_cfg_az_ena    = "azEna";
+const char *cs_cfg_az_iotHub = "azIotHub";
+const char *cs_cfg_az_device = "azDevice";
+const char *cs_cfg_az_key1   = "azKey1";
+const char *cs_cfg_az_key2   = "azKey2";
 
 /*
  * Web server helper definitions.
@@ -245,12 +245,23 @@ void cs_cfg_read_uint32(const char *ns, const char *key, uint32_t *value)
     nvs_close(handle);
 }
 
-void cs_cfg_read_str(const char *ns, const char *key, char *value, size_t *length)
+void cs_cfg_read_str(const char *ns, const char *key, char **value, size_t *length)
 {
     ESP_LOGV(TAG, "Read str value: %s, %s", ns, key);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READWRITE, &handle));
-    ESP_ERROR_CHECK(nvs_get_str(handle, key, value, length));
-    ESP_LOGV(TAG, "Value: %s", value);
+    (*length) = 0;
+    ESP_ERROR_CHECK(nvs_get_str(handle, key, NULL, length));
+    if ((*length) && (*value) == NULL))
+    {
+        (*value) = (char *)malloc(*length);
+        if ((*value) == NULL)
+        {
+            ESP_LOGE(TAG, "malloc failed: %u", (*length));
+            ESP_ERROR_CHECK(ESP_FAIL);
+        }
+    }
+    ESP_ERROR_CHECK(nvs_get_str(handle, key, *value, length));
+    ESP_LOGV(TAG, "Value: %s", *value);
     nvs_close(handle);
 }
 

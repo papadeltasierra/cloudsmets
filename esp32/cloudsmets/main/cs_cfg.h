@@ -33,7 +33,7 @@ extern const char *cs_ota_task_name;
 #define CS_CFG_NMSP_WEB            cs_web_task_name
 // #define CS_CFG_NMSP_DBG            cfgDbg
 #define CS_CFG_NMSP_OTA            cs_ota_task_name
-// #define CS_CFG_NMSP_AZURE          cfgAz
+#define CS_CFG_NMSP_AZURE          cfgAz
 
 /*
  * Keys
@@ -57,11 +57,11 @@ extern const char cs_cfg_ota_dev[];
 extern const char cs_cfg_ota_rev_url[];
 extern const char cs_cfg_ota_img_url[];
 extern const char cs_cfg_ota_accept[];
-// extern const char cfgAzFunc[];
-// extern const char cfgAzIotHub[];
-// extern const char cfgAzDevice[];
-// extern const char cfgAzCnct1[];
-// extern const char cfgAzCnct2[];
+extern const char cfgAzEna[];
+extern const char cfgAzIotHub[];
+extern const char cfgAzDevice[];
+extern const char cfgAzKey1[];
+extern const char cfgAzKey2[];
 
 #define CS_CFG_KEY_WIFI_AP_CHNL    cs_cfg_wifi_ap_chnl
 #define CS_CFG_KEY_WIFI_AP_SSID    cs_cfg_wifi_ap_ssid
@@ -83,11 +83,11 @@ extern const char cs_cfg_ota_accept[];
 #define CS_CFG_KEY_OTA_REV_URL     cs_cfg_ota_rev_url
 #define CS_CFG_KEY_OTA_ACCEPT      cs_cfg_ota_accept
 
-// #define CS_CFG_KEY_AZURE_FUNC      cfgAzFunc
-// #define CS_CFG_KEY_AZURE_IOTHUB    cfgAzIotHub
-// #define CS_CFG_KEY_AZURE_DEVICE    cfgAzDevice
-// #define CS_CFG_KEY_AZURE_CON1      cfgAzCnct1
-// #define CS_CFG_KEY_AZURE_CON2      cfgAzCnct2
+#define CS_CFG_KEY_AZURE_FUNC      cfgAzFunc
+#define CS_CFG_KEY_AZURE_IOTHUB    cfgAzIotHub
+#define CS_CFG_KEY_AZURE_DEVICE    cfgAzDevice
+#define CS_CFG_KEY_AZURE_KEY1      cfgAzCnct1
+#define CS_CFG_KEY_AZURE_KEY2      cfgAzCnct2
 
 /*
  * Define some structures to make writing the web server simpler.
@@ -118,7 +118,7 @@ extern void cs_cfg_default_str(const char *ns, const char *key, const char * def
 extern void cs_cfg_read_uint8(const char *ns, const char *key, uint8_t *value);
 extern void cs_cfg_read_uint16(const char *ns, const char *key, uint16_t *value);
 extern void cs_cfg_read_uint32(const char *ns, const char *key, uint32_t *value);
-extern void cs_cfg_read_str(const char *ns, const char *key, char *value, size_t *length);
+extern void cs_cfg_read_str(const char *ns, const char *key, char **value, size_t *length);
 extern void cs_cfg_write_uint8(const char *ns, const char *key, uint8_t value);
 extern void cs_cfg_write_uint16(const char *ns, const char *key, uint16_t value);
 extern void cs_cfg_write_uint32(const char *ns, const char *key, uint32_t value);

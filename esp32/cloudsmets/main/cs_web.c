@@ -111,7 +111,7 @@ static esp_err_t get_tools_js_handler(httpd_req_t *req)
     return httpd_resp_send(req, (char *)tools_js_start, tools_js_len);
 }
 
-size_t write_field(char *ptr, size_t available, const char *ns, const cs_cfg_definitions_t *definition)
+size_t read_field(char **ptr, size_t available, const char *ns, const cs_cfg_definitions_t *definition)
 {
     size_t outlen = 0;
     size_t s_length;
@@ -123,42 +123,42 @@ size_t write_field(char *ptr, size_t available, const char *ns, const cs_cfg_def
     switch (definition->type)
     {
         case NVS_TYPE_STR:
-            outlen = snprintf(ptr, available, "\"%s\":\"", definition->key);
+            outlen = snprintf(*ptr, available, "\"%s\":\"", definition->key);
             if (outlen > available)
             {
                 break;
             }
             available -= outlen;
-            ptr += outlen;
+            *ptr += outlen;
             s_length = available;
-            cs_cfg_read_str(ns, definition->key, ptr, &s_length);
+            cs_cfg_read_str(ns, definition->key, *ptr, &s_length);
 
             // Length returned out includes the NULL.
             s_length--;
             available -= s_length;
-            ptr+= s_length;
+            *ptr+= s_length;
             outlen += s_length;
             if (available < 1)
             {
                 break;
             }
-            *ptr = '"';
+            **ptr = '"';
             outlen++;
             break;
 
         case NVS_TYPE_U8:
             cs_cfg_read_uint8(ns, definition->key, &u8_value);
-            outlen = snprintf(ptr, available, "\"%s\":%hu", definition->key, (unsigned short)u8_value);
+            outlen = snprintf(*ptr, available, "\"%s\":%hu", definition->key, (unsigned short)u8_value);
             break;
 
         case NVS_TYPE_U16:
             cs_cfg_read_uint16(ns, definition->key, &u16_value);
-            outlen = snprintf(ptr, available, "\"%s\":%hu", definition->key, u16_value);
+            outlen = snprintf(*ptr, available, "\"%s\":%hu", definition->key, u16_value);
             break;
 
         case NVS_TYPE_U32:
             cs_cfg_read_uint32(ns, definition->key, &u32_value);
-            outlen = snprintf(ptr, available, "\"%s\":%lu", definition->key, u32_value);
+            outlen = snprintf(*ptr, available, "\"%s\":%lu", definition->key, u32_value);
             break;
 
         default:
@@ -190,7 +190,7 @@ static esp_err_t get_json_handler(
     *ptr++ = '{';
     available--;
 
-    outlen = write_field(ptr, available, ns, definition);
+    outlen = read_field(&ptr, available, ns, definition);
 
     while ((available > outlen) && ((++definition)->key != NULL))
     {
@@ -198,7 +198,7 @@ static esp_err_t get_json_handler(
         ptr += outlen;
         *ptr++ = ',';
         available--;
-        outlen = write_field(ptr, available, ns, definition);
+        outlen = read_field(&ptr, available, ns, definition);
     }
 
     if (available > outlen)

@@ -160,12 +160,8 @@ bool determine_release(ota_version_t *version)
     esp_http_client_handle_t esp_http_client_handle;
     esp_err_t esp_rc;
 
-#define OTA_MAX_URL_LENGTH 1024
-    buffer = (char *)malloc(OTA_MAX_URL_LENGTH);
-    len = OTA_MAX_URL_LENGTH;
-
     // If there is a specific release requested then we just try for that.
-    cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REL, buffer, &len);
+    cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REL, &buffer, &len);
     if (len > 0)
     {
         // TODO: Common code here?
@@ -176,6 +172,7 @@ bool determine_release(ota_version_t *version)
             &version->minor,
             &version->revision,
             &version->dev);
+        free(buffer);
         if (ss_rc == 3)
         {
             version->dev = 0;
@@ -193,7 +190,7 @@ bool determine_release(ota_version_t *version)
         cs_cfg_read_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_DEV, &allow_dev);
 
         len = OTA_MAX_URL_LENGTH;
-        cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REV_URL, buffer, &len);
+        cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REV_URL, &buffer, &len);
 
         if (allow_dev)
         {
@@ -232,9 +229,7 @@ bool upgrade_to(ota_version_t *version)
     bool success = true;
     esp_err_t esp_rc;
 
-    url = (char *)malloc(1024);
-
-    cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_IMG_URL, url, &len);
+    cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_IMG_URL, &url, &len);
 
     // Now add the version.
     if (version->dev)
