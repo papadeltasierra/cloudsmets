@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Paul D.smith (paul@pauldsmith.org.uk).
+ * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
  *
  * Configuration store using ESP-IDF no-volatile storage.
@@ -131,7 +131,7 @@ size_t read_field(char **ptr, size_t available, const char *ns, const cs_cfg_def
             available -= outlen;
             *ptr += outlen;
             s_length = available;
-            cs_cfg_read_str(ns, definition->key, *ptr, &s_length);
+            cs_cfg_read_str(ns, definition->key, ptr, &s_length);
 
             // Length returned out includes the NULL.
             s_length--;

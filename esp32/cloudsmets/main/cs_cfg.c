@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Paul D.smith (paul@pauldsmith.org.uk).
+ * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
  *
  * Configuration store using ESP-IDF no-volatile storage.
@@ -36,10 +36,11 @@ const char* TAG = "Cfg";
 #define CS_OTA_ACCEPT               CONFIG_CS_OTA_ACCEPT
 
 /**
-* @brief Ethernet event base definition
+* TODO: Comment the time elsewhere.
 *
 */
 ESP_EVENT_DEFINE_BASE(CS_CONFIG_EVENT);
+ESP_EVENT_DEFINE_BASE(CS_TIME_EVENT);
 
 /*
  * Namespaces, used to partition components.
@@ -49,7 +50,8 @@ const char *cs_wifi_task_name = "WiFi";
 const char *cs_web_task_name  = "Web";
 // const char *cs_cfg__log_task_name  = "Log";
 const char *cs_ota_task_name  = "Ota";
-// const char *cs_cfg__azure_task_name = "Azure";
+// TODO: Will this be Azure?
+const char *cs_mqtt_task_name = "Mqtt";
 
 // TODO: We are going to have to mutex protect here!
 static nvs_handle_t handle;
@@ -100,11 +102,11 @@ const char cs_cfg_ota_accept[]  = "otaAccept";
 /*
  * Azure
  */
-const char *cs_cfg_az_ena    = "azEna";
-const char *cs_cfg_az_iotHub = "azIotHub";
-const char *cs_cfg_az_device = "azDevice";
-const char *cs_cfg_az_key1   = "azKey1";
-const char *cs_cfg_az_key2   = "azKey2";
+const char cs_cfg_azure_ena[]    = "azEna";
+const char cs_cfg_azure_iothub[] = "azIotHub";
+const char cs_cfg_azure_device[] = "azDevice";
+const char cs_cfg_azure_key1[]   = "azKey1";
+const char cs_cfg_azure_key2[]   = "azKey2";
 
 /*
  * Web server helper definitions.
@@ -249,15 +251,18 @@ void cs_cfg_read_str(const char *ns, const char *key, char **value, size_t *leng
 {
     ESP_LOGV(TAG, "Read str value: %s, %s", ns, key);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READWRITE, &handle));
-    (*length) = 0;
-    ESP_ERROR_CHECK(nvs_get_str(handle, key, NULL, length));
-    if ((*length) && (*value) == NULL))
+    if ((*value) == NULL)
     {
-        (*value) = (char *)malloc(*length);
-        if ((*value) == NULL)
+        // User requests we allocate buffer.
+        ESP_ERROR_CHECK(nvs_get_str(handle, key, NULL, length));
+        if (*length)
         {
-            ESP_LOGE(TAG, "malloc failed: %u", (*length));
-            ESP_ERROR_CHECK(ESP_FAIL);
+            (*value) = (char *)malloc(*length);
+            if ((*value) == NULL)
+            {
+                ESP_LOGE(TAG, "malloc failed: %u", (*length));
+                ESP_ERROR_CHECK(ESP_FAIL);
+            }
         }
     }
     ESP_ERROR_CHECK(nvs_get_str(handle, key, *value, length));

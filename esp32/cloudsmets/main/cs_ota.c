@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Paul D.smith (paul@pauldsmith.org.uk).
+ * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
  *
  * Configuration store using ESP-IDF no-volatile storage.
@@ -189,7 +189,7 @@ bool determine_release(ota_version_t *version)
         // Are development images acceptable?
         cs_cfg_read_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_DEV, &allow_dev);
 
-        len = OTA_MAX_URL_LENGTH;
+        // TODO: Add length restrictions to the HTML files.
         cs_cfg_read_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REV_URL, &buffer, &len);
 
         if (allow_dev)

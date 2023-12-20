@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Paul D.smith (paul@pauldsmith.org.uk).
+ * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
  *
  * Application mainline and heartbeat/watchdog.
@@ -28,6 +28,7 @@
 #include "cs_wifi.h"
 #include "cs_web.h"
 #include "cs_ota.h"
+#include "cs_mqtt.h"
 
 /* Task Configuration */
 #define CS_APP_TASK_QUEUE_SIZE          CONFIG_CS_TASK_QUEUE_SIZE
@@ -41,6 +42,7 @@ union cs_create_parms_t {
     cs_wifi_create_parms_t wifi;
     cs_web_create_parms_t web;
     cs_ota_create_parms_t ota;
+    cs_mqtt_create_parms_t mqtt;
 };
 
 /*
@@ -99,6 +101,7 @@ void app_main(void)
     union cs_create_parms_t create_parms;
     static esp_event_loop_handle_t web_event_loop_handle = NULL;
     static esp_event_loop_handle_t ota_event_loop_handle = NULL;
+    static esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
 
     // TODO: Remove this.
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
@@ -139,6 +142,8 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &web_event_loop_handle));
     esp_event_loop_args.task_name = cs_ota_task_name;
     ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &ota_event_loop_handle));
+    esp_event_loop_args.task_name = cs_mqtt_task_name;
+    ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &mqtt_event_loop_handle));
 
     ESP_LOGI(TAG, "Creating tasks...");
     // TODO: Create Azure, ZigBee etc.
@@ -151,6 +156,10 @@ void app_main(void)
     /* Create the OTA task. */
     create_parms.ota.ota_event_loop_handle = ota_event_loop_handle;
     cs_ota_task(&create_parms.ota);
+
+    /* Create the MQTT task. */
+    create_parms.mqtt.mqtt_event_loop_handle = mqtt_event_loop_handle;
+    cs_mqtt_task(&create_parms.mqtt);
 
     /**
      * Wifi has to start before anything else can happen.

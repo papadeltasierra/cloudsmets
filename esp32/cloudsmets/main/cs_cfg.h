@@ -15,9 +15,11 @@ typedef enum {
 } cs_config_event_t;
 
 /**
- * @brief Ethernet event base declaration
+ * TODO: Comment here
+ * TODO: CS_TIME elsewhere.
  */
 ESP_EVENT_DECLARE_BASE(CS_CONFIG_EVENT);
+ESP_EVENT_DECLARE_BASE(CS_TIME_EVENT);
 
 /*
  * Namespaces and task names.
@@ -27,13 +29,15 @@ extern const char *cs_wifi_task_name;
 extern const char *cs_web_task_name;
 // extern const char *cfgDbg;
 extern const char *cs_ota_task_name;
-// extern const char *cfgAz;
+extern const char *cs_mqtt_task_name;
 
 #define CS_CFG_NMSP_WIFI           cs_wifi_task_name
 #define CS_CFG_NMSP_WEB            cs_web_task_name
 // #define CS_CFG_NMSP_DBG            cfgDbg
 #define CS_CFG_NMSP_OTA            cs_ota_task_name
-#define CS_CFG_NMSP_AZURE          cfgAz
+#define CS_CFG_NMSP_MQTT           cs_mqtt_task_name
+
+// TODO: Have to decide whether really supporting anythong other than Azure.
 
 /*
  * Keys
@@ -57,11 +61,11 @@ extern const char cs_cfg_ota_dev[];
 extern const char cs_cfg_ota_rev_url[];
 extern const char cs_cfg_ota_img_url[];
 extern const char cs_cfg_ota_accept[];
-extern const char cfgAzEna[];
-extern const char cfgAzIotHub[];
-extern const char cfgAzDevice[];
-extern const char cfgAzKey1[];
-extern const char cfgAzKey2[];
+extern const char cs_cfg_azure_ena[];
+extern const char cs_cfg_azure_iothub[];
+extern const char cs_cfg_azure_device[];
+extern const char cs_cfg_azure_key1[];
+extern const char cs_cfg_azure_key2[];
 
 #define CS_CFG_KEY_WIFI_AP_CHNL    cs_cfg_wifi_ap_chnl
 #define CS_CFG_KEY_WIFI_AP_SSID    cs_cfg_wifi_ap_ssid
@@ -83,11 +87,11 @@ extern const char cfgAzKey2[];
 #define CS_CFG_KEY_OTA_REV_URL     cs_cfg_ota_rev_url
 #define CS_CFG_KEY_OTA_ACCEPT      cs_cfg_ota_accept
 
-#define CS_CFG_KEY_AZURE_FUNC      cfgAzFunc
-#define CS_CFG_KEY_AZURE_IOTHUB    cfgAzIotHub
-#define CS_CFG_KEY_AZURE_DEVICE    cfgAzDevice
-#define CS_CFG_KEY_AZURE_KEY1      cfgAzCnct1
-#define CS_CFG_KEY_AZURE_KEY2      cfgAzCnct2
+#define CS_CFG_KEY_AZURE_ENA       cs_cfg_azure_ena
+#define CS_CFG_KEY_AZURE_IOTHUB    cs_cfg_azure_iothub
+#define CS_CFG_KEY_AZURE_DEVICE    cs_cfg_azure_device
+#define CS_CFG_KEY_AZURE_KEY1      cs_cfg_azure_key1
+#define CS_CFG_KEY_AZURE_KEY2      cs_cfg_azure_key2
 
 /*
  * Define some structures to make writing the web server simpler.
