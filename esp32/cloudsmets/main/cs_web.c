@@ -518,27 +518,8 @@ void web_start()
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_ota_html));
 }
 
-/**
- * Catch events from the default event loop and immediately report to the event
- * loop for this task.
-*/
-static void wifi_event_handler(void *arg, esp_event_base_t event_base,
-                               int32_t event_id, void *event_data)
-{
-    ESP_LOGV(TAG, "Relay event to web event loop");
-
-    // TODO: Do we really want to pass the data here?  Requires processing!
-    ESP_ERROR_CHECK(esp_event_post_to(
-        web_event_loop_handle,
-        event_base,
-        event_id,
-        NULL,
-        0,
-        CS_TASK_TICKS_TO_WAIT));
-}
-
 static void web_event_handler(void *arg, esp_event_base_t event_base,
-                               int32_t event_id, void *event_data)
+                              int32_t event_id, void *event_data)
 {
     /* STA has gotten an IP address so make sure we are listening on it. */
     ESP_LOGI(TAG, "Restarting HTTP server.");
@@ -617,18 +598,6 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
      * appropriate events.
     */
     ESP_LOGI(TAG, "Register event handlers");
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(
-                IP_EVENT,
-                IP_EVENT_STA_GOT_IP,
-                wifi_event_handler,
-                NULL,
-                NULL));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(
-                WIFI_EVENT,
-                WIFI_EVENT_AP_START,
-                wifi_event_handler,
-                NULL,
-                NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                 web_event_loop_handle,
                 IP_EVENT,

@@ -2,12 +2,12 @@
  * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
  *
- * Application mainline and heartbeat/watchdog.
+ * MQTT communication with the Azure IotHub.
  */
-// TODO: Are these headers correct?
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <time.h>
+
 /**
  * Allow logging in this file; disabled unless explcitly set.
 */
@@ -16,14 +16,16 @@
 #include "esp_wifi.h"
 #include "esp_netif.h"
 #include "esp_timer.h"
+#include "esp_crt_bundle.h"
 #include "mqtt_client.h"
 #include "mbedtls/md.h"
 #include "mbedtls/base64.h"
 
 #include "cs_cfg.h"
+#include "cs_time.h"
 #include "cs_mqtt.h"
 
-// #include "ft_err.h"
+/* Extension definitions to make coding simpler. */
 #include "mbedtls_err.h"
 #include "esp_mqtt_err.h"
 
@@ -37,6 +39,23 @@
         ESP_LOGE(TAG, "malloc failed for length: %d", (LEN));               \
         ESP_ERROR_CHECK(ESP_FAIL);                                          \
     }
+
+/**
+ * If we think we can reconnect immediately using a different access key,
+ * we try.  Otherwise we wait for a minute.
+*/
+#define RECONNECT_WAIT      ((uint64_t)1 * 60 * 1000 * 1000)
+#define RECONNECT_NOW       ((uint64_t)1)
+
+#define MQTT_TIMER          "MQTT"
+
+/* SAS token strings. */
+#define SAS_TOKEN_START         "SharedAccessSignature sr="
+#define SAS_TOKEN_START_LEN     (sizeof(SAS_TOKEN_START) - 1)
+#define SAS_TOKEN_AND_SIG       "&sig="
+#define SAS_TOKEN_AND_SIG_LEN   (sizeof(SAS_TOKEN_AND_SIG) - 1)
+#define SAS_TOKEN_AND_SE        "&se="
+#define SAS_TOKEN_AND_SE_LEN    (sizeof(SAS_TOKEN_AND_SIG) - 1)
 
 /**
  * A lot of the SAS token operations require a string-with-length so this simple
@@ -169,16 +188,15 @@ static void generate_sas_token()
     sptr += 34 + iothub_url.length + 5;
     MBEDTLS_ERROR_CHECK(mbedtls_base64_encode(sptr, 44, &b64_length, hmac_sig.value, 32));
     sptr += 44;
-    memcpy(sptr, "&se=", 4);
+    memcpy(sptr, SAS_TOKEN_AND_SE, SAS_TOKEN_AND_SE_LEN);
     sptr += 4;
 
     /* Finally add the TTL, which will also add the NULL for us! */
     utoa(ttl, (char *)sptr, 10);
 }
 
-
 // TODO: Anyway to avoid global variables?
-static void cs_mqtt_read_config()
+static void read_config()
 {
     uint8_t enabled;
     unsigned char *sptr;
@@ -207,9 +225,7 @@ static void cs_mqtt_read_config()
      * decode them so do that here.
      * Base64 encoding is always 4 bytes for every 3 so the decoded string must
      * fit in the string we start with.
-     *
      */
-    // TODO: Ensure logging of access key indices are 1-based not zero!
     cs_cfg_read_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_AZURE_KEY1, (char **)&access_keys[0].value, &access_keys[0].length);
     access_keys[0].length--;
     MBEDTLS_ERROR_CHECK(mbedtls_base64_decode(access_keys[0].value, access_keys[0].length, &access_keys[0].length, access_keys[0].value, access_keys[0].length));
@@ -243,12 +259,11 @@ static void cs_mqtt_read_config()
     /* Now we preload as much as we can into the token. */
     sptr = sas_token.value;
 
-    // TODO: Define some strings and sizeofs.
-    memcpy(sptr, "SharedAccessSignature sr=", 25);
+    memcpy(sptr, SAS_TOKEN_START, SAS_TOKEN_START_LEN);
     sptr += 25;
     memcpy(sptr, iothub_url.value, iothub_url.length);
     sptr += iothub_url.length;
-    memcpy(sptr, "&sig=", 5);
+    memcpy(sptr, SAS_TOKEN_AND_SIG, SAS_TOKEN_AND_SIG_LEN);
 
     /**
      * We will require a signing key, which is the quoted URL plus a newline
@@ -261,7 +276,7 @@ static void cs_mqtt_read_config()
 /**
  * Determine whether we can now start MQTT.
 */
-static void cs_mqtt_maybe_start_mqtt()
+static void maybe_start_mqtt()
 {
     ESP_LOGV(TAG, "MQTT capable?: %d, %d", (int)time_is_set, (int)wifi_ap_connected);
     if ((time_is_set) && (wifi_ap_connected))
@@ -272,8 +287,8 @@ static void cs_mqtt_maybe_start_mqtt()
     }
 }
 
-static void mqtt_event_handler(void *arg, esp_event_base_t event_base,
-                               int32_t event_id, void *event_data)
+static void event_handler(void *arg, esp_event_base_t event_base,
+                          int32_t event_id, void *event_data)
 {
     if (event_base == WIFI_EVENT)
     {
@@ -286,7 +301,7 @@ static void mqtt_event_handler(void *arg, esp_event_base_t event_base,
                 */
                 ESP_LOGI(TAG, "Connect to IoTHub");
                 wifi_ap_connected = true;
-                cs_mqtt_maybe_start_mqtt();
+                maybe_start_mqtt();
                 break;
 
             case WIFI_EVENT_STA_DISCONNECTED:
@@ -307,14 +322,14 @@ static void mqtt_event_handler(void *arg, esp_event_base_t event_base,
     else if (event_base == CS_CONFIG_EVENT)
     {
         // Config change so relearn all configuration.
-        cs_mqtt_read_config();
-        cs_mqtt_maybe_start_mqtt();
+        read_config();
+        maybe_start_mqtt();
     }
     else if (event_base == CS_TIME_EVENT)
     {
         ESP_LOGI(TAG, "Time is now set");
         time_is_set = true;
-        cs_mqtt_maybe_start_mqtt();
+        maybe_start_mqtt();
     }
     else
     {
@@ -322,21 +337,13 @@ static void mqtt_event_handler(void *arg, esp_event_base_t event_base,
     }
 }
 
-/**
- * If we think we can reconnect immediately using a different access key,
- * we try.  Otherwise we wait for a minute.
-*/
-#define CS_MQTT_RECONNECT_WAIT      ((uint64_t)1 * 60 * 1000 * 1000)
-#define CS_MQTT_RECONNECT_NOW       ((uint64_t)1)
-
-
-static void cs_mqtt_reconnect_timer_cb(void *args)
+static void reconnect_timer_cb(void *args)
 {
     /* Attempt to reconnect. */
     ESP_ERROR_CHECK(esp_mqtt_client_reconnect(esp_mqtt_client_handle));
 }
 
-static void cs_mqtt_maybe_stale_access_key()
+static void maybe_stale_access_key()
 {
     uint64_t reconnect_wait;
     /**
@@ -345,18 +352,18 @@ static void cs_mqtt_maybe_stale_access_key()
      * might be able to use the access key, or longer if we think both keys
      * might be stale.
     */
-    reconnect_wait = CS_MQTT_RECONNECT_WAIT;
+    reconnect_wait = RECONNECT_WAIT;
     current_access_key = (1 - current_access_key);
     if (!stale_access_keys)
     {
         stale_access_keys++;
-        reconnect_wait = CS_MQTT_RECONNECT_NOW;
+        reconnect_wait = RECONNECT_NOW;
     }
     esp_timer_stop(reconnect_timer_handle);
     ESP_ERROR_CHECK(esp_timer_start_once(reconnect_timer_handle, reconnect_wait));
 }
 
-void cs_mqtt_set_config(esp_mqtt_client_handle_t client)
+void set_mqtt_config(esp_mqtt_client_handle_t client)
 {
     // Note that we only need to change the password here.
     const esp_mqtt_client_config_t mqtt_cfg = {
@@ -367,7 +374,7 @@ void cs_mqtt_set_config(esp_mqtt_client_handle_t client)
 }
 
 static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
-                               int32_t event_id, void *event_data)
+                                 int32_t event_id, void *event_data)
 {
     esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
@@ -377,7 +384,7 @@ static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
         case MQTT_EVENT_BEFORE_CONNECT:
             ESP_LOGI(TAG, "MQTT_EVENT_BEFORE_CONNECT");
             generate_sas_token();
-            cs_mqtt_set_config(client);
+            set_mqtt_config(client);
             break;
 
         case MQTT_EVENT_CONNECTED:
@@ -392,7 +399,7 @@ static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
              * has a time element to it, has expired.  Note we just use the
              * authentication failure callback.
             */
-            cs_mqtt_reconnect_timer_cb(NULL);
+            reconnect_timer_cb(NULL);
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
@@ -436,7 +443,7 @@ static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
                             */
                             ESP_LOGE(TAG, "MQTT server unavailable.");
                             esp_timer_stop(reconnect_timer_handle);
-                            ESP_ERROR_CHECK(esp_timer_start_once(reconnect_timer_handle, CS_MQTT_RECONNECT_WAIT));
+                            ESP_ERROR_CHECK(esp_timer_start_once(reconnect_timer_handle, RECONNECT_WAIT));
                             break;
 
                         case MQTT_CONNECTION_REFUSE_PROTOCOL:
@@ -454,10 +461,11 @@ static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
                         case MQTT_CONNECTION_REFUSE_NOT_AUTHORIZED:
                             /**
                              * This implies that perhaps the access key has
-                             * become stale.
+                             * become stale.  Note that in web server, keys are
+                             * 1-indexed.
                             */
-                            ESP_LOGW(TAG, "Access key %d may be invalid.", current_access_key);
-                            cs_mqtt_maybe_stale_access_key();
+                            ESP_LOGW(TAG, "Access key %d may be invalid.", (current_access_key + 1));
+                            maybe_stale_access_key();
                             break;
 
                         default:
@@ -478,32 +486,31 @@ static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
     }
 }
 
-static void cs_mqtt_init(void)
+static void init_mqtt(void)
 {
     const esp_mqtt_client_config_t mqtt_cfg = {
         .broker = {
-            .address.uri = (char *)iothub_url.value
-            // .verification.certificate = (const char *)mqtt_eclipseprojects_io_pem_start
-
-            // TODO: Prefer to use a custom bundle so we can allow for overlaps.
+            .address.uri = (char *)(iothub_url.value),
+            .verification.crt_bundle_attach = esp_crt_bundle_attach
         },
     };
 
     ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
     esp_mqtt_client_handle = esp_mqtt_client_init(&mqtt_cfg);
-    /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
-    // TODO: event handler names.
+    if (esp_mqtt_client_handle == NULL)
+    {
+        ESP_LOGE(TAG, "Unable to create MQTT handle");
+        ESP_ERROR_CHECK(ESP_FAIL);
+    }
+
     esp_mqtt_client_register_event(esp_mqtt_client_handle, ESP_EVENT_ANY_ID, mqtt_event_handler_cb, NULL);
     esp_mqtt_client_start(esp_mqtt_client_handle);
 }
 
-
 void cs_mqtt_task(cs_mqtt_create_parms_t *create_parms)
 {
-    // TODO: Remove this.
+    // TODO: Remove this or perhaps replace with config?
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
-
-    // TODO: Pass long WiFi events...
 
     ESP_LOGI(TAG, "Init. MQTT task");
 
@@ -513,40 +520,39 @@ void cs_mqtt_task(cs_mqtt_create_parms_t *create_parms)
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                     WIFI_EVENT,
                     ESP_EVENT_ANY_ID,
-                    mqtt_event_handler,
+                    event_handler,
                     NULL,
                     NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                     CS_CONFIG_EVENT,
                     ESP_EVENT_ANY_ID,
-                    mqtt_event_handler,
+                    event_handler,
                     NULL,
                     NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                     CS_TIME_EVENT,
                     ESP_EVENT_ANY_ID,
-                    mqtt_event_handler,
+                    event_handler,
                     NULL,
                     NULL));
 
     /* Read initial configuration. */
-    cs_mqtt_read_config();
+    read_config();
 
     /**
      * Configure the reconnect timer.
     */
     esp_timer_create_args_t create_args =
     {
-        .callback = cs_mqtt_reconnect_timer_cb,
-        //TODO: #define
-        .name = "MQTT reconnect"
+        .callback = reconnect_timer_cb,
+        .name = MQTT_TIMER
     };
     ESP_ERROR_CHECK(esp_timer_create(&create_args, &reconnect_timer_handle));
 
     /**
      * Prepare MQTT
     */
-   cs_mqtt_init();
+   init_mqtt();
 
     /**
      * We now have to wait for both the time to be zet (via ZigBee) and

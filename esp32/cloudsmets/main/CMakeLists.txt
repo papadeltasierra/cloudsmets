@@ -7,6 +7,7 @@ idf_component_register(
     SRCS "cs_cfg.c"
     SRCS "cs_ota.c"
     SRCS "cs_mqtt.c"
+    SRCS "cs_time.c"
     INCLUDE_DIRS ""
     EMBED_TXTFILES index.html
     EMBED_TXTFILES menu.html

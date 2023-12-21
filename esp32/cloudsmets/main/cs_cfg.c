@@ -35,12 +35,7 @@ const char* TAG = "Cfg";
 #define CS_OTA_IMAGE_SERVER_URL     CONFIG_CS_OTA_IMAGE_SERVER_URL
 #define CS_OTA_ACCEPT               CONFIG_CS_OTA_ACCEPT
 
-/**
-* TODO: Comment the time elsewhere.
-*
-*/
 ESP_EVENT_DEFINE_BASE(CS_CONFIG_EVENT);
-ESP_EVENT_DEFINE_BASE(CS_TIME_EVENT);
 
 /*
  * Namespaces, used to partition components.

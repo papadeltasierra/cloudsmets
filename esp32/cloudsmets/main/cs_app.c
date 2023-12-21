@@ -10,6 +10,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include <sys/time.h>
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 
@@ -167,5 +168,11 @@ void app_main(void)
      */
     create_parms.wifi.dummy = NULL;
     cs_wifi_task(&create_parms.wifi);
+
+    // TODO: remove this which was added for testing.
+#define NOW  12345678
+    struct timeval now = { .tv_sec = NOW };
+    settimeofday(&now, NULL);
+    esp_event_post_to(mqtt_event_loop_handle, CS_TIME_EVENT, 0, NULL, 0, 0);
 }
 
