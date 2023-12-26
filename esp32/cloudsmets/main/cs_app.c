@@ -30,6 +30,7 @@
 #include "cs_web.h"
 #include "cs_ota.h"
 #include "cs_mqtt.h"
+#include "cs_time.h"
 
 /* Task Configuration */
 #define CS_APP_TASK_QUEUE_SIZE          CONFIG_CS_TASK_QUEUE_SIZE
@@ -152,6 +153,7 @@ void app_main(void)
     /* Web server needs to know about any task that can be configured. */
     create_parms.web.web_event_loop_handle = web_event_loop_handle;
     create_parms.web.ota_event_loop_handle = ota_event_loop_handle;
+    create_parms.web.mqtt_event_loop_handle = mqtt_event_loop_handle;
     cs_web_task(&create_parms.web);
 
     /* Create the OTA task. */
@@ -170,9 +172,9 @@ void app_main(void)
     cs_wifi_task(&create_parms.wifi);
 
     // TODO: remove this which was added for testing.
-#define NOW  12345678
+#define NOW  	1703592595
     struct timeval now = { .tv_sec = NOW };
     settimeofday(&now, NULL);
-    esp_event_post_to(mqtt_event_loop_handle, CS_TIME_EVENT, 0, NULL, 0, 0);
+    ESP_LOGV(TAG, "Sending time event");
+    ESP_ERROR_CHECK(esp_event_post_to(mqtt_event_loop_handle, CS_TIME_EVENT, 0, NULL, 0, 0));
 }
-

@@ -95,13 +95,13 @@ const char cs_cfg_ota_img_url[] = "otaImgUrl";
 const char cs_cfg_ota_accept[]  = "otaAccept";
 
 /*
- * Azure
+ * MQTT
  */
-const char cs_cfg_azure_ena[]    = "azEna";
-const char cs_cfg_azure_iothub[] = "azIotHub";
-const char cs_cfg_azure_device[] = "azDevice";
-const char cs_cfg_azure_key1[]   = "azKey1";
-const char cs_cfg_azure_key2[]   = "azKey2";
+const char cs_cfg_mqtt_ena[]    = "mqttEna";
+const char cs_cfg_mqtt_iothub[] = "mqttIotHub";
+const char cs_cfg_mqtt_device[] = "mqttDevice";
+const char cs_cfg_mqtt_key1[]   = "mqttKey1";
+const char cs_cfg_mqtt_key2[]   = "mqttKey2";
 
 /*
  * Web server helper definitions.
@@ -140,6 +140,16 @@ const cs_cfg_definitions_t cs_cfg_ota_definitions[] =
     { CS_CFG_KEY_OTA_REV_URL, NVS_TYPE_STR, 256 },
     { CS_CFG_KEY_OTA_IMG_URL, NVS_TYPE_STR, 256 },
     { CS_CFG_KEY_OTA_ACCEPT, NVS_TYPE_U16, -1 },
+    { NULL, NVS_TYPE_ANY, -1 }
+};
+
+const cs_cfg_definitions_t cs_cfg_mqtt_definitions[] =
+{
+    { CS_CFG_KEY_MQTT_ENA, NVS_TYPE_U8, -1 },
+    { CS_CFG_KEY_MQTT_IOTHUB, NVS_TYPE_STR, 256 },
+    { CS_CFG_KEY_MQTT_DEVICE, NVS_TYPE_STR, 256 },
+    { CS_CFG_KEY_MQTT_KEY1, NVS_TYPE_STR, 45 },
+    { CS_CFG_KEY_MQTT_KEY2, NVS_TYPE_STR, 45 },
     { NULL, NVS_TYPE_ANY, -1 }
 };
 
@@ -242,21 +252,30 @@ void cs_cfg_read_uint32(const char *ns, const char *key, uint32_t *value)
     nvs_close(handle);
 }
 
+/**
+ * How to use this method:
+ * - If value is NULL, just returns the length
+ * - if value is not NULL but (*value) is NULL, allocates memory for the string
+ * - If value and (*value) are not NULL, copies string into the provided memory.
+*/
 void cs_cfg_read_str(const char *ns, const char *key, char **value, size_t *length)
 {
     ESP_LOGV(TAG, "Read str value: %s, %s", ns, key);
     ESP_ERROR_CHECK(nvs_open(ns, NVS_READWRITE, &handle));
-    if ((*value) == NULL)
+    if (value != NULL)
     {
-        // User requests we allocate buffer.
-        ESP_ERROR_CHECK(nvs_get_str(handle, key, NULL, length));
-        if (*length)
+        if ((*value) == NULL)
         {
-            (*value) = (char *)malloc(*length);
-            if ((*value) == NULL)
+            // User requests we allocate buffer.
+            ESP_ERROR_CHECK(nvs_get_str(handle, key, NULL, length));
+            if (*length)
             {
-                ESP_LOGE(TAG, "malloc failed: %u", (*length));
-                ESP_ERROR_CHECK(ESP_FAIL);
+                (*value) = (char *)malloc(*length);
+                if ((*value) == NULL)
+                {
+                    ESP_LOGE(TAG, "malloc failed: %u", (*length));
+                    ESP_ERROR_CHECK(ESP_FAIL);
+                }
             }
         }
     }
@@ -308,6 +327,7 @@ void cs_cfg_write_str(const char *ns, const char *key, const char *value)
 /**
  * Default configuration required to start CLoudSMETS.  Note that existing
  * configuration is not changed.
+ * TODO: If crap gets into the NVS, how do we recover from it?
 */
 static void cs_cfg_default(void)
 {
@@ -323,15 +343,29 @@ static void cs_cfg_default(void)
     cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_SSID, "");
     cs_cfg_default_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_PWD, "");
 
-    // OTA.
-#define OTA_ENABLED 1
-#define OTA_IMAGE_PROD_ONLY 1
-    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ENA, CS_OTA_ENABLED);
-    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_DEV, CS_OTA_DEV_IMAGES);
+#define OTA_DISABLED 0
+#define OTA_PROD_ONLY 0
+    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ENA, OTA_DISABLED);
+    cs_cfg_default_uint8(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_DEV, OTA_PROD_ONLY);
     cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REL, "");
     cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_REV_URL, CS_OTA_REVISION_SERVER_URL);
     cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_IMG_URL, CS_OTA_IMAGE_SERVER_URL);
     cs_cfg_default_uint16(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ACCEPT, CS_OTA_ACCEPT);
+
+    // MQTT (Azure)
+#define MQTT_DISABLED 0
+    cs_cfg_default_uint8(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_ENA, MQTT_DISABLED);
+    cs_cfg_default_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_IOTHUB, "");
+    cs_cfg_default_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_DEVICE, "");
+    cs_cfg_default_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_KEY1, "");
+    cs_cfg_default_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_KEY2, "");
+
+    // TODO: Remove this.
+#ifdef HACK
+    cs_cfg_write_uint8(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_ENA, MQTT_DISABLED);
+    cs_cfg_write_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_KEY1, "");
+    cs_cfg_write_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_KEY2, "");
+#endif
 }
 
 void cs_cfg_init(void)

@@ -30,7 +30,7 @@
 #include "cs_cfg.h"
 #include "cs_ota.h"
 
-#define TAG cs_wifi_task_name
+#define TAG cs_ota_task_name
 
 // Only supported SemVer format (-dev can be omitted).
 #define SEMVER_FORMAT  "%hu.%hu.%hu-dev%hu"
@@ -412,26 +412,13 @@ static void start_ota()
 
 // TODO: How are we ensuring that OTA stuff is checked regularly?
 
-/**
- * Catch events from the default event loop and immediately report to the event
- * loop for this task.
- */
-static void wifi_event_handler(void *arg, esp_event_base_t event_base,
-                               int32_t event_id, void *event_data)
+static void default_event_handler(void *arg, esp_event_base_t event_base,
+                                  int32_t event_id, void *event_data)
 {
-    ESP_LOGV(TAG, "Relay event to ota event loop");
-
-    // We don't care about the data so just ignore it.
-    ESP_ERROR_CHECK(esp_event_post_to(
-        ota_event_loop_handle,
-        event_base,
-        event_id,
-        NULL,
-        0,
-        CS_TASK_TICKS_TO_WAIT));
+    esp_event_post_to(ota_event_loop_handle, event_base, event_id, NULL, 0, 0);
 }
 
-static void ota_event_handler(void *arg, esp_event_base_t event_base,
+static void event_handler(void *arg, esp_event_base_t event_base,
                               int32_t event_id, void *event_data)
 {
     if (event_base == WIFI_EVENT)
@@ -452,7 +439,7 @@ static void ota_event_handler(void *arg, esp_event_base_t event_base,
             break;
 
         default:
-            ESP_LOGE(TAG, "unexpected WiFi event: %d", event_id);
+            ESP_LOGV(TAG, "Other WiFi event: %d", event_id);
             break;
         }
     }
@@ -510,39 +497,28 @@ void cs_ota_task(cs_ota_create_parms_t *create_parms)
     const esp_partition_t *esp_partition;
     esp_ota_img_states_t esp_ota_img_state;
 
+    ota_event_loop_handle = create_parms->ota_event_loop_handle;
+
     // We want to know when we are connected to an AP (router) and when not.
     ESP_LOGI(TAG, "Register event handlers");
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
         WIFI_EVENT,
-        WIFI_EVENT_STA_CONNECTED,
-        wifi_event_handler,
-        NULL,
-        NULL));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(
-        WIFI_EVENT,
-        WIFI_EVENT_STA_DISCONNECTED,
-        wifi_event_handler,
+        ESP_EVENT_ANY_ID,
+        default_event_handler,
         NULL,
         NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
         ota_event_loop_handle,
         WIFI_EVENT,
-        WIFI_EVENT_STA_CONNECTED,
-        ota_event_handler,
-        NULL,
-        NULL));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
-        ota_event_loop_handle,
-        WIFI_EVENT,
-        WIFI_EVENT_STA_DISCONNECTED,
-        ota_event_handler,
+        ESP_EVENT_ANY_ID,
+        event_handler,
         NULL,
         NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
         ota_event_loop_handle,
         CS_CONFIG_EVENT,
         CS_CONFIG_CHANGE,
-        wifi_event_handler,
+        event_handler,
         NULL,
         NULL));
 

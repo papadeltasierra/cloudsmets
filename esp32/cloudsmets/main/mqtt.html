@@ -1,0 +1,73 @@
+<html>
+    <script src="/tools.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+
+    <head>
+        <title>CloudSMETS - MQTT</title>
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
+
+    <body onload="onload('/mqtt.json');"">
+        <div w3-include-html=" /menu.html">
+        </div>
+        <h1>MQTT</h1>
+
+        <form method="post" action="/mqtt.html">
+            <table>
+                <tr>
+                    <td>
+                        Enabled:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <select id="mqttEna" name="mqttEna">
+                            <option value=0>Disabled</option>
+                            <option value=1>Enable</option>
+                        </select>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        IoT hub:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="mqttIotHub" name="mqttIotHub"  minlength=3 maxlength=246 pattern="mqtts://.*"
+                            placeholder="mqtts://name.iothub.azure.com">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Device Name:</label></td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="mqttDevice" name="mqttDevice" minlength=3 maxlength=32
+                            placeholder="CloudSMETS">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        AccessKeys:</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="mqttKey1" name="mqttKey1" pattern="[A-Za-z0-9+/=]{44}" minlength=44 maxlength=44>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="mqttKey2" name="mqttKey2" pattern="[A-Za-z0-9+/=]{44}" minlength=44 maxlength=44>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="hidden" id=""fred" name="fred" value="A">
+                    </td>
+            </table>
+            <input class="submit" type="submit" value="Submit">
+        </form>
+    </body>
+
+</html>

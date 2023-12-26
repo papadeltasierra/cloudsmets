@@ -62,18 +62,21 @@ static bool wifi_config_sta()
 {
     bool rc = true;
     size_t length;
+    uint8_t *ptr;
 
     ESP_LOGI(TAG, "Config STA");
 
     length = sizeof(wifi_sta_config.ap.ssid);
     ESP_LOGV(TAG, "B SSID: %d", length);
-    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_SSID, (char **)&wifi_sta_config.sta.ssid, &length);
+    ptr = &wifi_sta_config.sta.ssid[0];
+    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_SSID, (char **)&ptr, &length);
     ESP_LOGV(TAG, "A SSID: %d", length);
     wifi_sta_config.sta.ssid[length] = 0;
     rc = length > 8 ? rc : false;
     length = sizeof(wifi_sta_config.ap.password);
     ESP_LOGV(TAG, "B PWD: %d", length);
-    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_PWD, (char **)&wifi_sta_config.sta.password, &length);
+    ptr = &wifi_sta_config.sta.password[0];
+    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_STA_PWD, (char **)&ptr, &length);
     ESP_LOGV(TAG, "A PWD: %d", length);
     wifi_sta_config.sta.password[length] = 0;
     rc = length > 8 ? rc : false;
@@ -209,6 +212,7 @@ static void wifi_init_softap()
 {
     // TODO: How do we set the network mask?  Or at last force to always 192.168.4.xxx
     size_t length;
+    uint8_t *ptr;
     s_netif_ap = esp_netif_create_default_wifi_ap();
 
     wifi_config_t wifi_ap_config = {
@@ -226,10 +230,12 @@ static void wifi_init_softap()
     // Read SoftAP configuration.
     cs_cfg_read_uint8(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_CHNL, &wifi_ap_config.ap.channel);
     length = sizeof(wifi_ap_config.ap.ssid);
-    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_SSID, (char **)&wifi_ap_config.ap.ssid, &length);
+    ptr = &wifi_ap_config.ap.ssid[0];
+    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_SSID, (char **)&ptr, &length);
     wifi_ap_config.ap.ssid_len = (uint8_t)length;
     length = sizeof(wifi_ap_config.ap.password);
-    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_PWD, (char **)&wifi_ap_config.ap.password, &length);
+    ptr = &wifi_ap_config.ap.password[0];
+    cs_cfg_read_str(CS_CFG_NMSP_WIFI, CS_CFG_KEY_WIFI_AP_PWD, (char **)&ptr, &length);
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_ap_config));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));

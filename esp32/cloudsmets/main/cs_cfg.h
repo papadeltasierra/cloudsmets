@@ -61,11 +61,11 @@ extern const char cs_cfg_ota_dev[];
 extern const char cs_cfg_ota_rev_url[];
 extern const char cs_cfg_ota_img_url[];
 extern const char cs_cfg_ota_accept[];
-extern const char cs_cfg_azure_ena[];
-extern const char cs_cfg_azure_iothub[];
-extern const char cs_cfg_azure_device[];
-extern const char cs_cfg_azure_key1[];
-extern const char cs_cfg_azure_key2[];
+extern const char cs_cfg_mqtt_ena[];
+extern const char cs_cfg_mqtt_iothub[];
+extern const char cs_cfg_mqtt_device[];
+extern const char cs_cfg_mqtt_key1[];
+extern const char cs_cfg_mqtt_key2[];
 
 #define CS_CFG_KEY_WIFI_AP_CHNL    cs_cfg_wifi_ap_chnl
 #define CS_CFG_KEY_WIFI_AP_SSID    cs_cfg_wifi_ap_ssid
@@ -87,11 +87,11 @@ extern const char cs_cfg_azure_key2[];
 #define CS_CFG_KEY_OTA_REV_URL     cs_cfg_ota_rev_url
 #define CS_CFG_KEY_OTA_ACCEPT      cs_cfg_ota_accept
 
-#define CS_CFG_KEY_AZURE_ENA       cs_cfg_azure_ena
-#define CS_CFG_KEY_AZURE_IOTHUB    cs_cfg_azure_iothub
-#define CS_CFG_KEY_AZURE_DEVICE    cs_cfg_azure_device
-#define CS_CFG_KEY_AZURE_KEY1      cs_cfg_azure_key1
-#define CS_CFG_KEY_AZURE_KEY2      cs_cfg_azure_key2
+#define CS_CFG_KEY_MQTT_ENA        cs_cfg_mqtt_ena
+#define CS_CFG_KEY_MQTT_IOTHUB     cs_cfg_mqtt_iothub
+#define CS_CFG_KEY_MQTT_DEVICE     cs_cfg_mqtt_device
+#define CS_CFG_KEY_MQTT_KEY1       cs_cfg_mqtt_key1
+#define CS_CFG_KEY_MQTT_KEY2       cs_cfg_mqtt_key2
 
 /*
  * Define some structures to make writing the web server simpler.
@@ -110,6 +110,7 @@ extern const cs_cfg_definitions_t cs_cfg_wifi_definitions[];
 extern const cs_cfg_definitions_t cs_cfg_web_definitions[];
 // extern const cs_cfg_definitions_t cs_cfg_log_definitions[];
 extern const cs_cfg_definitions_t cs_cfg_ota_definitions[];
+extern const cs_cfg_definitions_t cs_cfg_mqtt_definitions[];
 
 /*
  * Interface

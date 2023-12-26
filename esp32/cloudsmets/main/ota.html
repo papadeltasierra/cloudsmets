@@ -8,7 +8,7 @@
     </head>
 
     <body onload="onload('/ota.json');">
-    <div w3-include-html="/menu.html">
+        <div w3-include-html="/menu.html">
         </div>
 
         <h1>OTA Update Settings</h1>
@@ -58,7 +58,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="text" id="otaRevUrl" name="otaRevUrl">
+                        <input type="text" id="otaRevUrl" name="otaRevUrl" pattern="https://.*">
                     </td>
                 </tr>
 
@@ -68,7 +68,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="text" id="otaImgUrl" name="otaimgUrl">
+                        <input type="text" id="otaImgUrl" name="otaimgUrl" pattern="https://.*">
                     </td>
                 </tr>
 

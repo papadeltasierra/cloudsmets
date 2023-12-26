@@ -22,6 +22,9 @@
 
 #define TAG cs_web_task_name
 
+// TODO: remove this
+#define MQTT
+
 /* Task configuration */
 #define CS_TASK_TICKS_TO_WAIT       CONFIG_CS_TASK_TICKS_TO_WAIT
 
@@ -39,6 +42,10 @@ extern const uint8_t web_html_start[]     asm("_binary_web_html_start");
 extern const uint8_t web_html_end[]       asm("_binary_web_html_end");
 extern const uint8_t ota_html_start[]     asm("_binary_ota_html_start");
 extern const uint8_t ota_html_end[]       asm("_binary_ota_html_end");
+#ifdef MQTT
+extern const uint8_t mqtt_html_start[]    asm("_binary_mqtt_html_start");
+extern const uint8_t mqtt_html_end[]      asm("_binary_mqtt_html_end");
+#endif
 extern const uint8_t style_css_start[]    asm("_binary_style_css_start");
 extern const uint8_t style_css_end[]      asm("_binary_style_css_end");
 extern const uint8_t tools_js_start[]     asm("_binary_tools_js_start");
@@ -50,6 +57,9 @@ extern const uint8_t tools_js_end[]       asm("_binary_tools_js_end");
 #define wifi_html_len   (size_t)(wifi_html_end - wifi_html_start - 1)
 #define web_html_len    (size_t)(web_html_end - web_html_start - 1)
 #define ota_html_len    (size_t)(ota_html_end - ota_html_start - 1)
+#ifdef MQTT
+#define mqtt_html_len   (size_t)(mqtt_html_end - mqtt_html_start - 1)
+#endif
 #define style_css_len   (size_t)(style_css_end - style_css_start - 1)
 #define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start - 1)
 #define tools_js_len    (size_t)(tools_js_end - tools_js_start - 1)
@@ -57,6 +67,9 @@ extern const uint8_t tools_js_end[]       asm("_binary_tools_js_end");
 /* Event loops (exccept for the default loop, used by Wifi) */
 static esp_event_loop_handle_t web_event_loop_handle = NULL;
 static esp_event_loop_handle_t ota_event_loop_handle = NULL;
+#ifdef MQTT
+static esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
+#endif
 
 /* Server configuration. */
 static httpd_config_t httpd_config = HTTPD_DEFAULT_CONFIG();
@@ -64,6 +77,52 @@ static httpd_config_t httpd_config = HTTPD_DEFAULT_CONFIG();
 /* Handle to the web server. */
 static httpd_handle_t httpd_server = NULL;
 
+/**
+ * The value is always NULL terminated.
+*/
+char hex2char(char hex)
+{
+    char value;
+    if (hex >= 'a')
+    {
+        value = hex - 'a' + 10;
+    }
+    else if (hex >= 'A')
+    {
+        value = hex - 'A' + 10;
+    }
+    else
+    {
+        value = hex - '0';
+    }
+    return value;
+}
+
+void url_unescape(char *escaped)
+{
+    char *sptr = escaped;
+    char *dptr = escaped;
+    unsigned int unescaped;
+
+    while (*sptr != '\0')
+    {
+        if ((*sptr) == '%')
+        {
+            /* Escaped character; next two characters should be hex.*/
+            unescaped = (hex2char(sptr[1]) << 4) + hex2char(sptr[2]);
+            *dptr = (char)unescaped;
+            ESP_LOGV(TAG, "%s => %2.2X, %c", &sptr[1], unescaped, *dptr);
+            sptr += 2;
+        }
+        else
+        {
+            *dptr = *sptr;
+        }
+        dptr++;
+        sptr++;
+    }
+    (*dptr) = '\0';
+}
 
 /**
  * We could have a table look-up for pages but it is far simpler to just have
@@ -99,6 +158,14 @@ static esp_err_t get_ota_html_handler(httpd_req_t *req)
     return httpd_resp_send(req, (char *)ota_html_start, ota_html_len);
 }
 
+#ifdef MQTT
+static esp_err_t get_mqtt_html_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "GET ota.html");
+    return httpd_resp_send(req, (char *)mqtt_html_start, mqtt_html_len);
+}
+#endif
+
 static esp_err_t get_style_css_handler(httpd_req_t *req)
 {
     ESP_LOGV(TAG, "GET style.css");
@@ -111,7 +178,7 @@ static esp_err_t get_tools_js_handler(httpd_req_t *req)
     return httpd_resp_send(req, (char *)tools_js_start, tools_js_len);
 }
 
-size_t read_field(char **ptr, size_t available, const char *ns, const cs_cfg_definitions_t *definition)
+size_t read_field(char *ptr, size_t available, const char *ns, const cs_cfg_definitions_t *definition)
 {
     size_t outlen = 0;
     size_t s_length;
@@ -123,42 +190,42 @@ size_t read_field(char **ptr, size_t available, const char *ns, const cs_cfg_def
     switch (definition->type)
     {
         case NVS_TYPE_STR:
-            outlen = snprintf(*ptr, available, "\"%s\":\"", definition->key);
+            outlen = snprintf(ptr, available, "\"%s\":\"", definition->key);
             if (outlen > available)
             {
                 break;
             }
             available -= outlen;
-            *ptr += outlen;
+            ptr += outlen;
             s_length = available;
-            cs_cfg_read_str(ns, definition->key, ptr, &s_length);
+            cs_cfg_read_str(ns, definition->key, &ptr, &s_length);
 
-            // Length returned out includes the NULL.
+            // Length returned out includes the NULL, which we don't want.
             s_length--;
             available -= s_length;
-            *ptr+= s_length;
+            ptr += s_length;
             outlen += s_length;
             if (available < 1)
             {
                 break;
             }
-            **ptr = '"';
+            *ptr = '"';
             outlen++;
             break;
 
         case NVS_TYPE_U8:
             cs_cfg_read_uint8(ns, definition->key, &u8_value);
-            outlen = snprintf(*ptr, available, "\"%s\":%hu", definition->key, (unsigned short)u8_value);
+            outlen = snprintf(ptr, available, "\"%s\":%u", definition->key, u8_value);
             break;
 
         case NVS_TYPE_U16:
             cs_cfg_read_uint16(ns, definition->key, &u16_value);
-            outlen = snprintf(*ptr, available, "\"%s\":%hu", definition->key, u16_value);
+            outlen = snprintf(ptr, available, "\"%s\":%u", definition->key, u16_value);
             break;
 
         case NVS_TYPE_U32:
             cs_cfg_read_uint32(ns, definition->key, &u32_value);
-            outlen = snprintf(*ptr, available, "\"%s\":%lu", definition->key, u32_value);
+            outlen = snprintf(ptr, available, "\"%s\":%lu", definition->key, u32_value);
             break;
 
         default:
@@ -190,7 +257,7 @@ static esp_err_t get_json_handler(
     *ptr++ = '{';
     available--;
 
-    outlen = read_field(&ptr, available, ns, definition);
+    outlen = read_field(ptr, available, ns, definition);
 
     while ((available > outlen) && ((++definition)->key != NULL))
     {
@@ -198,7 +265,7 @@ static esp_err_t get_json_handler(
         ptr += outlen;
         *ptr++ = ',';
         available--;
-        outlen = read_field(&ptr, available, ns, definition);
+        outlen = read_field(ptr, available, ns, definition);
     }
 
     if (available > outlen)
@@ -242,6 +309,14 @@ static esp_err_t get_ota_json_handler(httpd_req_t *req)
     ESP_LOGV(TAG, "GET ota.json");
     return get_json_handler(req, CS_CFG_NMSP_OTA, cs_cfg_ota_definitions);
 }
+
+#ifdef MQTT
+static esp_err_t get_mqtt_json_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "GET mqtt.json");
+    return get_json_handler(req, CS_CFG_NMSP_MQTT, cs_cfg_mqtt_definitions);
+}
+#endif
 
 static esp_err_t post_html_handler(
     httpd_req_t *req,
@@ -295,7 +370,17 @@ static esp_err_t post_html_handler(
     {
         ESP_LOGV(TAG, "Key: %s", definitions->key);
         // TODO: Need to improve length perhaps?
-        ESP_ERROR_CHECK(httpd_query_key_value(content, definitions->key, value, req->content_len));
+        /* httpd_query_key_value does not NULL terminate! */
+        // TODO: Report "does not NULL terminate" as a bug.
+        // TODO: Report extra chars on end of string as a bug - needs hidden field.
+        memset(value, 0, req->content_len);
+        ESP_ERROR_CHECK(httpd_query_key_value(content, definitions->key, value, (req->content_len - 1)));
+
+        /**
+         * Values received here are URL escaped which means we need to unescape
+         * them.
+        */
+        url_unescape(value);
         ESP_LOGV(TAG, "Value: %s", value);
         switch (definitions->type)
         {
@@ -356,11 +441,18 @@ static esp_err_t post_html_handler(
     return ESP_OK;
 }
 
+// TODO: On POST we should refresh the page and ideally show an error banner if there is an error.
 /* Our URI handler function to be called during POST /uri request */
 static esp_err_t post_wifi_html_handler(httpd_req_t *req)
 {
     ESP_LOGV(TAG, "POST wifi.html");
     return post_html_handler(req, CS_CFG_NMSP_WIFI, cs_cfg_wifi_definitions, NULL, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
+}
+
+static esp_err_t post_web_html_handler(httpd_req_t *req)
+{
+    ESP_LOGV(TAG, "POST web.html");
+    return post_html_handler(req, CS_CFG_NMSP_WEB, cs_cfg_web_definitions, web_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
 }
 
 static esp_err_t post_ota_html_handler(httpd_req_t *req)
@@ -369,11 +461,13 @@ static esp_err_t post_ota_html_handler(httpd_req_t *req)
     return post_html_handler(req, CS_CFG_NMSP_OTA, cs_cfg_ota_definitions, ota_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
 }
 
-static esp_err_t post_web_html_handler(httpd_req_t *req)
+#ifdef MQTT
+static esp_err_t post_mqtt_html_handler(httpd_req_t *req)
 {
-    ESP_LOGV(TAG, "POST web.html");
-    return post_html_handler(req, CS_CFG_NMSP_WEB, cs_cfg_web_definitions, web_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
+    ESP_LOGV(TAG, "POST mqtt.html");
+    return post_html_handler(req, CS_CFG_NMSP_MQTT, cs_cfg_mqtt_definitions, mqtt_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
 }
+#endif
 
 /* URI handler structures for GET /... */
 static httpd_uri_t uri_get_root_html = {
@@ -418,6 +512,15 @@ static httpd_uri_t uri_get_ota_html = {
     .user_ctx = NULL
 };
 
+#ifdef MQTT
+static httpd_uri_t uri_get_mqtt_html = {
+    .uri      = "/mqtt.html",
+    .method   = HTTP_GET,
+    .handler  = get_mqtt_html_handler,
+    .user_ctx = NULL
+};
+#endif
+
 static httpd_uri_t uri_get_style_css = {
     .uri      = "/css/style.css",
     .method   = HTTP_GET,
@@ -453,11 +556,28 @@ static httpd_uri_t uri_get_ota_json = {
     .user_ctx = NULL
 };
 
+#ifdef MQTT
+// TODO: Should we rename this all Azure?
+static httpd_uri_t uri_get_mqtt_json = {
+    .uri      = "/mqtt.json",
+    .method   = HTTP_GET,
+    .handler  = get_mqtt_json_handler,
+    .user_ctx = NULL
+};
+#endif
+
 /* URI handler structure for POST /uri */
 static httpd_uri_t uri_post_wifi_html = {
     .uri      = "/wifi.html",
     .method   = HTTP_POST,
     .handler  = post_wifi_html_handler,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_post_web_html = {
+    .uri      = "/web.html",
+    .method   = HTTP_POST,
+    .handler  = post_web_html_handler,
     .user_ctx = NULL
 };
 
@@ -468,12 +588,14 @@ static httpd_uri_t uri_post_ota_html = {
     .user_ctx = NULL
 };
 
-static httpd_uri_t uri_post_web_html = {
-    .uri      = "/web.html",
+#ifdef MQTT
+static httpd_uri_t uri_post_mqtt_html = {
+    .uri      = "/mqtt.html",
     .method   = HTTP_POST,
-    .handler  = post_web_html_handler,
+    .handler  = post_mqtt_html_handler,
     .user_ctx = NULL
 };
+#endif
 
 void web_start()
 {
@@ -508,14 +630,23 @@ void web_start()
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_wifi_html));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_web_html));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_ota_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_mqtt_html));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_style_css));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_tools_js));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_wifi_json));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_web_json));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_ota_json));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_mqtt_json));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_wifi_html));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_web_html));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_ota_html));
+    ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_mqtt_html));
+}
+
+static void default_event_handler(void *arg, esp_event_base_t event_base,
+                                  int32_t event_id, void *event_data)
+{
+    esp_event_post_to(web_event_loop_handle, event_base, event_id, NULL, 0, 0);
 }
 
 static void web_event_handler(void *arg, esp_event_base_t event_base,
@@ -589,6 +720,9 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
     /* Save the event handles that we need to send notifications to. */
     web_event_loop_handle = create_parms->web_event_loop_handle;
     ota_event_loop_handle = create_parms->ota_event_loop_handle;
+#ifdef MQTT
+    mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
+#endif
 
     /**
      * TODO: Is this really true?  Remove this if not.
@@ -598,6 +732,18 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
      * appropriate events.
     */
     ESP_LOGI(TAG, "Register event handlers");
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                IP_EVENT,
+                IP_EVENT_STA_GOT_IP,
+                default_event_handler,
+                NULL,
+                NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                WIFI_EVENT,
+                WIFI_EVENT_AP_START,
+                default_event_handler,
+                NULL,
+                NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                 web_event_loop_handle,
                 IP_EVENT,
