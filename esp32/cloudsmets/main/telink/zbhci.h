@@ -250,6 +250,8 @@ typedef enum{
 	ZBHCI_ADDRMODE_IEEENOACK
 }zbhciTxMode_e;
 
+#ifndef CS_ESP32
+
 #define ZB_LEBESWAP(ptr,len)								\
 	for(int i=0; i<(len>>1);i++){							\
 		unsigned char temp = ptr[len - i - 1];				\
@@ -275,6 +277,7 @@ typedef enum{
 
 #define	ZB_LEBESWAPU16(u16Value)	(u16Value = (u16Value>>8)|(u16Value<<8))
 
+#endif
 
 typedef struct{
 	u8  startFlag;
@@ -285,6 +288,8 @@ typedef struct{
 	u8	checkSum;
 	u8	pData[1];
 }zbhci_msg_t;
+
+#ifndef CS_ESP32
 
 typedef struct{
 	u16 cmdId;
@@ -422,3 +427,4 @@ extern void zbhciTask(void);
 
 #endif
 
+#endif

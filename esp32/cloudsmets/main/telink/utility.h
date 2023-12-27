@@ -24,7 +24,7 @@
  *******************************************************************************************************/
 
 #pragma once
-
+#ifndef CS_ESP32
 
 
 #define abs(a)   				(((a) > 0) ? ((a)) : (-(a)))
@@ -122,6 +122,8 @@
 #define U32_BYTE2(a) 			(((a) >> 16) & 0xFF)
 #define U32_BYTE3(a) 			(((a) >> 24) & 0xFF)
 
+#endif
+
 #define BUILD_U16(lo, hi)			( (unsigned short)((((hi) & 0x00FF) << 8) + ((lo) & 0x00FF)) )
 #define BUILD_U24(b0, b1, b2)		( (unsigned int)((((b2) & 0x000000FF) << 16) + (((b1) & 0x000000FF) << 8) + ((b0) & 0x000000FF)) )
 #define BUILD_U32(b0, b1, b2, b3)	( (unsigned int)((((b3) & 0x000000FF) << 24) + (((b2) & 0x000000FF) << 16) + (((b1) & 0x000000FF) << 8) + ((b0) & 0x000000FF)) )
@@ -130,6 +132,7 @@
 #define BUILD_S24(b0, b1, b2)		( (signed int)((((b2) & 0x000000FF) << 16) + (((b1) & 0x000000FF) << 8) + ((b0) & 0x000000FF)) )
 #define BUILD_S32(b0, b1, b2, b3)	( (signed int)((((b3) & 0x000000FF) << 24) + (((b2) & 0x000000FF) << 16) + (((b1) & 0x000000FF) << 8) + ((b0) & 0x000000FF)) )
 
+#ifndef CS_ESP32
 
 #define HASH_MAGIC_VAL 			5381u
 #define INT_MASK      			0x7fffffff
@@ -140,3 +143,5 @@
 #define TWO_INT_HASH_FUNC(v1, v2)      		(HASH_FUNC_STEP(HASH_FUNC_STEP(HASH_MAGIC_VAL, (v1)), (v2)) & INT_MASK)
 
 extern unsigned int xcrc32(const unsigned char *buf, int len, unsigned int init);
+
+#endif

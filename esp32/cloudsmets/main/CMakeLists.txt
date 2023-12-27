@@ -1,14 +1,8 @@
 # As well as the source code, register the HTML and CSS files that we use to
 # provide the web server.
 idf_component_register(
-    SRCS "cs_app.c"
-    SRCS "cs_wifi.c"
-    SRCS "cs_web.c"
-    SRCS "cs_cfg.c"
-    SRCS "cs_ota.c"
-    SRCS "cs_mqtt.c"
-    SRCS "cs_time.c"
-    INCLUDE_DIRS ""
+    SRCS "cs_app.c" "cs_cfg.c" "cs_mqtt.c" "cs_ota.c" "cs_time.c" "cs_web.c" "cs_wifi.c" "cs_zigbee.c"
+    INCLUDE_DIRS "."
     EMBED_TXTFILES index.html
     EMBED_TXTFILES menu.html
     EMBED_TXTFILES wifi.html

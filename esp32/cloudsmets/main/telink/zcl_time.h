@@ -41,11 +41,11 @@
 #define ZCL_ATTRID_VALID_UNTIL_TIME          0x0009
 
 
-
+#ifndef CS_ESP32
 
 status_t zcl_time_register(u8 endpoint, u16 manuCode, u8 attrNum, const zclAttrInfo_t attrTbl[], cluster_forAppCb_t cb);
 
-
+#endif
 
 
 #endif	/* ZCL_TIME_H */

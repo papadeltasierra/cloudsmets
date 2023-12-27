@@ -8,6 +8,7 @@
 #include "freertos/FreeRTOSConfig.h"
 #include "freertos/task.h"
 #include <sys/time.h>
+#include <string.h>
 #include <limits.h>
 
 /**
@@ -26,18 +27,24 @@
 */
 #include "cs_cfg.h"
 #include "cs_time.h"
+#include "cs_string.h"
 #include "cs_zigbee.h"
 
 /**
  * The following header files are lifted straight from the Telink SDK.
  * // TODO: Can we use the same ones that we use for the tlsr8258 build?
 */
+#define CS_ESP32
+#include "telink/types.h"
 #include "telink/zbhci.h"
 #include "telink/zcl_const.h"
 #include "telink/zcl_time.h"
 #include "telink/utility.h"
 
 #define TAG cs_zigbee_task_name
+
+#define UART_TO_TLSR8258    UART_NUM_1
+#define TLSR8258_BAUD_RATE  115200
 
 /**
  * Define the ZIGBEE events base.
@@ -53,18 +60,27 @@ ESP_EVENT_DEFINE_BASE(CS_ZIGBEE_EVENT);
 static esp_event_loop_handle_t mqtt_event_loop_handle;
 static esp_event_loop_handle_t zigbee_event_loop_handle;
 
+esp_timer_handle_t request_time_timer_handle = NULL;
+
+/**
+ * Commands that we might send.
+*/
+// TODO: This will require checksum, destination etc etc before we can send it.
+// TODO: Do received messages contain this too?  Assume not?
+static cs_string query_time = {NULL, 0};
+
 /**
  * Calculate the CRC for the received frame.
 */
-static bool crc8_calculate(uint16_t data_type, uint16_t length, uint8_t *data)
+static uint8_t crc8_calculate(uint16_t data_type, uint16_t length, uint8_t *data)
 {
     uint8_t crc;
 
-    crc = data_type & 0x0ff
-    crc ^= (data_type >> 8) & 0x0ff
-    crc ^= (data_type >> 8) & 0x0ff
-    crc ^= length & 0x0ff
-    crc ^= (length >> 8) & 0x0ff
+    crc = data_type & 0x0ff;
+    crc ^= (data_type >> 8) & 0x0ff;
+    crc ^= (data_type >> 8) & 0x0ff;
+    crc ^= length & 0x0ff;
+    crc ^= (length >> 8) & 0x0ff;
 
     while (length--)
     {
@@ -102,12 +118,9 @@ typedef struct{
 static void zbhci_read_attr_rsp(uint16_t command_id, uint16_t payload_length, uint8_t *frame)
 {
     static bool time_is_set = false;
-    uint8_t num_attr;
-    uint8_t data_type;
     uint16_t attr_id;
     uint32_t zigbee_time;
     uint32_t linux_time;
-    uint8_t *bptr;
     zbhci_msg_t *msg;
     _zbhci_attr_t *attr;
     struct timeval set_or_adjust = { 0 };
@@ -124,7 +137,7 @@ static void zbhci_read_attr_rsp(uint16_t command_id, uint16_t payload_length, ui
     if ((attr->num != 1) || (attr_id != ZCL_ATTRID_STANDARD_TIME))
     {
         /* Definitely not time so pass to Azure. */
-        zbhci_forward_attributes(command_id, payload_length, frame);
+        zbhci_forward_attributes(payload_length, frame);
         return;
     }
 
@@ -155,7 +168,7 @@ static void zbhci_read_attr_rsp(uint16_t command_id, uint16_t payload_length, ui
     if (time_is_set)
     {
         /* Time has been set once so we might adjust it if required. */
-        set_or_adjust.tv_sec = linux_time - time();
+        set_or_adjust.tv_sec = linux_time - time(NULL);
         adjtime(&set_or_adjust, NULL);
     }
     else
@@ -216,9 +229,7 @@ static void zbhci_message(uint16_t command_id, uint16_t payload_length, uint8_t 
 static void zbhci_frame(uint16_t payload_length, uint8_t *frame)
 {
     uint16_t command_id;
-    uint8_t payload;
     uint8_t crc;
-    bool rc = true;
     zbhci_msg_t *msg;
 
     msg = (zbhci_msg_t *)frame;
@@ -227,18 +238,29 @@ static void zbhci_frame(uint16_t payload_length, uint8_t *frame)
     command_id = (msg->msgType16H << 8) & msg->msgType16L;
 
     /* Calculate and check the CRC. */
-    crc = crc_calculate(command_id, payload_length, &msg->pData[0]);
+    crc = crc8_calculate(command_id, payload_length, &msg->pData[0]);
     if (crc != msg->checkSum)
     {
         ESP_LOGE(TAG, "CRC mismatch: %2.2X, %2.2X", crc, msg->checkSum);
-        return false;
+        return;
     }
 
     /* Process the ZCL message. */
-    return zcl_message(command_id, payload_length, frame);
+    zbhci_message(command_id, payload_length, frame);
+    return;
 }
 
-uint32_t zbhci_maybe_frame(uint32_t data_length, uint8_t *buffer)
+/**
+ * Start-message, 1 byte, 0x55
+ * Command ID, 2 bytes, variable
+ * Payload length, 2 bytes, variable
+ * CRC, 1 byte, variable
+ * (payload)
+ * End-message, 1 byte, 0xAA.
+*/
+#define ZBHCI_FRAMING_BYTES     7
+
+static uint32_t zbhci_maybe_frame(uint32_t data_length, uint8_t *buffer)
 {
     bool processing = true;
     uint32_t data_remains = data_length;
@@ -287,7 +309,7 @@ uint32_t zbhci_maybe_frame(uint32_t data_length, uint8_t *buffer)
                 /* We have a complete frame; try and process it. */
                 zbhci_frame(payload_length, buffer);
 
-                data_accepted = data_length - data_remains + payload_length + ZBHCI_FRAMING_BYTES
+                data_accepted = data_length - data_remains + payload_length + ZBHCI_FRAMING_BYTES;
                 return data_accepted;
             }
             else
@@ -297,6 +319,53 @@ uint32_t zbhci_maybe_frame(uint32_t data_length, uint8_t *buffer)
             }
         }
     }
+    ESP_LOGE(TAG, "Should not reach here!");
+    ESP_ERROR_CHECK(ESP_FAIL);
+    return 0;
+}
+
+void zbhci_request_time(void)
+{
+    if (query_time.length)
+    {
+        uart_write_bytes(UART_TO_TLSR8258, query_time.value, query_time.length);
+    }
+}
+
+/**
+ * Sending data is scheduled by timers but we always send from the event loop
+ * to ensure that we are sequencing correctly and not trying to interleave
+ * UART sends.
+*/
+static void event_handler(void *arg, esp_event_base_t event_base,
+                              int32_t event_id, void *event_data)
+{
+    if (event_base == CS_ZIGBEE_EVENT)
+    {
+        switch (event_id)
+        {
+            case CS_ZIGBEE_EVENT_TIME:
+                /* Query for time. */
+                zbhci_request_time();
+                break;
+
+            default:
+                ESP_LOGE(TAG, "Unknown ZigBee event: %d", event_id);
+                break;
+        }
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Unexpected event: %s, %d", event_base, event_id);
+    }
+}
+
+/**
+ * Time calllback just messages the event loop to drive sending.
+*/
+void request_time_timer_cb(void *arg)
+{
+    esp_event_post_to(zigbee_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_TIME, NULL, 0, 10);
 }
 
 void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
@@ -318,22 +387,19 @@ void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
 
     ESP_LOGI(TAG, "Register event handlers");
 
-    // TODO: Any use for a loop handler?
-    // /* Register Event handler */
-    // ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
-    //                 zigbee_event_loop_handle,
-    //                 CS_ZIGBEE_EVENT,
-    //                 ESP_EVENT_ANY_ID,
-    //                 event_handler,
-    //                 NULL,
-    //                 NULL));
+    /* Register Event handler */
+    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
+                    zigbee_event_loop_handle,
+                    CS_ZIGBEE_EVENT,
+                    ESP_EVENT_ANY_ID,
+                    event_handler,
+                    NULL,
+                    NULL));
 
     /**
      * Processing below follows the order show in example:
      *   peripherals/uart/uart_events/main/uart_events_example_main.c
     */
-#define TLSR8258_BAUD_RATE 115200
-    const uart_port_t uart_num = UART_NUM_0;
     const uart_config_t uart_config = {
         .baud_rate = TLSR8258_BAUD_RATE,
         .data_bits = UART_DATA_8_BITS,
@@ -348,18 +414,18 @@ QueueHandle_t uart_queue_handle;
 #define TLSR8258_MAX_MSG_SIZE   2
 #define UART_QUEUE_DEPTH 5
     /* Configure interupts, just for RX. */
-    ESP_ERROR_RCHECK(uart_driver_install(
+    ESP_ERROR_CHECK(uart_driver_install(
         UART_NUM_0, TLSR8258_MAX_MSG_SIZE, TLSR8258_MAX_MSG_SIZE, UART_QUEUE_DEPTH, &uart_queue_handle, 0));
 
     /* Configure UART parameters. */
-    ESP_ERROR_CHECK(uart_param_config(uart_num, &uart_config));
+    ESP_ERROR_CHECK(uart_param_config(UART_TO_TLSR8258, &uart_config));
 
     /**
      * Set UART pins.  Note that these are reversed from the T-ZigBee documentation
      * because we are talking to the tlsr8258 pins and connections are nominally
      * RX/RX, TX/TX so we switch the ESP32 TX/RX.
      */
-    ESP_ERROR_CHECK(uart_set_pin(UART_NUM_0, GPIO_NUM_18, GPIO_NUM_19, -1, -1));
+    ESP_ERROR_CHECK(uart_set_pin(UART_TO_TLSR8258, GPIO_NUM_18, GPIO_NUM_19, -1, -1));
 
     /**
      * Initially assume we don't need an interrupt handler and can run things
@@ -372,10 +438,26 @@ QueueHandle_t uart_queue_handle;
         .rxfifo_full_thresh = TLSR8258_MIN_MSG_SIZE
     };
 
-    ESP_ERROR_CHECK(uart_enable_rx_intr(UART_NUM_0));
+    ESP_ERROR_CHECK(uart_enable_rx_intr(UART_TO_TLSR8258));
     ESP_ERROR_CHECK(esp_intr_alloc(
         EST_UART_INTR_SOURCE, 0, zigbee_rx_intr_handler, NULL, NULL));
 #endif
+
+    /* Create the timers that drive sending. */
+    ESP_LOGV(TAG, "Create send timers");
+    esp_timer_create_args_t esp_timer_create_args = {
+        .callback = request_time_timer_cb,
+        .name = "ZB-time",
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &request_time_timer_handle));
+
+    /**
+     * Start the timers; we run them periodically but for the long timers we
+     * also trigger their callbacks manually here.
+     */
+#define REQUEST_TIME_TIMER_PERIOD ((uint64_t)1000 * 1000 * 60 * 60)
+    ESP_ERROR_CHECK(esp_timer_start_periodic(request_time_timer_handle, REQUEST_TIME_TIMER_PERIOD));
+    request_time_timer_cb(NULL);
 
 /* We simply tight-loop here with the read timeout set to 1s. */
 #define TICKS_TO_WAIT   configTICK_RATE_HZ
@@ -411,7 +493,7 @@ QueueHandle_t uart_queue_handle;
              * that were accepted, which might be zero if there is insufficient
              * bytes for the complete frame.
             */
-            bytes_read = zbhci_maybe_frame(buffer);
+            bytes_read = zbhci_maybe_frame(bytes_present, buffer);
             bytes_present -= bytes_read;
 
             if (bytes_present)
