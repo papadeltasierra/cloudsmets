@@ -7,8 +7,6 @@
  */
 #pragma once
 
-void _ft_error_check_failed(ByteType_t rc, const char *file, int line, const char *function, const char *expression) __attribute__((noreturn));
-
 /**
  * Macro which can be used to check the error code,
  * and terminate the program in case the code is not ESP_OK.

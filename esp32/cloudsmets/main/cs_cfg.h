@@ -19,7 +19,6 @@ typedef enum {
  * TODO: CS_TIME elsewhere.
  */
 ESP_EVENT_DECLARE_BASE(CS_CONFIG_EVENT);
-ESP_EVENT_DECLARE_BASE(CS_TIME_EVENT);
 
 /*
  * Namespaces and task names.
@@ -30,6 +29,7 @@ extern const char *cs_web_task_name;
 // extern const char *cfgDbg;
 extern const char *cs_ota_task_name;
 extern const char *cs_mqtt_task_name;
+extern const char *cs_zigbee_task_name;
 
 #define CS_CFG_NMSP_WIFI           cs_wifi_task_name
 #define CS_CFG_NMSP_WEB            cs_web_task_name

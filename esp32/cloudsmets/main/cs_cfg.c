@@ -47,6 +47,7 @@ const char *cs_web_task_name  = "Web";
 const char *cs_ota_task_name  = "Ota";
 // TODO: Will this be Azure?
 const char *cs_mqtt_task_name = "Mqtt";
+const char *cs_zigbee_task_name = "Zb";
 
 // TODO: We are going to have to mutex protect here!
 static nvs_handle_t handle;
