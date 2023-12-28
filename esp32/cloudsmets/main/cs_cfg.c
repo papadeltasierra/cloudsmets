@@ -370,6 +370,15 @@ static void cs_cfg_default(void)
 #endif
 }
 
+/**
+ * Wipe all configuration from the NVS.  We expect an immediate reboot after
+ * this happens.
+*/
+void cs_cfg_factory_reset(void)
+{
+    nvs_flash_erase();
+}
+
 void cs_cfg_init(void)
 {
     // TODO: Remove this.

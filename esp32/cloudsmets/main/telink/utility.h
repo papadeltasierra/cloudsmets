@@ -106,6 +106,7 @@
 
 #define everyN(i, n) 			++(i); (i)=((i) < N ? (i) : 0); if(0 == (i))
 
+#endif
 
 #define HI_UINT16(a) 			(((a) >> 8) & 0xFF)
 #define LO_UINT16(a) 			((a) & 0xFF)
@@ -122,7 +123,6 @@
 #define U32_BYTE2(a) 			(((a) >> 16) & 0xFF)
 #define U32_BYTE3(a) 			(((a) >> 24) & 0xFF)
 
-#endif
 
 #define BUILD_U16(lo, hi)			( (unsigned short)((((hi) & 0x00FF) << 8) + ((lo) & 0x00FF)) )
 #define BUILD_U24(b0, b1, b2)		( (unsigned int)((((b2) & 0x000000FF) << 16) + (((b1) & 0x000000FF) << 8) + ((b0) & 0x000000FF)) )

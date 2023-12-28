@@ -20,6 +20,7 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 #include "esp_event.h"
+#include "esp_timer.h"
 #include "driver/gpio.h"
 
 // #include "ft_err.h"
@@ -34,16 +35,32 @@
 #include "cs_time.h"
 #include "cs_zigbee.h"
 #include "cs_flash.h"
+#include "cs_app.h"
 
 /* Task Configuration */
 #define CS_APP_TASK_QUEUE_SIZE          CONFIG_CS_TASK_QUEUE_SIZE
 #define CS_APP_TASK_PRIORITY_DEFAULT    CONFIG_CS_TASK_PRIORITY_DEFAULT
 #define CS_APP_TASK_STACK_SIZE          CONFIG_CS_TASK_STACK_SIZE
 
-#define TLSR8258_POWER  GPIO_NUM_0
+// TODO: Should be common.
+#define BLUE_LED            GPIO_NUM_3
+#define TLSR8258_POWER      GPIO_NUM_0
+#define CLEAR_KEY           GPIO_NUM_2
 
-static const char *cs_app_task = "App";
-#define TAG cs_app_task
+/* Times. */
+#define FIRST_JAN_2023              1672531200
+#define FACTORY_RESET_PRESS         10
+#define ZIGBEE_RESET_PRESS          4
+#define FACTORY_RESET_TIMER_WAIT    ((uint64_t)1000 * 1000 * 2)
+
+#define TAG cs_app_task_name
+
+esp_timer_handle_t factory_reset_timer_handle = NULL;
+
+ESP_EVENT_DEFINE_BASE(CS_APP_EVENT);
+
+static esp_event_loop_handle_t app_event_loop_handle = NULL;
+static esp_event_loop_handle_t zigbee_event_loop_handle = NULL;
 
 union cs_create_parms_t {
     cs_flash_create_parms_t flash;
@@ -88,6 +105,133 @@ static void esp32_info()
         "Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
 }
 
+/**
+ * Note that the line is pull DOWN by a key press.
+ * We send ourselves an event to avoid any processing that might not be
+ * possible from inside an interrupt handler.
+*/
+static void intr_handler(void *arg)
+{
+    time_t pressed = 0;
+    time_t released = 0;
+    int level;
+
+    level = gpio_get_level(CLEAR_KEY);
+    if (level)
+    {
+        /* Rising line; key has been released. */
+        released = time(NULL);
+        released = released - pressed;
+        if (released > FIRST_JAN_2023)
+        {
+            /**
+             * Time has been set whilst we were pressing the key so we cannot
+             * tell how long it was held for; have to just ignore it.
+            */
+        }
+        else if (released > FACTORY_RESET_PRESS)
+        {
+            /**
+             * Factory resetting the ESP32c3 will happen on a timer to allow
+             * the tlsr8258 to be reset first.
+            */
+            ESP_ERROR_CHECK(esp_event_isr_post_to(
+                app_event_loop_handle,
+                CS_APP_EVENT,
+                CS_APP_EVENT_FACTORY_RESET,
+                NULL,
+                0,
+                NULL));
+        }
+        else if (released > ZIGBEE_RESET_PRESS)
+        {
+            ESP_ERROR_CHECK(esp_event_isr_post_to(
+                app_event_loop_handle,
+                CS_APP_EVENT,
+                CS_APP_EVENT_FACTORY_RESET,
+                NULL,
+                0,
+                NULL));
+        }
+    }
+    else
+    {
+        /* Falling line; key has been pressed. */
+        pressed = time(NULL);
+        released = pressed;
+    }
+}
+
+static void init_gpio(void)
+{
+    /* Configure the LED GPIO lines used by T-ZigBee. */
+    gpio_config_t gpio_config_data = {
+        .pin_bit_mask = (1 << BLUE_LED) | (1 << TLSR8258_POWER),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en =  GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    ESP_ERROR_CHECK(gpio_config(&gpio_config_data));
+
+    /* Configure the input key GPIO line used by T-ZigBee. */
+    gpio_config_data.pin_bit_mask = (1 << CLEAR_KEY);
+    gpio_config_data.mode = GPIO_MODE_INPUT;
+    gpio_config_data.pull_up_en =  GPIO_PULLUP_ENABLE;
+    gpio_config_data.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    gpio_config_data.intr_type = GPIO_INTR_ANYEDGE;
+    ESP_ERROR_CHECK(gpio_config(&gpio_config_data));
+    ESP_ERROR_CHECK(gpio_isr_register(intr_handler, NULL, ESP_INTR_FLAG_LEVEL1, NULL));
+    ESP_ERROR_CHECK(gpio_intr_enable(CLEAR_KEY));
+}
+
+static void factory_reset_timer_cb(void *arg)
+{
+    cs_cfg_factory_reset();
+    esp_restart();
+}
+
+static void event_handler(void *arg, esp_event_base_t event_base,
+                          int32_t event_id, void *event_data)
+{
+    if (event_base == CS_APP_EVENT)
+    {
+        switch (event_id)
+        {
+            case CS_APP_EVENT_FACTORY_RESET:
+                ESP_ERROR_CHECK(esp_event_post_to(
+                    zigbee_event_loop_handle,
+                    CS_ZIGBEE_EVENT,
+                    CS_ZIGBEE_EVENT_FACTORY_RESET,
+                    NULL,
+                    0,
+                    10));
+
+                /* Delay the ESP32c3 reset to allow ZigBee time to reset first. */
+                ESP_ERROR_CHECK(esp_timer_start_once(factory_reset_timer_handle, FACTORY_RESET_TIMER_WAIT));
+                break;
+
+            case CS_APP_EVENT_ZIGBEE_RESET:
+                ESP_ERROR_CHECK(esp_event_post_to(
+                    zigbee_event_loop_handle,
+                    CS_ZIGBEE_EVENT,
+                    CS_ZIGBEE_EVENT_FACTORY_RESET,
+                    NULL,
+                    0,
+                    10));
+                break;
+
+            default:
+                ESP_LOGE(TAG, "Unexpected flash event: %d", event_id);
+                break;
+        }
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Unexpected event: %s, %d", event_base, event_id);
+    }
+}
+
 static void start_of_day()
 {
     /*
@@ -115,7 +259,6 @@ void app_main(void)
     static esp_event_loop_handle_t web_event_loop_handle = NULL;
     static esp_event_loop_handle_t ota_event_loop_handle = NULL;
     static esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
-    static esp_event_loop_handle_t zigbee_event_loop_handle = NULL;
 
     // TODO: Remove this.
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
@@ -123,9 +266,20 @@ void app_main(void)
     /*
      * Perform start-of-day checking.
      */
-    // TODO: Should be cs_cfg_init();
+    // TODO: Should be cs_cfg_init();  Also very messy having lots of stuff here!
     cs_cfg_init();
+    init_gpio();
     start_of_day();
+
+    /**
+     * Create various timers.
+    */
+    esp_timer_create_args_t timer_create_args =
+    {
+        .callback = factory_reset_timer_cb,
+        .name = "F.Reset"
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&timer_create_args, &factory_reset_timer_handle));
 
     /**
      * Instead of using FreeRTOS tasks and queues, CloudSMETS uses the ESP-IDF
@@ -197,6 +351,17 @@ void app_main(void)
      */
     create_parms.wifi.flash_event_loop_handle = flash_event_loop_handle;
     cs_wifi_task(&create_parms.wifi);
+
+    /**
+     * Listen for events targetted to this app.
+    */
+    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
+                    app_event_loop_handle,
+                    CS_APP_EVENT,
+                    ESP_EVENT_ANY_ID,
+                    event_handler,
+                    NULL,
+                    NULL));
 
     // TODO: remove this which was added for testing.
 #define NOW  	1703592595

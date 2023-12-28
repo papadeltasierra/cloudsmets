@@ -119,7 +119,7 @@ static void quote_plus(cs_string *in_str, cs_string *out_str)
     out_str->length = out_len;
     if (out_str->length > 0)
     {
-        CS_STRING_MALLOC(out_str->value, (out_len + 1));
+        CS_STRING_MALLOC(out_str, (out_len + 1));
     }
     ESP_LOGV(TAG, "out_str len: %u, %p", out_str->length, out_str->value);
 
@@ -231,14 +231,14 @@ static void read_config()
     unsigned char *sptr;
 
     /* Free existing values and read new ones. */
-    CS_STRING_FREE(iothub_url);
-    CS_STRING_FREE(quoted_device_url);
-    CS_STRING_FREE(sign_key);
-    CS_STRING_FREE(device);
-    CS_STRING_FREE(username);
-    CS_STRING_FREE(access_keys[0]);
-    CS_STRING_FREE(access_keys[1]);
-    CS_STRING_FREE(sas_token);
+    CS_STRING_FREE(&iothub_url);
+    CS_STRING_FREE(&quoted_device_url);
+    CS_STRING_FREE(&sign_key);
+    CS_STRING_FREE(&device);
+    CS_STRING_FREE(&username);
+    CS_STRING_FREE(&access_keys[0]);
+    CS_STRING_FREE(&access_keys[1]);
+    CS_STRING_FREE(&sas_token);
 
     /**
      * Note that the length of read strings includes the NULL terminator so
@@ -285,7 +285,7 @@ static void read_config()
          * Username is "<iothub-url-without-protocol>/devicename"
         */
         username.length = iothub_url.length - PROTOCOL_MQTTS_LENGTH + 1+ device.length + 1;
-        CS_STRING_MALLOC(username.value, username.length);
+        CS_STRING_MALLOC(&username, username.length);
         sptr = username.value;
         memcpy(sptr, &iothub_url.value[PROTOCOL_MQTTS_LENGTH], (iothub_url.length - PROTOCOL_MQTTS_LENGTH));
         sptr += iothub_url.length - PROTOCOL_MQTTS_LENGTH;
@@ -301,7 +301,7 @@ static void read_config()
 #define DEVICES "/Devices/"
 #define DEVICES_LEN (sizeof(DEVICES) - 1)
         temp_url.length = iothub_url.length - PROTOCOL_MQTTS_LENGTH + DEVICES_LEN + device.length + 1;
-        CS_STRING_MALLOC(temp_url.value, temp_url.length);
+        CS_STRING_MALLOC(&temp_url, temp_url.length);
         sptr = temp_url.value;
         memcpy(sptr, &iothub_url.value[PROTOCOL_MQTTS_LENGTH], (iothub_url.length - PROTOCOL_MQTTS_LENGTH));
         sptr += iothub_url.length - PROTOCOL_MQTTS_LENGTH;
@@ -332,7 +332,7 @@ static void read_config()
         */
         sas_token.length = SAS_TOKEN_START_LEN + quoted_device_url.length + SAS_TOKEN_AND_SIG_LEN + URLENCODED_BASE64_SHA256_LEN + 10 + 1;
         ESP_LOGV(TAG, "ST: %u", sas_token.length);
-        CS_STRING_MALLOC(sas_token.value, sas_token.length);
+        CS_STRING_MALLOC(&sas_token, sas_token.length);
 
         /* Now we preload as much as we can into the token. */
         sptr = sas_token.value;
@@ -353,7 +353,7 @@ static void read_config()
          * plus a stringified time.
         */
         sign_key.length = quoted_device_url.length + 1 + 11;
-        CS_STRING_MALLOC(sign_key.value, sign_key.length);
+        CS_STRING_MALLOC(&sign_key, sign_key.length);
         sptr = sign_key.value;
         memcpy(sptr, quoted_device_url.value, quoted_device_url.length);
         sptr += quoted_device_url.length;

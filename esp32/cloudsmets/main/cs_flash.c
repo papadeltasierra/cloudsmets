@@ -141,7 +141,6 @@ void update_flash_status(uint8_t status)
  * - Triple flash, also connected to Azure IotHub
  * - Solid blue, also receiving and relaying ZigBee messages.
 */
-
 static void event_handler(void *arg, esp_event_base_t event_base,
                           int32_t event_id, void *event_data)
 {

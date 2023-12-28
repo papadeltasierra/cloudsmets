@@ -73,6 +73,7 @@ static bool receiving_events = false;
 // TODO: This will require checksum, destination etc etc before we can send it.
 // TODO: Do received messages contain this too?  Assume not?
 static cs_string query_time = {NULL, 0};
+static cs_string factory_reset = {NULL, 0};
 
 /**
  * Calculate the CRC for the received frame.
@@ -364,6 +365,11 @@ static void event_handler(void *arg, esp_event_base_t event_base,
                 zbhci_request_time();
                 break;
 
+            case CS_ZIGBEE_EVENT_FACTORY_RESET:
+                /* Factory reset the tlsr8258. */
+                uart_write_bytes(UART_TO_TLSR8258, factory_reset.value, factory_reset.length);
+                break;
+
             default:
                 ESP_LOGE(TAG, "Unknown ZigBee event: %d", event_id);
                 break;
@@ -400,6 +406,22 @@ static void connected_timer_cb(void *arg)
     receiving_events = false;
 }
 
+static void build_commands(void)
+{
+    zbhci_msg_t *msg;
+
+    /* Factory reset. */
+    CS_STRING_MALLOC(&factory_reset, 7);
+    msg = (zbhci_msg_t *)factory_reset.value;
+    msg->startFlag = ZBHCI_MSG_START_FLAG;
+    msg->msgType16H = U16_BYTE1(ZBHCI_CMD_BDB_FACTORY_RESET);
+    msg->msgType16L = U16_BYTE0(ZBHCI_CMD_BDB_FACTORY_RESET);
+    msg->msgLen16H = 0;
+    msg->msgLen16L = 0;
+    msg->checkSum = crc8_calculate(ZBHCI_CMD_BDB_FACTORY_RESET, 0, NULL);
+    msg->pData[0] = ZBHCI_MSG_END_FLAG;
+}
+
 void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
 {
     uint32_t bytes_to_read = RX_BUFFER_SIZE;
@@ -411,13 +433,18 @@ void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
     // TODO: Remove this or perhaps replace with config?
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
-    /* Allocate a buffer for receipt. */
-    buffer = (uint8_t *)malloc(RX_BUFFER_SIZE);
 
-    ESP_LOGI(TAG, "Init. MQTT task");
+    ESP_LOGI(TAG, "Init. ZigBee task");
     zigbee_event_loop_handle = create_parms->zigbee_event_loop_handle;
     mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
     flash_event_loop_handle = create_parms->flash_event_loop_handle;
+
+    /* Allocate a buffer for receipt. */
+    buffer = (uint8_t *)malloc(RX_BUFFER_SIZE);
+
+    // TODO: Perhaps do this when we manage to connect?  Need to build others?
+    /* Build fixed commands. */
+    build_commands();
 
     ESP_LOGI(TAG, "Register event handlers");
 

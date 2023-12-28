@@ -7,7 +7,8 @@ typedef enum {
     CS_ZIGBEE_EVENT_ATTRS = 0,          /**< Attributes. */
     CS_ZIGBEE_EVENT_TIME,               /**< Query time. */
     CS_ZIGBEE_EVENT_CONNECTED,          /**< Receiving msgs over ZigBee. */
-    CS_ZIGBEE_EVENT_DISCONNECTED        /**< No messages seen over ZigBee. */
+    CS_ZIGBEE_EVENT_DISCONNECTED,       /**< No messages seen over ZigBee. */
+    CS_ZIGBEE_EVENT_FACTORY_RESET       /**< No messages seen over ZigBee. */
 } zigbee_event_t;
 
 typedef struct

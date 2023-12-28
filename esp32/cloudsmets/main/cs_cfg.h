@@ -129,3 +129,4 @@ extern void cs_cfg_write_uint8(const char *ns, const char *key, uint8_t value);
 extern void cs_cfg_write_uint16(const char *ns, const char *key, uint16_t value);
 extern void cs_cfg_write_uint32(const char *ns, const char *key, uint32_t value);
 extern void cs_cfg_write_str(const char *ns, const char *key, const char *value);
+extern void cs_cfg_factory_reset(void);
