@@ -32,6 +32,8 @@ static esp_netif_t *s_netif_sta = NULL;
 static esp_timer_handle_t s_netif_sta_timer = NULL;
 static int s_retry_num = 0;
 
+static esp_event_loop_handle_t flash_event_loop_handle = NULL;
+
 /* AP Configuration */
 #define CS_WIFI_AP_MAX_CONN         CONFIG_CS_WIFI_AP_MAX_CONN
 
@@ -115,12 +117,16 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 ap_conn_event = (wifi_event_ap_staconnected_t *) event_data;
                 ESP_LOGI(TAG, "SoftAP: station "MACSTR" joined, AID=%d",
                     MAC2STR(ap_conn_event->mac), ap_conn_event->aid);
+
+                // TODO: Make ticks more realistic and use a #define.
+                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_AP_STADISCONNECTED:
                 ap_disconn_event = (wifi_event_ap_stadisconnected_t *) event_data;
                 ESP_LOGI(TAG, "SoftAP: Station "MACSTR" left, AID=%d",
                         MAC2STR(ap_disconn_event->mac), ap_disconn_event->aid);
+                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_STA_CONNECTED:
@@ -135,6 +141,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                  * Set sta as the default interface
                  */
                 esp_netif_set_default_netif(s_netif_sta);
+                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_STA_DISCONNECTED:
@@ -152,6 +159,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                     uint64_t interval = CS_WIFI_STA_RETRY_INTERVAL * 1000 * 1000;
                     ESP_ERROR_CHECK(esp_timer_start_once(s_netif_sta_timer, interval));
                 }
+                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_STA_START:
@@ -278,6 +286,8 @@ void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
     ESP_LOGI(TAG, "Init. WiFi task");
+
+    flash_event_loop_handle = create_parms->flash_event_loop_handle;
 
     ESP_LOGI(TAG, "Register event handlers");
     /* Register Event handler */

@@ -41,6 +41,7 @@ ESP_EVENT_DEFINE_BASE(CS_CONFIG_EVENT);
  * Namespaces, used to partition components.
  */
 const char *cs_app_task_name = "App";
+const char *cs_flash_task_name = "Flash";
 const char *cs_wifi_task_name = "WiFi";
 const char *cs_web_task_name  = "Web";
 // const char *cs_cfg__log_task_name  = "Log";

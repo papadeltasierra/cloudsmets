@@ -46,6 +46,8 @@
 #define UART_TO_TLSR8258    UART_NUM_1
 #define TLSR8258_BAUD_RATE  115200
 
+#define ZIGBEE_CONNECTION_CHECK_PERIOD  ((uint64_t)1000 * 1000 * 2)
+
 /**
  * Define the ZIGBEE events base.
 */
@@ -56,11 +58,14 @@ ESP_EVENT_DEFINE_BASE(CS_ZIGBEE_EVENT);
 #define RX_MINIMUM_FRAME_SIZE 10
 #define RX_PAYLOAD_LENGTH_MAX 256
 
-
-static esp_event_loop_handle_t mqtt_event_loop_handle;
 static esp_event_loop_handle_t zigbee_event_loop_handle;
+static esp_event_loop_handle_t mqtt_event_loop_handle;
+static esp_event_loop_handle_t flash_event_loop_handle;
 
-esp_timer_handle_t request_time_timer_handle = NULL;
+static esp_timer_handle_t request_time_timer_handle = NULL;
+static esp_timer_handle_t connection_timer_handle = NULL;
+
+static bool receiving_events = false;
 
 /**
  * Commands that we might send.
@@ -191,6 +196,16 @@ static void zbhci_read_attr_rsp(uint16_t command_id, uint16_t payload_length, ui
 */
 static void zbhci_message(uint16_t command_id, uint16_t payload_length, uint8_t *frame)
 {
+    /**
+     * We have a valid message; might need to tell the LED flasher and certianly
+     * need to indicate we are connected.
+    */
+    if (!receiving_events)
+    {
+        ESP_ERROR_CHECK(esp_event_post_to(flash_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_CONNECTED, NULL, 0, 10));
+    }
+    receiving_events = true;
+
     switch (command_id)
     {
         case ZBHCI_CMD_BDB_GET_LINK_KEY_RSP:
@@ -363,9 +378,26 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 /**
  * Time calllback just messages the event loop to drive sending.
 */
-void request_time_timer_cb(void *arg)
+static void request_time_timer_cb(void *arg)
 {
     esp_event_post_to(zigbee_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_TIME, NULL, 0, 10);
+}
+
+/**
+ * May send a disconnected event to the flasher if we believe that ZigBee connectivity
+ * has been lost.
+*/
+static void connected_timer_cb(void *arg)
+{
+    if (!receiving_events)
+    {
+        esp_event_post_to(flash_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_DISCONNECTED, NULL, 0, 10);
+    }
+    /**
+     * If we receive data before the next time pop, 'receiving_events' will be
+     * set 'true'.
+    */
+    receiving_events = false;
 }
 
 void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
@@ -384,6 +416,8 @@ void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
 
     ESP_LOGI(TAG, "Init. MQTT task");
     zigbee_event_loop_handle = create_parms->zigbee_event_loop_handle;
+    mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
+    flash_event_loop_handle = create_parms->flash_event_loop_handle;
 
     ESP_LOGI(TAG, "Register event handlers");
 
@@ -458,6 +492,15 @@ QueueHandle_t uart_queue_handle;
 #define REQUEST_TIME_TIMER_PERIOD ((uint64_t)1000 * 1000 * 60 * 60)
     ESP_ERROR_CHECK(esp_timer_start_periodic(request_time_timer_handle, REQUEST_TIME_TIMER_PERIOD));
     request_time_timer_cb(NULL);
+
+    /**
+     * ZigBee will also notify the LED flasher if there have been no messages
+     * received for a certain period, indicating loss of connectivity.
+    */
+    esp_timer_create_args.callback = connected_timer_cb;
+    esp_timer_create_args.name = "ZB-cnct";
+    ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &connection_timer_handle));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(connection_timer_handle, ZIGBEE_CONNECTION_CHECK_PERIOD));
 
 /* We simply tight-loop here with the read timeout set to 1s. */
 #define TICKS_TO_WAIT   configTICK_RATE_HZ

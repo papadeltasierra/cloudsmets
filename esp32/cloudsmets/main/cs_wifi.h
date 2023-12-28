@@ -11,7 +11,7 @@
 
 typedef struct
 {
-    esp_event_loop_handle_t dummy;
+    esp_event_loop_handle_t flash_event_loop_handle;
 } cs_wifi_create_parms_t;
 
 extern const char *cs_wifi_task_name;

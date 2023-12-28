@@ -20,6 +20,7 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 #include "esp_event.h"
+#include "driver/gpio.h"
 
 // #include "ft_err.h"
 #include "pd_err.h"
@@ -31,20 +32,26 @@
 #include "cs_ota.h"
 #include "cs_mqtt.h"
 #include "cs_time.h"
+#include "cs_zigbee.h"
+#include "cs_flash.h"
 
 /* Task Configuration */
 #define CS_APP_TASK_QUEUE_SIZE          CONFIG_CS_TASK_QUEUE_SIZE
 #define CS_APP_TASK_PRIORITY_DEFAULT    CONFIG_CS_TASK_PRIORITY_DEFAULT
 #define CS_APP_TASK_STACK_SIZE          CONFIG_CS_TASK_STACK_SIZE
 
+#define TLSR8258_POWER  GPIO_NUM_0
+
 static const char *cs_app_task = "App";
 #define TAG cs_app_task
 
 union cs_create_parms_t {
+    cs_flash_create_parms_t flash;
     cs_wifi_create_parms_t wifi;
     cs_web_create_parms_t web;
     cs_ota_create_parms_t ota;
     cs_mqtt_create_parms_t mqtt;
+    cs_zigbee_create_parms_t zigbee;
 };
 
 /*
@@ -96,14 +103,19 @@ static void start_of_day()
      */
     ESP_LOGI(TAG, "start-of-day");
     esp32_info();
+
+    /* Turn on the tlsr8258 by setting the GPIO that controls its power. */
+    ESP_ERROR_CHECK(gpio_set_level(TLSR8258_POWER, 1));
 }
 
 void app_main(void)
 {
     union cs_create_parms_t create_parms;
+    static esp_event_loop_handle_t flash_event_loop_handle = NULL;
     static esp_event_loop_handle_t web_event_loop_handle = NULL;
     static esp_event_loop_handle_t ota_event_loop_handle = NULL;
     static esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
+    static esp_event_loop_handle_t zigbee_event_loop_handle = NULL;
 
     // TODO: Remove this.
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
@@ -140,15 +152,23 @@ void app_main(void)
         .task_stack_size = 32768,
         .task_core_id = tskNO_AFFINITY
     };
+    esp_event_loop_args.task_name = cs_flash_task_name;
+    ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &flash_event_loop_handle));
     esp_event_loop_args.task_name = cs_web_task_name;
     ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &web_event_loop_handle));
     esp_event_loop_args.task_name = cs_ota_task_name;
     ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &ota_event_loop_handle));
     esp_event_loop_args.task_name = cs_mqtt_task_name;
     ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &mqtt_event_loop_handle));
+    esp_event_loop_args.task_name = cs_zigbee_task_name;
+    ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &zigbee_event_loop_handle));
 
     ESP_LOGI(TAG, "Creating tasks...");
     // TODO: Create Azure, ZigBee etc.
+
+    /* Create the LED flasher task. */
+    create_parms.flash.flash_event_loop_handle = flash_event_loop_handle;
+    cs_flash_task(&create_parms.flash);
 
     /* Web server needs to know about any task that can be configured. */
     create_parms.web.web_event_loop_handle = web_event_loop_handle;
@@ -162,13 +182,20 @@ void app_main(void)
 
     /* Create the MQTT task. */
     create_parms.mqtt.mqtt_event_loop_handle = mqtt_event_loop_handle;
+    create_parms.mqtt.flash_event_loop_handle = flash_event_loop_handle;
     cs_mqtt_task(&create_parms.mqtt);
+
+    /* Create the ZigBee task. */
+    create_parms.zigbee.zigbee_event_loop_handle = zigbee_event_loop_handle;
+    create_parms.zigbee.mqtt_event_loop_handle = mqtt_event_loop_handle;
+    create_parms.zigbee.flash_event_loop_handle = flash_event_loop_handle;
+    cs_zigbee_task(&create_parms.zigbee);
 
     /**
      * Wifi has to start before anything else can happen.
      * starting the Wifi task should also get the entire app rolling.
      */
-    create_parms.wifi.dummy = NULL;
+    create_parms.wifi.flash_event_loop_handle = flash_event_loop_handle;
     cs_wifi_task(&create_parms.wifi);
 
     // TODO: remove this which was added for testing.

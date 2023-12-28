@@ -24,6 +24,7 @@ ESP_EVENT_DECLARE_BASE(CS_CONFIG_EVENT);
  * Namespaces and task names.
  */
 extern const char *cs_app_task_name;
+extern const char *cs_flash_task_name;
 extern const char *cs_wifi_task_name;
 extern const char *cs_web_task_name;
 // extern const char *cfgDbg;

@@ -55,7 +55,8 @@ static esp_mqtt_client_handle_t esp_mqtt_client_handle = NULL;
 
 static esp_timer_handle_t reconnect_timer_handle = NULL;
 
-static esp_event_loop_handle_t mqtt_event_loop_handle;
+static esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
+static esp_event_loop_handle_t flash_event_loop_handle = NULL;
 
 uint8_t enabled = 0;
 // TODO: Proper module and APIs for cs_string.  Alternative in ESP already?
@@ -492,6 +493,7 @@ static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
             stale_access_keys = 0;
+            esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
             break;
 
         case MQTT_EVENT_DISCONNECTED:
@@ -500,6 +502,7 @@ static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
              * MQTT client library will try to reconnect in configured time
              * and will generate a new SAS.
             */
+            esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
