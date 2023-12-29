@@ -105,29 +105,43 @@ static void esp32_info()
         "Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
 }
 
+static void IRAM_ATTR intr_handler(void *arg)
+{
+    BaseType_t task_unblocked;
+
+    esp_event_isr_post_to(
+        app_event_loop_handle,
+        CS_APP_EVENT,
+        CS_APP_EVENT_KEY_ACTION,
+        NULL,
+        0,
+        &task_unblocked);
+}
+
 /**
  * Note that the line is pull DOWN by a key press.
  * We send ourselves an event to avoid any processing that might not be
  * possible from inside an interrupt handler.
 */
-static void intr_handler(void *arg)
+static void key_action(void)
 {
-    time_t pressed = 0;
+    static time_t pressed = 0;
     time_t released = 0;
     int level;
 
     level = gpio_get_level(CLEAR_KEY);
+    ESP_LOGI(TAG, "Key action: %d", level);
     if (level)
     {
         /* Rising line; key has been released. */
-        released = time(NULL);
-        released = released - pressed;
+        released = time(NULL) - pressed;
         if (released > FIRST_JAN_2023)
         {
             /**
              * Time has been set whilst we were pressing the key so we cannot
              * tell how long it was held for; have to just ignore it.
             */
+            ESP_LOGI(TAG, "Invalid interval - ignore");
         }
         else if (released > FACTORY_RESET_PRESS)
         {
@@ -135,30 +149,49 @@ static void intr_handler(void *arg)
              * Factory resetting the ESP32c3 will happen on a timer to allow
              * the tlsr8258 to be reset first.
             */
-            ESP_ERROR_CHECK(esp_event_isr_post_to(
-                app_event_loop_handle,
-                CS_APP_EVENT,
-                CS_APP_EVENT_FACTORY_RESET,
+            ESP_LOGI(TAG, "Full factory reset");
+            ESP_ERROR_CHECK(esp_event_post_to(
+                zigbee_event_loop_handle,
+                CS_ZIGBEE_EVENT,
+                CS_ZIGBEE_EVENT_FACTORY_RESET,
                 NULL,
                 0,
-                NULL));
+                10));
+
+            /* Delay the ESP32c3 reset to allow ZigBee time to reset first. */
+
+            // TODO: Enable this later...
+            // ESP_ERROR_CHECK(esp_timer_start_once(factory_reset_timer_handle, FACTORY_RESET_TIMER_WAIT));
         }
         else if (released > ZIGBEE_RESET_PRESS)
         {
-            ESP_ERROR_CHECK(esp_event_isr_post_to(
-                app_event_loop_handle,
-                CS_APP_EVENT,
-                CS_APP_EVENT_FACTORY_RESET,
+            ESP_LOGI(TAG, "Full ZigBee omly reset");
+            ESP_ERROR_CHECK(esp_event_post_to(
+                zigbee_event_loop_handle,
+                CS_ZIGBEE_EVENT,
+                CS_ZIGBEE_EVENT_FACTORY_RESET,
                 NULL,
                 0,
-                NULL));
+                10));
+        }
+        else
+        {
+            ESP_LOGV(TAG, "Short press: %ld", time(NULL));
+            struct timeval ptime;
+            gettimeofday(&ptime, NULL);
+            ESP_LOGV(TAG, "Short press: %ld", ptime.tv_sec);
+            ESP_LOGV(TAG, "Short press: %ld", pressed);
+            ESP_LOGV(TAG, "Short press: %ld", released);
         }
     }
     else
     {
         /* Falling line; key has been pressed. */
         pressed = time(NULL);
-        released = pressed;
+        ESP_LOGV(TAG, "Short press: %ld", pressed);
+        struct timeval ptime;
+        gettimeofday(&ptime, NULL);
+        ESP_LOGV(TAG, "Short press: %ld", ptime.tv_sec);
     }
 }
 
@@ -173,7 +206,10 @@ static void init_gpio(void)
         .intr_type = GPIO_INTR_DISABLE
     };
     ESP_ERROR_CHECK(gpio_config(&gpio_config_data));
-
+#if 1
+    ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1));
+    ESP_ERROR_CHECK(gpio_isr_handler_add(CLEAR_KEY, intr_handler, NULL));
+#endif
     /* Configure the input key GPIO line used by T-ZigBee. */
     gpio_config_data.pin_bit_mask = (1 << CLEAR_KEY);
     gpio_config_data.mode = GPIO_MODE_INPUT;
@@ -181,8 +217,11 @@ static void init_gpio(void)
     gpio_config_data.pull_down_en = GPIO_PULLDOWN_DISABLE;
     gpio_config_data.intr_type = GPIO_INTR_ANYEDGE;
     ESP_ERROR_CHECK(gpio_config(&gpio_config_data));
+#if 0
+    // TODo: Comment on using alternatives above.
     ESP_ERROR_CHECK(gpio_isr_register(intr_handler, NULL, ESP_INTR_FLAG_LEVEL1, NULL));
     ESP_ERROR_CHECK(gpio_intr_enable(CLEAR_KEY));
+#endif
 }
 
 static void factory_reset_timer_cb(void *arg)
@@ -198,27 +237,8 @@ static void event_handler(void *arg, esp_event_base_t event_base,
     {
         switch (event_id)
         {
-            case CS_APP_EVENT_FACTORY_RESET:
-                ESP_ERROR_CHECK(esp_event_post_to(
-                    zigbee_event_loop_handle,
-                    CS_ZIGBEE_EVENT,
-                    CS_ZIGBEE_EVENT_FACTORY_RESET,
-                    NULL,
-                    0,
-                    10));
-
-                /* Delay the ESP32c3 reset to allow ZigBee time to reset first. */
-                ESP_ERROR_CHECK(esp_timer_start_once(factory_reset_timer_handle, FACTORY_RESET_TIMER_WAIT));
-                break;
-
-            case CS_APP_EVENT_ZIGBEE_RESET:
-                ESP_ERROR_CHECK(esp_event_post_to(
-                    zigbee_event_loop_handle,
-                    CS_ZIGBEE_EVENT,
-                    CS_ZIGBEE_EVENT_FACTORY_RESET,
-                    NULL,
-                    0,
-                    10));
+            case CS_APP_EVENT_KEY_ACTION:
+                key_action();
                 break;
 
             default:
@@ -303,9 +323,11 @@ void app_main(void)
         .task_name = cs_app_task_name,
         .task_priority = CS_APP_TASK_PRIORITY_DEFAULT,
         // TODO: Do we really need this big a stack?  Do we care?
-        .task_stack_size = 32768,
+        .task_stack_size = 4096,
         .task_core_id = tskNO_AFFINITY
     };
+    esp_event_loop_args.task_name = cs_app_task_name;
+    ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &app_event_loop_handle));
     esp_event_loop_args.task_name = cs_flash_task_name;
     ESP_ERROR_CHECK(esp_event_loop_create(&esp_event_loop_args, &flash_event_loop_handle));
     esp_event_loop_args.task_name = cs_web_task_name;
@@ -364,7 +386,7 @@ void app_main(void)
                     NULL));
 
     // TODO: remove this which was added for testing.
-#define NOW  	1703592595
+#define NOW  	1703870896
     struct timeval now = { .tv_sec = NOW };
     settimeofday(&now, NULL);
     ESP_LOGV(TAG, "Sending time event");

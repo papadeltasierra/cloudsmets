@@ -19,6 +19,7 @@
 #include "esp_wifi.h"
 #include "esp_netif.h"
 #include "esp_timer.h"
+#include "soc/soc_caps.h"
 #include "driver/uart.h"
 #include "driver/gpio.h"
 
@@ -29,6 +30,7 @@
 #include "cs_time.h"
 #include "cs_string.h"
 #include "cs_zigbee.h"
+#include "pd_err.h"
 
 /**
  * The following header files are lifted straight from the Telink SDK.
@@ -201,10 +203,6 @@ static void zbhci_message(uint16_t command_id, uint16_t payload_length, uint8_t 
      * We have a valid message; might need to tell the LED flasher and certianly
      * need to indicate we are connected.
     */
-    if (!receiving_events)
-    {
-        ESP_ERROR_CHECK(esp_event_post_to(flash_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_CONNECTED, NULL, 0, 10));
-    }
     receiving_events = true;
 
     switch (command_id)
@@ -395,14 +393,17 @@ static void request_time_timer_cb(void *arg)
 */
 static void connected_timer_cb(void *arg)
 {
-    if (!receiving_events)
+    static bool previous_receiving_events = false;
+
+    if (!receiving_events && previous_receiving_events)
     {
         esp_event_post_to(flash_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_DISCONNECTED, NULL, 0, 10);
     }
-    /**
-     * If we receive data before the next time pop, 'receiving_events' will be
-     * set 'true'.
-    */
+    else if (receiving_events && !previous_receiving_events)
+    {
+        ESP_ERROR_CHECK(esp_event_post_to(flash_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_CONNECTED, NULL, 0, 10));
+    }
+    previous_receiving_events = receiving_events;
     receiving_events = false;
 }
 
@@ -422,8 +423,9 @@ static void build_commands(void)
     msg->pData[0] = ZBHCI_MSG_END_FLAG;
 }
 
-void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
+static void uart_rx_task(void *arg)
 {
+    cs_zigbee_create_parms_t *create_parms = (cs_zigbee_create_parms_t *)arg;
     uint32_t bytes_to_read = RX_BUFFER_SIZE;
     uint32_t bytes_present = 0;
     uint32_t bytes_read;
@@ -432,7 +434,6 @@ void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
 
     // TODO: Remove this or perhaps replace with config?
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
-
 
     ESP_LOGI(TAG, "Init. ZigBee task");
     zigbee_event_loop_handle = create_parms->zigbee_event_loop_handle;
@@ -457,6 +458,7 @@ void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
                     NULL,
                     NULL));
 
+    ESP_LOGI(TAG, "Configure UART");
     /**
      * Processing below follows the order show in example:
      *   peripherals/uart/uart_events/main/uart_events_example_main.c
@@ -471,12 +473,10 @@ void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
 
 QueueHandle_t uart_queue_handle;
 // TODO: Understand this.
-#define TLSR8258_MIN_MSG_SIZE   1
-#define TLSR8258_MAX_MSG_SIZE   2
-#define UART_QUEUE_DEPTH 5
+#define UART_QUEUE_DEPTH 8
     /* Configure interupts, just for RX. */
     ESP_ERROR_CHECK(uart_driver_install(
-        UART_NUM_0, TLSR8258_MAX_MSG_SIZE, TLSR8258_MAX_MSG_SIZE, UART_QUEUE_DEPTH, &uart_queue_handle, 0));
+        UART_TO_TLSR8258, 2 * UART_FIFO_LEN, 2 * UART_FIFO_LEN, UART_QUEUE_DEPTH, &uart_queue_handle, 0));
 
     /* Configure UART parameters. */
     ESP_ERROR_CHECK(uart_param_config(UART_TO_TLSR8258, &uart_config));
@@ -549,7 +549,7 @@ QueueHandle_t uart_queue_handle;
     {
         bPtr = buffer + bytes_present;
         bytes_to_read = RX_BUFFER_SIZE - bytes_present;
-        bytes_read = uart_read_bytes(UART_NUM_0, bPtr, bytes_to_read, TICKS_TO_WAIT);
+        bytes_read = uart_read_bytes(UART_TO_TLSR8258, bPtr, bytes_to_read, TICKS_TO_WAIT);
         if (bytes_present == -1)
         {
             ESP_LOGE(TAG, "Rx error.");
@@ -574,3 +574,22 @@ QueueHandle_t uart_queue_handle;
         }
     }
 }
+
+void cs_zigbee_task(cs_zigbee_create_parms_t *create_parms)
+{
+    /* Local copy of create_parms as they are "gone" before the thread starts! */
+    static cs_zigbee_create_parms_t zb_create_parms;
+    /**
+     * Now we start an FreeRTOS thread that just sits in a loop, receiving data.
+    */
+    // TODO: What stack size do we really want?
+    zb_create_parms.zigbee_event_loop_handle = create_parms->zigbee_event_loop_handle;
+    zb_create_parms.mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
+    zb_create_parms.flash_event_loop_handle = create_parms->flash_event_loop_handle;
+
+    // TODO: What is a sensible stack size?
+    PD_ERROR_CHECK(xTaskCreate(uart_rx_task, "uart_rx_task", 4096, &zb_create_parms, 10, NULL));
+}
+
+
+

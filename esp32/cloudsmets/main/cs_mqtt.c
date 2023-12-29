@@ -175,8 +175,7 @@ static void generate_sas_token()
     cs_string hmac_sig = {hmac_sig_value, SHA256_LEN};
     unsigned char b64_hmac_sig_value[URLENCODED_BASE64_SHA256_LEN + 1];
     cs_string b64_hmac_sig = {b64_hmac_sig_value, URLENCODED_BASE64_SHA256_LEN};
-    // DEBUG: TODO: time_t ttl = time(NULL) + 3600;
-    time_t ttl = 1703596659 + 3600;
+    time_t ttl = time(NULL) + 3600;
     unsigned char *sptr;
     int offset;
     cs_string temp_str = {NULL, 0};
@@ -630,6 +629,7 @@ void cs_mqtt_task(cs_mqtt_create_parms_t *create_parms)
 
     ESP_LOGI(TAG, "Init. MQTT task");
     mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
+    flash_event_loop_handle = create_parms->flash_event_loop_handle;
 
     ESP_LOGI(TAG, "Register event handlers");
 

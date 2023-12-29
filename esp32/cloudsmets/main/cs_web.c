@@ -16,14 +16,12 @@
 #include "esp_wifi.h"
 #include "esp_http_server.h"
 #include "esp_netif.h"
+#include "esp_netif_types.h"
 #include "http_parser.h"
 #include "cs_web.h"
 #include "cs_cfg.h"
 
 #define TAG cs_web_task_name
-
-// TODO: remove this
-#define MQTT
 
 /* Task configuration */
 #define CS_TASK_TICKS_TO_WAIT       CONFIG_CS_TASK_TICKS_TO_WAIT
@@ -42,10 +40,8 @@ extern const uint8_t web_html_start[]     asm("_binary_web_html_start");
 extern const uint8_t web_html_end[]       asm("_binary_web_html_end");
 extern const uint8_t ota_html_start[]     asm("_binary_ota_html_start");
 extern const uint8_t ota_html_end[]       asm("_binary_ota_html_end");
-#ifdef MQTT
 extern const uint8_t mqtt_html_start[]    asm("_binary_mqtt_html_start");
 extern const uint8_t mqtt_html_end[]      asm("_binary_mqtt_html_end");
-#endif
 extern const uint8_t style_css_start[]    asm("_binary_style_css_start");
 extern const uint8_t style_css_end[]      asm("_binary_style_css_end");
 extern const uint8_t tools_js_start[]     asm("_binary_tools_js_start");
@@ -57,9 +53,7 @@ extern const uint8_t tools_js_end[]       asm("_binary_tools_js_end");
 #define wifi_html_len   (size_t)(wifi_html_end - wifi_html_start - 1)
 #define web_html_len    (size_t)(web_html_end - web_html_start - 1)
 #define ota_html_len    (size_t)(ota_html_end - ota_html_start - 1)
-#ifdef MQTT
 #define mqtt_html_len   (size_t)(mqtt_html_end - mqtt_html_start - 1)
-#endif
 #define style_css_len   (size_t)(style_css_end - style_css_start - 1)
 #define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start - 1)
 #define tools_js_len    (size_t)(tools_js_end - tools_js_start - 1)
@@ -67,9 +61,7 @@ extern const uint8_t tools_js_end[]       asm("_binary_tools_js_end");
 /* Event loops (exccept for the default loop, used by Wifi) */
 static esp_event_loop_handle_t web_event_loop_handle = NULL;
 static esp_event_loop_handle_t ota_event_loop_handle = NULL;
-#ifdef MQTT
 static esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
-#endif
 
 /* Server configuration. */
 static httpd_config_t httpd_config = HTTPD_DEFAULT_CONFIG();
@@ -158,13 +150,11 @@ static esp_err_t get_ota_html_handler(httpd_req_t *req)
     return httpd_resp_send(req, (char *)ota_html_start, ota_html_len);
 }
 
-#ifdef MQTT
 static esp_err_t get_mqtt_html_handler(httpd_req_t *req)
 {
-    ESP_LOGV(TAG, "GET ota.html");
+    ESP_LOGV(TAG, "GET mqtt.html");
     return httpd_resp_send(req, (char *)mqtt_html_start, mqtt_html_len);
 }
-#endif
 
 static esp_err_t get_style_css_handler(httpd_req_t *req)
 {
@@ -310,13 +300,11 @@ static esp_err_t get_ota_json_handler(httpd_req_t *req)
     return get_json_handler(req, CS_CFG_NMSP_OTA, cs_cfg_ota_definitions);
 }
 
-#ifdef MQTT
 static esp_err_t get_mqtt_json_handler(httpd_req_t *req)
 {
     ESP_LOGV(TAG, "GET mqtt.json");
     return get_json_handler(req, CS_CFG_NMSP_MQTT, cs_cfg_mqtt_definitions);
 }
-#endif
 
 static esp_err_t post_html_handler(
     httpd_req_t *req,
@@ -461,13 +449,11 @@ static esp_err_t post_ota_html_handler(httpd_req_t *req)
     return post_html_handler(req, CS_CFG_NMSP_OTA, cs_cfg_ota_definitions, ota_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
 }
 
-#ifdef MQTT
 static esp_err_t post_mqtt_html_handler(httpd_req_t *req)
 {
     ESP_LOGV(TAG, "POST mqtt.html");
     return post_html_handler(req, CS_CFG_NMSP_MQTT, cs_cfg_mqtt_definitions, mqtt_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
 }
-#endif
 
 /* URI handler structures for GET /... */
 static httpd_uri_t uri_get_root_html = {
@@ -512,14 +498,12 @@ static httpd_uri_t uri_get_ota_html = {
     .user_ctx = NULL
 };
 
-#ifdef MQTT
 static httpd_uri_t uri_get_mqtt_html = {
     .uri      = "/mqtt.html",
     .method   = HTTP_GET,
     .handler  = get_mqtt_html_handler,
     .user_ctx = NULL
 };
-#endif
 
 static httpd_uri_t uri_get_style_css = {
     .uri      = "/css/style.css",
@@ -556,7 +540,6 @@ static httpd_uri_t uri_get_ota_json = {
     .user_ctx = NULL
 };
 
-#ifdef MQTT
 // TODO: Should we rename this all Azure?
 static httpd_uri_t uri_get_mqtt_json = {
     .uri      = "/mqtt.json",
@@ -564,7 +547,6 @@ static httpd_uri_t uri_get_mqtt_json = {
     .handler  = get_mqtt_json_handler,
     .user_ctx = NULL
 };
-#endif
 
 /* URI handler structure for POST /uri */
 static httpd_uri_t uri_post_wifi_html = {
@@ -588,18 +570,15 @@ static httpd_uri_t uri_post_ota_html = {
     .user_ctx = NULL
 };
 
-#ifdef MQTT
 static httpd_uri_t uri_post_mqtt_html = {
     .uri      = "/mqtt.html",
     .method   = HTTP_POST,
     .handler  = post_mqtt_html_handler,
     .user_ctx = NULL
 };
-#endif
 
 void web_start()
 {
-
     /**
      * Read the listen port.
     */
@@ -649,8 +628,8 @@ static void default_event_handler(void *arg, esp_event_base_t event_base,
     esp_event_post_to(web_event_loop_handle, event_base, event_id, NULL, 0, 0);
 }
 
-static void web_event_handler(void *arg, esp_event_base_t event_base,
-                              int32_t event_id, void *event_data)
+static void event_handler(void *arg, esp_event_base_t event_base,
+                          int32_t event_id, void *event_data)
 {
     /* STA has gotten an IP address so make sure we are listening on it. */
     ESP_LOGI(TAG, "Restarting HTTP server.");
@@ -720,9 +699,7 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
     /* Save the event handles that we need to send notifications to. */
     web_event_loop_handle = create_parms->web_event_loop_handle;
     ota_event_loop_handle = create_parms->ota_event_loop_handle;
-#ifdef MQTT
     mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
-#endif
 
     /**
      * TODO: Is this really true?  Remove this if not.
@@ -748,28 +725,28 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
                 web_event_loop_handle,
                 IP_EVENT,
                 IP_EVENT_STA_GOT_IP,
-                web_event_handler,
+                event_handler,
                 NULL,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                 web_event_loop_handle,
                 WIFI_EVENT,
                 WIFI_EVENT_AP_START,
-                web_event_handler,
+                event_handler,
                 NULL,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                 web_event_loop_handle,
                 CS_CONFIG_EVENT,
                 CS_CONFIG_CHANGE,
-                &web_event_handler,
+                event_handler,
                 NULL,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                 web_event_loop_handle,
                 IP_EVENT,
                 ESP_NETIF_IP_EVENT_GOT_IP,
-                &web_event_handler,
+                event_handler,
                 NULL,
                 NULL));
 

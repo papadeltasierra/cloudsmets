@@ -107,26 +107,26 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
             case WIFI_EVENT_AP_START:
                 // esp_wifi_connect();
                 ESP_LOGI(TAG, "SoftAP: Started");
+
+                // TODO: Make ticks more realistic and use a #define.
+                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_AP_STOP:
                 ESP_LOGI(TAG, "SoftAP: Stopped");
+                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_AP_STACONNECTED:
                 ap_conn_event = (wifi_event_ap_staconnected_t *) event_data;
                 ESP_LOGI(TAG, "SoftAP: station "MACSTR" joined, AID=%d",
                     MAC2STR(ap_conn_event->mac), ap_conn_event->aid);
-
-                // TODO: Make ticks more realistic and use a #define.
-                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_AP_STADISCONNECTED:
                 ap_disconn_event = (wifi_event_ap_stadisconnected_t *) event_data;
                 ESP_LOGI(TAG, "SoftAP: Station "MACSTR" left, AID=%d",
                         MAC2STR(ap_disconn_event->mac), ap_disconn_event->aid);
-                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_STA_CONNECTED:

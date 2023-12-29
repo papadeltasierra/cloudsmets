@@ -490,6 +490,9 @@ static esp_timer_create_args_t esp_acceptance_timer_create_args = {
 
 void cs_ota_task(cs_ota_create_parms_t *create_parms)
 {
+    // TODO: Remove this.
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+
     ESP_LOGI(TAG, "Creating OTA task");
     ota_event_loop_handle = create_parms->ota_event_loop_handle;
     uint16_t acceptance_interval_mins;
