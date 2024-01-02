@@ -1,61 +1,40 @@
-#include <stdio.h>
-#include <inttypes.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "esp_event.h"
-#include "nvs_flash.h"
-
-/**
-* @brief CloudSMETS configuration declarations
-*
+/*
+ * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
+ * License: Free to copy providing the author is acknowledged.
 */
+
+#include "nvs.h"
+
+/* Define event base and events. */
 typedef enum {
     CS_CONFIG_CHANGE,               /*!< Some configuration has changed */
 } cs_config_event_t;
 
-/**
- * TODO: Comment here
- * TODO: CS_TIME elsewhere.
- */
 ESP_EVENT_DECLARE_BASE(CS_CONFIG_EVENT);
 
 /*
  * Namespaces and task names.
- */
+*/
 extern const char *cs_app_task_name;
 extern const char *cs_flash_task_name;
 extern const char *cs_wifi_task_name;
 extern const char *cs_web_task_name;
-// extern const char *cfgDbg;
 extern const char *cs_ota_task_name;
 extern const char *cs_mqtt_task_name;
 extern const char *cs_zigbee_task_name;
 
 #define CS_CFG_NMSP_WIFI           cs_wifi_task_name
 #define CS_CFG_NMSP_WEB            cs_web_task_name
-// #define CS_CFG_NMSP_DBG            cfgDbg
 #define CS_CFG_NMSP_OTA            cs_ota_task_name
 #define CS_CFG_NMSP_MQTT           cs_mqtt_task_name
 
-// TODO: Have to decide whether really supporting anythong other than Azure.
-
-/*
- * Keys
- */
+/* Keys */
 extern const char cs_cfg_wifi_ap_chnl[];
 extern const char cs_cfg_wifi_ap_ssid[];
 extern const char cs_cfg_wifi_ap_pwd[];
 extern const char cs_cfg_wifi_sta_ssid[];
 extern const char cs_cfg_wifi_sta_pwd[];
 extern const char cs_cfg_web_port[];
-// extern const char cs_cfg_web_user[];
-// extern const char cs_cfg_web_pwd[];
-// extern const char cfg_log_func[];
-// extern const char cfg_log_baud[];
-// extern const char cfg_log_ip_port[];
-// extern const char cfg_log_esp32c3[];
-// extern const char cfg_log_tlsr8258[];
 extern const char cs_cfg_ota_ena[];
 extern const char cs_cfg_ota_rel[];
 extern const char cs_cfg_ota_dev[];
@@ -74,13 +53,6 @@ extern const char cs_cfg_mqtt_key2[];
 #define CS_CFG_KEY_WIFI_STA_SSID   cs_cfg_wifi_sta_ssid
 #define CS_CFG_KEY_WIFI_STA_PWD    cs_cfg_wifi_sta_pwd
 #define CS_CFG_KEY_WEB_PORT        cs_cfg_web_port
-// #define CS_CFG_KEY_WEB_USER        cs_cfg_webUser
-// #define CS_CFG_KEY_WEB_PWD         cs_cfg_webPwd
-// #define CS_CFG_KEY_DBG_FUNC        cfgDbgFunc
-// #define CS_CFG_KEY_DBG_BAUD        cfgDbgBaud
-// #define CS_CFG_KEY_DBG_IP_PORT     cfgDbgIpPort
-// #define CS_CFG_KEY_DBG_ESP32C3     cfgDbgEsp32c3
-// #define CS_CFG_KEY_DBG_TLSR8258    cfgDbgTlsr8258
 #define CS_CFG_KEY_OTA_ENA         cs_cfg_ota_ena
 #define CS_CFG_KEY_OTA_DEV         cs_cfg_ota_dev
 #define CS_CFG_KEY_OTA_REL         cs_cfg_ota_rel
@@ -109,7 +81,6 @@ typedef struct
  */
 extern const cs_cfg_definitions_t cs_cfg_wifi_definitions[];
 extern const cs_cfg_definitions_t cs_cfg_web_definitions[];
-// extern const cs_cfg_definitions_t cs_cfg_log_definitions[];
 extern const cs_cfg_definitions_t cs_cfg_ota_definitions[];
 extern const cs_cfg_definitions_t cs_cfg_mqtt_definitions[];
 

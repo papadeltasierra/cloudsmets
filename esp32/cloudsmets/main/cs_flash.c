@@ -23,6 +23,7 @@
 #include "driver/gpio.h"
 #include "mqtt_client.h"
 
+#include "cs_gpio.h"
 #include "cs_cfg.h"
 #include "cs_flash.h"
 #include "cs_zigbee.h"
@@ -34,8 +35,6 @@ ESP_EVENT_DEFINE_BASE(CS_FLASH_EVENT);
 /* This is a little naughty, but we know it does exist! */
 ESP_EVENT_DECLARE_BASE(MQTT_EVENTS);
 
-esp_event_loop_handle_t flash_event_loop_handle;
-
 #define STATUS_WIFI_SOFTAP_STARTED         0x01
 #define STATUS_WIFI_AP_CONNECTED           0x02
 #define STATUS_MQTT_CONNECTED              0x04
@@ -45,10 +44,6 @@ esp_event_loop_handle_t flash_event_loop_handle;
 #define ALL_MQTT_ACTIVE             0x07
 #define ALL_WIFI_AP_ACTIVE          0x03
 #define ALL_WIFI_SOFTAP_ACTIVE      0x01
-
-#define BLUE_LED        GPIO_NUM_3
-
-esp_timer_handle_t flash_timer_handle = NULL;
 
 static int flashes_per_cycle = 0;
 
@@ -63,7 +58,7 @@ static void led_off()
 }
 
 #define FLASH_TIME_PERIOD ((uint64_t)1000 * 500)
-static void led_flash(int flashes)
+static void led_flash(esp_timer_handle_t flash_timer_handle, int flashes)
 {
     // TODO: Much nicer if we get rid of globals.
     flashes_per_cycle = flashes;
@@ -100,6 +95,7 @@ static void flash_timer_action(void)
         if (count <= -1)
         {
             /* Time for next cycle but LED stays off for this cycle. */
+            // TODO: How do we get rid of this global?
             count = flashes_per_cycle;
         }
     }
@@ -108,10 +104,12 @@ static void flash_timer_action(void)
 
 static void flash_timer_cb(void *arg)
 {
+    esp_event_loop_handle_t flash_event_loop_handle = (esp_event_loop_handle_t)arg;
+
     esp_event_post_to(flash_event_loop_handle, CS_FLASH_EVENT, CS_FLASH_EVENT_FLASH_TIMER, NULL, 0, 10);
 }
 
-static void update_flash_status(uint8_t status)
+static void update_flash_status(esp_timer_handle_t flash_timer_handle, uint8_t status)
 {
     ESP_LOGV(TAG, "status: %2.2X", status);
     if ((status & ALL_ZIGBEE_ACTIVE) == ALL_ZIGBEE_ACTIVE)
@@ -121,15 +119,15 @@ static void update_flash_status(uint8_t status)
     }
     else if ((status & ALL_MQTT_ACTIVE) == ALL_MQTT_ACTIVE)
     {
-        led_flash(3);
+        led_flash(flash_timer_handle, 3);
     }
     else if ((status & ALL_WIFI_AP_ACTIVE) == ALL_WIFI_AP_ACTIVE)
     {
-        led_flash(2);
+        led_flash(flash_timer_handle, 2);
     }
     else if ((status & ALL_WIFI_SOFTAP_ACTIVE) == ALL_WIFI_SOFTAP_ACTIVE)
     {
-        led_flash(1);
+        led_flash(flash_timer_handle, 1);
     }
     else
     {
@@ -149,6 +147,8 @@ static void update_flash_status(uint8_t status)
 static void event_handler(void *arg, esp_event_base_t event_base,
                           int32_t event_id, void *event_data)
 {
+    esp_timer_handle_t flash_timer_handle = (esp_timer_handle_t)arg;
+
     static uint8_t status = 0;
 
     ESP_LOGV(TAG, "Event: %s, %d", event_base, event_id);
@@ -164,7 +164,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
             default:
                 ESP_LOGE(TAG, "Unexpected flash event: %d", event_id);
                 break;
-}
+        }
     }
     else if (event_base == WIFI_EVENT)
     {
@@ -230,50 +230,53 @@ static void event_handler(void *arg, esp_event_base_t event_base,
         ESP_LOGE(TAG, "Unexpected event: %s, %d", event_base, event_id);
     }
     ESP_LOGV(TAG, "Update flasher status");
-    update_flash_status(status);
+    update_flash_status(flash_timer_handle, status);
 }
 
 void cs_flash_task(cs_flash_create_parms_t *create_parms)
 {
+    esp_event_loop_handle_t flash_event_loop_handle = create_parms->flash_event_loop_handle;
+    esp_timer_handle_t flash_timer_handle = NULL;
+
     // TODO: Remove this or perhaps replace with config?
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
-    flash_event_loop_handle = create_parms->flash_event_loop_handle;
+    /**
+     * Create the timer that will make the LED flash.
+    */
+    esp_timer_create_args_t timer_args =
+    {
+         .callback = flash_timer_cb,
+         .name = "Flash timer",
+         .arg = flash_event_loop_handle,
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &flash_timer_handle));
 
     /**
      * We can listen for WiFi events but only on the default event loop and
      * we cannot register for MQTT events because they are obfuscated.  So we
-     * rely on the various components sending events to our handler.
+     * rely on the various components forwarding events to our handler.
     */
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                     flash_event_loop_handle,
                     WIFI_EVENT,
                     ESP_EVENT_ANY_ID,
                     event_handler,
-                    NULL,
+                    flash_timer_handle,
                     NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                     flash_event_loop_handle,
                     MQTT_EVENTS,
                     ESP_EVENT_ANY_ID,
                     event_handler,
-                    NULL,
+                    flash_timer_handle,
                     NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                     flash_event_loop_handle,
                     CS_ZIGBEE_EVENT,
                     ESP_EVENT_ANY_ID,
                     event_handler,
-                    NULL,
+                    flash_timer_handle,
                     NULL));
 
-    /**
-     * Create the timer that will make the LED flash.
-    */
-   esp_timer_create_args_t timer_args =
-   {
-        .callback = flash_timer_cb,
-        .name = "Flash timer"
-   };
-   ESP_ERROR_CHECK(esp_timer_create(&timer_args, &flash_timer_handle));
 }

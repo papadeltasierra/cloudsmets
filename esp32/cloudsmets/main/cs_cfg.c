@@ -7,17 +7,15 @@
  *
  * Note that this API operates on the default NVRAM partition.
  */
-#include <stdio.h>
-#include "sdkconfig.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
+
 /**
  * Allow logging in this file; disabled unless explcitly set.
 */
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
+#include "esp_event.h"
 #include "nvs.h"
+#include "nvs_flash.h"
 #include "cs_cfg.h"
 
 const char* TAG = "Cfg";
@@ -35,6 +33,7 @@ const char* TAG = "Cfg";
 #define CS_OTA_IMAGE_SERVER_URL     CONFIG_CS_OTA_IMAGE_SERVER_URL
 #define CS_OTA_ACCEPT               CONFIG_CS_OTA_ACCEPT
 
+/* Define the config event base. */
 ESP_EVENT_DEFINE_BASE(CS_CONFIG_EVENT);
 
 /*
@@ -44,9 +43,7 @@ const char *cs_app_task_name = "App";
 const char *cs_flash_task_name = "Flash";
 const char *cs_wifi_task_name = "WiFi";
 const char *cs_web_task_name  = "Web";
-// const char *cs_cfg__log_task_name  = "Log";
 const char *cs_ota_task_name  = "Ota";
-// TODO: Will this be Azure?
 const char *cs_mqtt_task_name = "Mqtt";
 const char *cs_zigbee_task_name = "Zb";
 
@@ -76,15 +73,6 @@ const char cs_cfg_wifi_sta_pwd[] = "wifiStaPwd";
 const char cs_cfg_web_port[] = "webPort";
 const char cs_cfg_web_user[] = "webUser";
 const char cs_cfg_web_pwd[] = "webPwd";
-
-// /*
-//  * Logging
-//  */
-// const char cs_cfg_Log_func[] = "dbgFunc";
-// const char cs_cfg_Log_baud[] = "dbgBaud";
-// const char cs_cfg_Log_ip_port[] = "dbgPort";
-// const char cs_cfg_Log_esp32c3[] = "dbgEsp32c3";
-// const char cs_cfg_Log_tlsr8258[] = "dbgTlsr8258";
 
 /*
  * OTA, Over-the-air upgrade configuration.
@@ -124,16 +112,6 @@ const cs_cfg_definitions_t cs_cfg_web_definitions[] =
     { NULL, NVS_TYPE_ANY, -1 }
 };
 
-// const cs_cfg_definitions_t cs_cfg_log_definitions[] =
-// {
-//     { CFG_KEY_LOG_FUNC, NVS_TYPE_U8, -1 },
-//     { CFG_KEY_LOG_BAUD, NVS_TYPE_U32, -1 },
-//     { CFG_KEY_LOG_IP_PORT, NVS_TYPE_U16, -1 },
-//     { CFG_KEY_LOG_ESP32C3, NVS_TYPE_U8, -1 },
-//     { CFG_KEY_LOG_TLSR8258, NVS_TYPE_U8, -1 },
-//     { NULL,NVS_TYPE_ANY -1 }
-// };
-
 const cs_cfg_definitions_t cs_cfg_ota_definitions[] =
 {
     { CS_CFG_KEY_OTA_ENA, NVS_TYPE_U8, -1 },
@@ -154,10 +132,6 @@ const cs_cfg_definitions_t cs_cfg_mqtt_definitions[] =
     { CS_CFG_KEY_MQTT_KEY2, NVS_TYPE_STR, 45 },
     { NULL, NVS_TYPE_ANY, -1 }
 };
-
-/*
- * AWS and GCP are unsupported at this time so no configuration required.
- */
 
 void cs_cfg_default_uint8(const char *ns, const char *key, uint8_t def)
 {
@@ -327,10 +301,10 @@ void cs_cfg_write_str(const char *ns, const char *key, const char *value)
 }
 
 /**
- * Default configuration required to start CLoudSMETS.  Note that existing
+ * Default configuration required to start CloudSMETS.  Note that existing
  * configuration is not changed.
- * TODO: If crap gets into the NVS, how do we recover from it?
 */
+// TODO: If crap gets into the NVS, how do we recover from it?
 static void cs_cfg_default(void)
 {
     /* Default web server listen port. */
@@ -354,7 +328,6 @@ static void cs_cfg_default(void)
     cs_cfg_default_str(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_IMG_URL, CS_OTA_IMAGE_SERVER_URL);
     cs_cfg_default_uint16(CS_CFG_NMSP_OTA, CS_CFG_KEY_OTA_ACCEPT, CS_OTA_ACCEPT);
 
-    // MQTT (Azure)
 #define MQTT_DISABLED 0
     cs_cfg_default_uint8(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_ENA, MQTT_DISABLED);
     cs_cfg_default_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_IOTHUB, "");
@@ -362,12 +335,9 @@ static void cs_cfg_default(void)
     cs_cfg_default_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_KEY1, "");
     cs_cfg_default_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_KEY2, "");
 
-    // TODO: Remove this.
-#ifdef HACK
     cs_cfg_write_uint8(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_ENA, MQTT_DISABLED);
     cs_cfg_write_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_KEY1, "");
     cs_cfg_write_str(CS_CFG_NMSP_MQTT, CS_CFG_KEY_MQTT_KEY2, "");
-#endif
 }
 
 /**

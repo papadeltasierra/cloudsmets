@@ -1,17 +1,10 @@
-#include <stdio.h>
-#include <inttypes.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "esp_event.h"
-#include "nvs_flash.h"
-
-/**
-* @brief CloudSMETS configuration declarations
-*
+/*
+ * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
+ * License: Free to copy providing the author is acknowledged.
 */
+
 typedef enum {
-    CS_FLASH_EVENT_FLASH_TIMER,         /*!< Connected to Azure IotHub? */
+    CS_FLASH_EVENT_FLASH_TIMER,         /* Event from the timer callback. */
 } cs_flash_event_t;
 
 ESP_EVENT_DECLARE_BASE(CS_FLASH_EVENT);
@@ -22,4 +15,3 @@ typedef struct
 } cs_flash_create_parms_t;
 
 void cs_flash_task(cs_flash_create_parms_t *create_parms);
-

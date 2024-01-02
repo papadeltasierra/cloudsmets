@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
+ * License: Free to copy providing the author is acknowledged.
+ */
+
 typedef struct
 {
     esp_event_loop_handle_t mqtt_event_loop_handle;

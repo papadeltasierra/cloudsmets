@@ -30,6 +30,18 @@
 #include "mbedtls_err.h"
 #include "esp_mqtt_err.h"
 
+/* SHA256 hash is a 32 byte value. */
+#define SHA256_LEN 32
+
+/**
+ * A 32 byte value can be Base64 encoded into 44 bytes but URL-encoding might
+ * have to encode any of these and URL-encoding converts a single byte into
+ * 3 bytes ('%hh').  So the URL-encoded length has to be at least 3 x 44 + 1
+ * for the NULL terminator = 133 bytes.
+ */
+#define BASE64_SHA256_LEN 44
+#define URLENCODED_BASE64_SHA256_LEN 133
+
 /**
  * If we think we can reconnect immediately using a different access key,
  * we try.  Otherwise we wait for a minute.
@@ -47,19 +59,21 @@
 #define SAS_TOKEN_AND_SE        "&se="
 #define SAS_TOKEN_AND_SE_LEN    (sizeof(SAS_TOKEN_AND_SE) - 1)
 
-
 #define TAG cs_mqtt_task_name
-
 
 static esp_mqtt_client_handle_t esp_mqtt_client_handle = NULL;
 
 static esp_timer_handle_t reconnect_timer_handle = NULL;
 
-static esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
-static esp_event_loop_handle_t flash_event_loop_handle = NULL;
-
 uint8_t enabled = 0;
 // TODO: Proper module and APIs for cs_string.  Alternative in ESP already?
+
+/**
+ * We need to store a number of strings to use when we talk MQTT or have to
+ * reconnect.
+ * Note that MQTT v3 has no "re-authenticate" mechanism so we have to just
+ * fail and retry!
+*/
 static cs_string access_keys[2] = {{NULL, 0}, {NULL, 0}};
 static cs_string iothub_url = {NULL, 0};
 static cs_string quoted_device_url = {NULL, 0};
@@ -71,11 +85,11 @@ static int current_access_key = 0;
 static int stale_access_keys = 0;
 
 /* We cannot authenticate until we know the correct time or WiFi connected. */
-bool time_is_set = false;
-bool wifi_ap_connected = false;
+static bool time_is_set = false;
+static bool wifi_ap_connected = false;
 
 // TODO: move prototypes here.
-static void init_mqtt(void);
+static void init_mqtt(esp_event_loop_handle_t flash_event_loop_handle);
 
 static void HMAC_digest(const cs_string *key, const cs_string *signed_key, cs_string *hmac)
 {
@@ -93,10 +107,6 @@ static void HMAC_digest(const cs_string *key, const cs_string *signed_key, cs_st
     mbedtls_md_free(&ctx);
 }
 
-/* Escape a string such that it can be used in a URL query. */
-static const unsigned char quote_plus_chars[] = "/?#[]@!$&'()*+,;=<>#%%{}|\\^`";
-static const unsigned char hex_map[] = "0123456789ABCDEF";
-
 static void quote_plus(cs_string *in_str, cs_string *out_str)
 {
     unsigned char *sptr = in_str->value;
@@ -104,6 +114,10 @@ static void quote_plus(cs_string *in_str, cs_string *out_str)
     size_t in_len = in_str->length;
     size_t out_len = in_str->length;
     size_t ii;
+
+    /* Escape a string such that it can be used in a URL query. */
+    static const unsigned char quote_plus_chars[] = "/?#[]@!$&'()*+,;=<>#%%{}|\\^`";
+    static const unsigned char hex_map[] = "0123456789ABCDEF";
 
     ESP_LOGV(TAG, "in_str: %d, %s", in_str->length, in_str->value);
 
@@ -155,19 +169,6 @@ static void quote_plus(cs_string *in_str, cs_string *out_str)
 /**
  * Note that at present all the inputs to this are global variables or fixed.
 */
-
-/* SHA256 hash is a 32 byte value. */
-#define SHA256_LEN 32
-
-/**
- * A 32 byte value can be Base64 encoded into 44 bytes but URL-encoding might
- * have to encode any of these and URL-encoding converts a single byte into
- * 3 bytes ('%hh').  So the URL-encoded length has to be at least 3 x 44 + 1
- * for the NULL terminator = 133 bytes.
- */
-#define BASE64_SHA256_LEN 44
-#define URLENCODED_BASE64_SHA256_LEN 133
-
 static void generate_sas_token()
 {
     size_t b64_length;
@@ -365,7 +366,7 @@ static void read_config()
 /**
  * Determine whether we can now start MQTT.
 */
-static void maybe_start_mqtt()
+static void maybe_start_mqtt(esp_event_loop_handle_t flash_event_loop_handle)
 {
     ESP_LOGV(TAG, "MQTT capable?: %d, %d", (int)time_is_set, (int)wifi_ap_connected);
     if ((time_is_set) && (wifi_ap_connected))
@@ -384,7 +385,7 @@ static void maybe_start_mqtt()
              * The URL might have changed so reload it.
             */
             // TODO: Don't init like this.
-            init_mqtt();
+            init_mqtt(flash_event_loop_handle);
 
             // TODO: Logic is wrong and we start the client a second time, which fails.
             ESP_ERROR_CHECK(esp_mqtt_client_start(esp_mqtt_client_handle));
@@ -399,6 +400,8 @@ static void maybe_start_mqtt()
 static void default_event_handler(void *arg, esp_event_base_t event_base,
                                   int32_t event_id, void *event_data)
 {
+    esp_event_loop_handle_t mqtt_event_loop_handle = (esp_event_loop_handle_t)arg;
+
     esp_event_post_to(mqtt_event_loop_handle, event_base, event_id, NULL, 0, 0);
 }
 
@@ -406,6 +409,8 @@ static void default_event_handler(void *arg, esp_event_base_t event_base,
 static void event_handler(void *arg, esp_event_base_t event_base,
                           int32_t event_id, void *event_data)
 {
+    esp_event_loop_handle_t flash_event_loop_handle = (esp_event_loop_handle_t)arg;
+
     if (event_base == WIFI_EVENT)
     {
         switch (event_id)
@@ -417,7 +422,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
                 */
                 ESP_LOGI(TAG, "Connect to IoTHub");
                 wifi_ap_connected = true;
-                maybe_start_mqtt();
+                maybe_start_mqtt(flash_event_loop_handle);
                 break;
 
             case WIFI_EVENT_STA_DISCONNECTED:
@@ -439,13 +444,13 @@ static void event_handler(void *arg, esp_event_base_t event_base,
     {
         // Config change so relearn all configuration.
         read_config();
-        maybe_start_mqtt();
+        maybe_start_mqtt(flash_event_loop_handle);
     }
     else if (event_base == CS_TIME_EVENT)
     {
         ESP_LOGI(TAG, "Time is now set");
         time_is_set = true;
-        maybe_start_mqtt();
+        maybe_start_mqtt(flash_event_loop_handle);
     }
     else
     {
@@ -478,6 +483,7 @@ void set_mqtt_config(esp_mqtt_client_handle_t client)
 static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
                                  int32_t event_id, void *event_data)
 {
+    esp_event_loop_handle_t flash_event_loop_handle = (esp_event_loop_handle_t *)arg;
     esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
 
@@ -588,7 +594,7 @@ static void mqtt_event_handler_cb(void *arg, esp_event_base_t event_base,
     }
 }
 
-static void init_mqtt(void)
+static void init_mqtt(esp_event_loop_handle_t flash_event_loop_handle)
 {
     // TODO: We should not allow this if there is no config and we need to recreate
     //       or change config on config changes.
@@ -616,8 +622,8 @@ static void init_mqtt(void)
                 ESP_ERROR_CHECK(ESP_FAIL);
             }
 
-            esp_mqtt_client_register_event(esp_mqtt_client_handle, ESP_EVENT_ANY_ID, mqtt_event_handler_cb, NULL);
-            // esp_mqtt_client_start(esp_mqtt_client_handle);
+            ESP_ERROR_CHECK(esp_mqtt_client_register_event(
+                esp_mqtt_client_handle, ESP_EVENT_ANY_ID, mqtt_event_handler_cb, flash_event_loop_handle));
         }
     }
 }
@@ -628,8 +634,8 @@ void cs_mqtt_task(cs_mqtt_create_parms_t *create_parms)
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
     ESP_LOGI(TAG, "Init. MQTT task");
-    mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
-    flash_event_loop_handle = create_parms->flash_event_loop_handle;
+    esp_event_loop_handle_t mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
+    esp_event_loop_handle_t flash_event_loop_handle = create_parms->flash_event_loop_handle;
 
     ESP_LOGI(TAG, "Register event handlers");
 
@@ -638,28 +644,28 @@ void cs_mqtt_task(cs_mqtt_create_parms_t *create_parms)
                     WIFI_EVENT,
                     ESP_EVENT_ANY_ID,
                     default_event_handler,
-                    NULL,
+                    mqtt_event_loop_handle,
                     NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                     mqtt_event_loop_handle,
                     WIFI_EVENT,
                     ESP_EVENT_ANY_ID,
                     event_handler,
-                    NULL,
+                    flash_event_loop_handle,
                     NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                     mqtt_event_loop_handle,
                     CS_CONFIG_EVENT,
                     ESP_EVENT_ANY_ID,
                     event_handler,
-                    NULL,
+                    flash_event_loop_handle,
                     NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
                     mqtt_event_loop_handle,
                     CS_TIME_EVENT,
                     ESP_EVENT_ANY_ID,
                     event_handler,
-                    NULL,
+                    flash_event_loop_handle,
                     NULL));
 
     /* Read initial configuration. */
@@ -668,7 +674,7 @@ void cs_mqtt_task(cs_mqtt_create_parms_t *create_parms)
     /**
      * Prepare MQTT
     */
-   init_mqtt();
+   init_mqtt(flash_event_loop_handle);
 
     /**
      * We now have to wait for both the time to be zet (via ZigBee) and
