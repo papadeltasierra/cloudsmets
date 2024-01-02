@@ -32,6 +32,11 @@
 
 #define TAG cs_ota_task_name
 
+/**
+ * Define the ZIGBEE events base.
+*/
+ESP_EVENT_DEFINE_BASE(CS_OTA_EVENT);
+
 // Only supported SemVer format (-dev can be omitted).
 #define SEMVER_FORMAT  "%hu.%hu.%hu-dev%hu"
 #define SEMVER_FORMAT_NO_DEV  "%hu.%hu.%hu"
@@ -43,6 +48,8 @@ static esp_event_loop_handle_t ota_event_loop_handle;
 
 esp_timer_handle_t ota_retry_timer_handle;
 esp_timer_handle_t ota_acceptance_timer_handle;
+
+static void ota_acceptance(void);
 
 typedef struct
 {
@@ -421,7 +428,24 @@ static void default_event_handler(void *arg, esp_event_base_t event_base,
 static void event_handler(void *arg, esp_event_base_t event_base,
                               int32_t event_id, void *event_data)
 {
-    if (event_base == WIFI_EVENT)
+    if (event_base == CS_OTA_EVENT)
+    {
+        switch (event_id)
+        {
+            case CS_OTA_EVENT_ACCEPTANCE_TIMER:
+                ota_acceptance();
+                break;
+
+            case CS_OTA_EVENT_START_OTA_TIMER:
+                start_ota();
+                break;
+
+            default:
+                ESP_LOGV(TAG, "Other OTA event: %d", event_id);
+                break;
+        }
+    }
+    else if (event_base == WIFI_EVENT)
     {
         switch (event_id)
         {
@@ -461,13 +485,13 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 }
 
 // TODO: Use local function prototypes so can order code nicely.
-void ota_retry_timer_callback(void *arg)
+void ota_retry_timer_cb(void *arg)
 {
     // (Re)Start the OTA process.
-    start_ota();
+    esp_event_post_to(ota_event_loop_handle, CS_OTA_EVENT, CS_OTA_EVENT_START_OTA_TIMER, NULL, 0, 10);
 }
 
-void ota_acceptance_timer_callback(void *arg)
+static void ota_acceptance(void)
 {
     esp_err_t esp_rc;
 
@@ -478,13 +502,18 @@ void ota_acceptance_timer_callback(void *arg)
     }
 }
 
+static void ota_acceptance_timer_cb(void *arg)
+{
+    esp_event_post_to(ota_event_loop_handle, CS_OTA_EVENT, CS_OTA_EVENT_ACCEPTANCE_TIMER, NULL, 0, 10);
+}
+
 static esp_timer_create_args_t esp_ota_timer_create_args = {
-    .callback = ota_retry_timer_callback,
+    .callback = ota_retry_timer_cb,
     .name = "OTA timer"
 };
 
 static esp_timer_create_args_t esp_acceptance_timer_create_args = {
-    .callback = ota_acceptance_timer_callback,
+    .callback = ota_acceptance_timer_cb,
     .name = "OTA acceptance"
 };
 
@@ -521,6 +550,13 @@ void cs_ota_task(cs_ota_create_parms_t *create_parms)
         ota_event_loop_handle,
         CS_CONFIG_EVENT,
         CS_CONFIG_CHANGE,
+        event_handler,
+        NULL,
+        NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
+        ota_event_loop_handle,
+        CS_OTA_EVENT,
+        ESP_EVENT_ANY_ID,
         event_handler,
         NULL,
         NULL));

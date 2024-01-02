@@ -80,7 +80,7 @@ static void led_flash(int flashes)
  * on, off, on, off, on, off, off, off
  * So a sequence of X (on, off) followed by (off, off).
 */
-static void flash_timer_cb(void *arg)
+static void flash_timer_action(void)
 {
     static int count = 0;
     static bool lit = false;
@@ -104,6 +104,11 @@ static void flash_timer_cb(void *arg)
         }
     }
     lit = !lit;
+}
+
+static void flash_timer_cb(void *arg)
+{
+    esp_event_post_to(flash_event_loop_handle, CS_FLASH_EVENT, CS_FLASH_EVENT_FLASH_TIMER, NULL, 0, 10);
 }
 
 static void update_flash_status(uint8_t status)
@@ -148,7 +153,20 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 
     ESP_LOGV(TAG, "Event: %s, %d", event_base, event_id);
 
-    if (event_base == WIFI_EVENT)
+    if (event_base == CS_FLASH_EVENT)
+    {
+        switch (event_id)
+        {
+            case CS_FLASH_EVENT_FLASH_TIMER:
+                flash_timer_action();
+                break;
+
+            default:
+                ESP_LOGE(TAG, "Unexpected flash event: %d", event_id);
+                break;
+}
+    }
+    else if (event_base == WIFI_EVENT)
     {
         switch (event_id)
         {

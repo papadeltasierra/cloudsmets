@@ -77,6 +77,8 @@ static bool receiving_events = false;
 static cs_string query_time = {NULL, 0};
 static cs_string factory_reset = {NULL, 0};
 
+static void connect_timer_check(void);
+
 /**
  * Calculate the CRC for the received frame.
 */
@@ -363,6 +365,11 @@ static void event_handler(void *arg, esp_event_base_t event_base,
                 zbhci_request_time();
                 break;
 
+            case CS_ZIGBEE_EVENT_CONNECT_TIMER:
+                /* Check if we are still connected. */
+                connect_timer_check();
+                break;
+
             case CS_ZIGBEE_EVENT_FACTORY_RESET:
                 /* Factory reset the tlsr8258. */
                 uart_write_bytes(UART_TO_TLSR8258, factory_reset.value, factory_reset.length);
@@ -393,11 +400,16 @@ static void request_time_timer_cb(void *arg)
 */
 static void connected_timer_cb(void *arg)
 {
+    esp_event_post_to(zigbee_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_CONNECT_TIMER, NULL, 0, 10);
+}
+
+static void connect_timer_check(void)
+{
     static bool previous_receiving_events = false;
 
     if (!receiving_events && previous_receiving_events)
     {
-        esp_event_post_to(flash_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_DISCONNECTED, NULL, 0, 10);
+        esp_event_post_to(flash_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_CONNECT_TIMER, NULL, 0, 10);
     }
     else if (receiving_events && !previous_receiving_events)
     {

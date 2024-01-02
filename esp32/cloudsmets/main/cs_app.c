@@ -48,9 +48,9 @@
 #define CLEAR_KEY           GPIO_NUM_2
 
 /* Times. */
-#define FIRST_JAN_2023              1672531200
-#define FACTORY_RESET_PRESS         10
-#define ZIGBEE_RESET_PRESS          4
+#define FIRST_JAN_2023              ((uint64_t)1672531200)
+#define FACTORY_RESET_PRESS         ((uint64_t)10)
+#define ZIGBEE_RESET_PRESS          ((uint64_t)4)
 #define FACTORY_RESET_TIMER_WAIT    ((uint64_t)1000 * 1000 * 2)
 
 #define TAG cs_app_task_name
@@ -131,6 +131,9 @@ static void key_action(void)
 
     level = gpio_get_level(CLEAR_KEY);
     ESP_LOGI(TAG, "Key action: %d", level);
+    ESP_LOGV(TAG, "time(): %lu", (uint32_t)time(NULL));
+    ESP_LOGV(TAG, "time(): %lu", (uint32_t)time(NULL));
+    ESP_LOGV(TAG, "time(): %lu", (uint32_t)time(NULL));
     if (level)
     {
         /* Rising line; key has been released. */
@@ -176,22 +179,22 @@ static void key_action(void)
         }
         else
         {
-            ESP_LOGV(TAG, "Short press: %ld", time(NULL));
+            ESP_LOGV(TAG, "Released: %lu", (uint32_t)time(NULL));
             struct timeval ptime;
             gettimeofday(&ptime, NULL);
-            ESP_LOGV(TAG, "Short press: %ld", ptime.tv_sec);
-            ESP_LOGV(TAG, "Short press: %ld", pressed);
-            ESP_LOGV(TAG, "Short press: %ld", released);
+            ESP_LOGV(TAG, "Released: %lu", (uint32_t)ptime.tv_sec);
+            ESP_LOGV(TAG, "Released: %lu", (uint32_t)pressed);
+            ESP_LOGV(TAG, "Released: %lu", (uint32_t)released);
         }
     }
     else
     {
         /* Falling line; key has been pressed. */
         pressed = time(NULL);
-        ESP_LOGV(TAG, "Short press: %ld", pressed);
+        ESP_LOGV(TAG, "Pressed: %lu", (uint32_t)pressed);
         struct timeval ptime;
         gettimeofday(&ptime, NULL);
-        ESP_LOGV(TAG, "Short press: %ld", ptime.tv_sec);
+        ESP_LOGV(TAG, "Pressed: %lu", (uint32_t)ptime.tv_sec);
     }
 }
 
@@ -279,6 +282,7 @@ void app_main(void)
     static esp_event_loop_handle_t web_event_loop_handle = NULL;
     static esp_event_loop_handle_t ota_event_loop_handle = NULL;
     static esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
+    static esp_timer_handle_t dbg_timer_handle = NULL;
 
     // TODO: Remove this.
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
@@ -389,6 +393,8 @@ void app_main(void)
 #define NOW  	1703870896
     struct timeval now = { .tv_sec = NOW };
     settimeofday(&now, NULL);
-    ESP_LOGV(TAG, "Sending time event");
+
+    // TODO: Do minimal work in timer callbacks.
+    // REf: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/esp_timer.html?highlight=time
     ESP_ERROR_CHECK(esp_event_post_to(mqtt_event_loop_handle, CS_TIME_EVENT, 0, NULL, 0, 0));
 }

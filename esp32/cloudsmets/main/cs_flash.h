@@ -11,10 +11,7 @@
 *
 */
 typedef enum {
-    CS_FLASH_EVENT_WIFI_SOFTAP_STATUS,  /*!< Connected to AP (router)? */
-    CS_FLASH_EVENT_WIFI_AP_STATUS,      /*!< Connected to AP (router)? */
-    CS_FLASH_EVENT_ZIGBEE_STATUS,       /*!< Receiving ZigBee messages? */
-    CS_FLASH_EVENT_MQTT_STATUS,         /*!< Connected to Azure IotHub? */
+    CS_FLASH_EVENT_FLASH_TIMER,         /*!< Connected to Azure IotHub? */
 } cs_flash_event_t;
 
 ESP_EVENT_DECLARE_BASE(CS_FLASH_EVENT);

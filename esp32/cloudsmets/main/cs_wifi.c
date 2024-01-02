@@ -145,7 +145,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 break;
 
             case WIFI_EVENT_STA_DISCONNECTED:
-                    esp_wifi_disconnect();
+                esp_wifi_disconnect();
                 if (s_retry_num < CS_WIFI_STA_MAXIMUM_RETRY) {
                     ESP_LOGI(TAG, "STA: retry connected from the AP (router)");
                     esp_wifi_connect();
