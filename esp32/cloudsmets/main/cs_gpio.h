@@ -2,6 +2,7 @@
  * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
  */
+#pragma once
 
 /**
  * There are three ESP32c3 GPIO lines used by the T-Zigbee

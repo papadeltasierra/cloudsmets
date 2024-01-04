@@ -1,10 +1,16 @@
-ESP_EVENT_DECLARE_BASE(CS_OTA_EVENT);
+/*
+ * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
+ * License: Free to copy providing the author is acknowledged.
+ */
+#pragma once
 
 /** Time event declarations */
 typedef enum {
     CS_OTA_EVENT_ACCEPTANCE_TIMER = 0,          /**< Attributes. */
     CS_OTA_EVENT_START_OTA_TIMER,          /**< Attributes. */
 } ota_event_t;
+
+ESP_EVENT_DECLARE_BASE(CS_OTA_EVENT);
 
 typedef struct
 {

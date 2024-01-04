@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
+ * License: Free to copy providing the author is acknowledged.
+ *
+ * MQTT communication with the Azure IotHub.
+ */
+#pragma once
+
 #include "esp_event.h"
 
 ESP_EVENT_DECLARE_BASE(CS_ZIGBEE_EVENT);

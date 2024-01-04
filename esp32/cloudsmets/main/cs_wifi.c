@@ -1,9 +1,6 @@
 /*
  * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
- *
- * Configuration store using ESP-IDF no-volatile storage.
- * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html?highlight=non%20volatile
  */
 
 #include "freertos/FreeRTOS.h"
@@ -27,13 +24,6 @@
 
 #define TAG cs_wifi_task_name
 
-static esp_netif_t *s_netif_ap = NULL;
-static esp_netif_t *s_netif_sta = NULL;
-static esp_timer_handle_t s_netif_sta_timer = NULL;
-static int s_retry_num = 0;
-
-static esp_event_loop_handle_t flash_event_loop_handle = NULL;
-
 /* AP Configuration */
 #define CS_WIFI_AP_MAX_CONN         CONFIG_CS_WIFI_AP_MAX_CONN
 
@@ -41,6 +31,16 @@ static esp_event_loop_handle_t flash_event_loop_handle = NULL;
 #define CS_WIFI_STA_MAX_CONN        CONFIG_CS_WIFI_STA_MAX_CONN
 #define CS_WIFI_STA_MAXIMUM_RETRY   CONFIG_CS_WIFI_STA_MAXIMUM_RETRY
 #define CS_WIFI_STA_RETRY_INTERVAL  CONFIG_CS_WIFI_STA_RETRY_INTERVAL
+
+typedef struct
+{
+    esp_netif_t *s_netif_softap;
+    esp_netif_t *s_netif_sta;
+    esp_timer_handle_t s_netif_sta_timer;
+    esp_event_loop_handle_t flash_event_loop_handle;
+    int s_retry_num;
+
+} wifi_event_handler_args_t;
 
 // TODO: What about the SoftAP addresses and masks?
 
@@ -95,6 +95,8 @@ static bool wifi_config_sta()
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
 {
+    wifi_event_handler_args_t *wifi_event_handler_args = (wifi_event_handler_args_t *)arg;
+
     wifi_event_ap_staconnected_t *ap_conn_event;
     wifi_event_ap_stadisconnected_t *ap_disconn_event;
 
@@ -109,12 +111,12 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                 ESP_LOGI(TAG, "SoftAP: Started");
 
                 // TODO: Make ticks more realistic and use a #define.
-                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
+                esp_event_post_to(wifi_event_handler_args->flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_AP_STOP:
                 ESP_LOGI(TAG, "SoftAP: Stopped");
-                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
+                esp_event_post_to(wifi_event_handler_args->flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_AP_STACONNECTED:
@@ -131,7 +133,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 
             case WIFI_EVENT_STA_CONNECTED:
                 ESP_LOGI(TAG, "STA: connected to AP (router)");
-                s_retry_num = 0;
+                wifi_event_handler_args->s_retry_num = 0;
 
                 /*
                  * We are connected to the router so we want traffic to flow
@@ -140,26 +142,26 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                  *
                  * Set sta as the default interface
                  */
-                esp_netif_set_default_netif(s_netif_sta);
-                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
+                esp_netif_set_default_netif(wifi_event_handler_args->s_netif_sta);
+                esp_event_post_to(wifi_event_handler_args->flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_STA_DISCONNECTED:
                 esp_wifi_disconnect();
-                if (s_retry_num < CS_WIFI_STA_MAXIMUM_RETRY) {
+                if (wifi_event_handler_args->s_retry_num < CS_WIFI_STA_MAXIMUM_RETRY) {
                     ESP_LOGI(TAG, "STA: retry connected from the AP (router)");
                     esp_wifi_connect();
-                    s_retry_num++;
+                    wifi_event_handler_args->s_retry_num++;
                 } else {
                     ESP_LOGE(TAG, "STA: Connectivity to AP (router) lost.");
                     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-                    esp_netif_set_default_netif(s_netif_ap);
+                    esp_netif_set_default_netif(wifi_event_handler_args->s_netif_softap);
 
                     /* Interval has to be given in microseconds! */
                     uint64_t interval = CS_WIFI_STA_RETRY_INTERVAL * 1000 * 1000;
-                    ESP_ERROR_CHECK(esp_timer_start_once(s_netif_sta_timer, interval));
+                    ESP_ERROR_CHECK(esp_timer_start_once(wifi_event_handler_args->s_netif_sta_timer, interval));
                 }
-                esp_event_post_to(flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
+                esp_event_post_to(wifi_event_handler_args->flash_event_loop_handle, event_base, event_id, NULL, 0, 10);
                 break;
 
             case WIFI_EVENT_STA_START:
@@ -199,13 +201,13 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
          * STA.
          */
         ESP_LOGI(TAG, "Config. change; restart STA.");
-        esp_timer_stop(s_netif_sta_timer);
+        esp_timer_stop(wifi_event_handler_args->s_netif_sta_timer);
         esp_wifi_disconnect();
         ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
         if (wifi_config_sta())
         {
             ESP_LOGV(TAG, "STA config sufficient - try connect");
-            s_retry_num = 0;
+            wifi_event_handler_args->s_retry_num = 0;
             ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
         }
     }
@@ -216,12 +218,12 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 }
 
 /* Initialize soft AP */
-static void wifi_init_softap()
+static esp_netif_t *wifi_init_softap()
 {
     // TODO: How do we set the network mask?  Or at last force to always 192.168.4.xxx
     size_t length;
     uint8_t *ptr;
-    s_netif_ap = esp_netif_create_default_wifi_ap();
+    esp_netif_t *s_netif_softap = esp_netif_create_default_wifi_ap();
 
     wifi_config_t wifi_ap_config = {
         .ap = {
@@ -247,25 +249,27 @@ static void wifi_init_softap()
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_ap_config));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-    esp_netif_set_default_netif(s_netif_ap);
+    esp_netif_set_default_netif(s_netif_softap);
 
     ESP_LOGV(TAG, "AP configured");
 
-    return;
+    return s_netif_softap;
 }
 
 /* Try and reconnect the STA WiFi connection. */
 static void esp_netif_timer_cb(void *arg)
 {
+    int *s_retry_num = (int *)arg;
+
     ESP_LOGI(TAG, "Timer retrying connect for STA");
-    s_retry_num = 0;
+    (*s_retry_num) = 0;
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 }
 
 /* Initialize wifi station */
-static void wifi_init_sta(void)
+static esp_netif_t *wifi_init_sta(void)
 {
-    s_netif_sta = esp_netif_create_default_wifi_sta();
+    esp_netif_t *s_netif_sta = esp_netif_create_default_wifi_sta();
 
     if (wifi_config_sta())
     {
@@ -273,7 +277,7 @@ static void wifi_init_sta(void)
         ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
     }
 
-    return;
+    return s_netif_sta;
 }
 
 /**
@@ -282,48 +286,14 @@ static void wifi_init_sta(void)
 */
 void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
 {
+    static wifi_event_handler_args_t wifi_event_handler_args;
+
     // TODO: Remove this.
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
     ESP_LOGI(TAG, "Init. WiFi task");
 
-    flash_event_loop_handle = create_parms->flash_event_loop_handle;
-
-    ESP_LOGI(TAG, "Register event handlers");
-    /* Register Event handler */
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(
-                    WIFI_EVENT,
-                    ESP_EVENT_ANY_ID,
-                    wifi_event_handler,
-                    NULL,
-                    NULL));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(
-                    IP_EVENT,
-                    IP_EVENT_STA_GOT_IP,
-                    wifi_event_handler,
-                    NULL,
-                    NULL));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(
-                    CS_CONFIG_EVENT,
-                    CS_CONFIG_CHANGE,
-                    wifi_event_handler,
-                    NULL,
-                    NULL));
-
-
-    /* We will use a timer to try and reconnect when the connection fails. */
-    ESP_LOGI(TAG, "Create STA reconnect timer");
-    esp_timer_create_args_t esp_timer_create_args = {
-        .callback = esp_netif_timer_cb,
-        .arg = NULL,
-        .dispatch_method = ESP_TIMER_TASK,
-        .name = "WiFiStaTimer",
-        .skip_unhandled_events = false
-    };
-    ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &s_netif_sta_timer));
-
-    ESP_LOGI(TAG, "initialize NETIF");
-    ESP_ERROR_CHECK(esp_netif_init());
+    wifi_event_handler_args.flash_event_loop_handle = create_parms->flash_event_loop_handle;
 
     /*Initialize WiFi */
     ESP_LOGI(TAG, "Init. WiFi");
@@ -332,11 +302,48 @@ void cs_wifi_task(cs_wifi_create_parms_t *create_parms)
 
     /* Initialize AP */
     ESP_LOGI(TAG, "Init ESP_WIFI_MODE_AP");
-    wifi_init_softap();
+    wifi_event_handler_args.s_netif_softap = wifi_init_softap();
 
     /* Initialize STA */
     ESP_LOGI(TAG, "Init ESP_WIFI_MODE_STA");
-    wifi_init_sta();
+    wifi_event_handler_args.s_netif_sta = wifi_init_sta();
+
+    ESP_LOGI(TAG, "Register event handlers");
+    /* Register Event handler */
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                    WIFI_EVENT,
+                    ESP_EVENT_ANY_ID,
+                    wifi_event_handler,
+                    &wifi_event_handler_args,
+                    NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                    IP_EVENT,
+                    IP_EVENT_STA_GOT_IP,
+                    wifi_event_handler,
+                    &wifi_event_handler_args,
+                    NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+                    CS_CONFIG_EVENT,
+                    CS_CONFIG_CHANGE,
+                    wifi_event_handler,
+                    &wifi_event_handler_args,
+                    NULL));
+
+
+    /* We will use a timer to try and reconnect when the connection fails. */
+    ESP_LOGI(TAG, "Create STA reconnect timer");
+    esp_timer_create_args_t esp_timer_create_args = {
+        .callback = esp_netif_timer_cb,
+        .arg = &wifi_event_handler_args.s_retry_num,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "WiFiStaTimer",
+        .skip_unhandled_events = false
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &wifi_event_handler_args.s_netif_sta_timer));
+
+    ESP_LOGI(TAG, "initialize NETIF");
+    ESP_ERROR_CHECK(esp_netif_init());
+
 
     /* Start WiFi */
     ESP_LOGI(TAG, "start WiFi");

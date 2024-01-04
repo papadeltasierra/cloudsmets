@@ -2,6 +2,7 @@
  * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
  */
+#pragma once
 
 /**
  * The T-ZigBee board has a reset key (which just cuts power when pressed) and

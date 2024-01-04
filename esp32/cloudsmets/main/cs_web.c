@@ -1,9 +1,6 @@
 /*
  * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
- *
- * Configuration store using ESP-IDF no-volatile storage.
- * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html?highlight=non%20volatile
  */
 // TODO: Are these headers correct?
 #include "freertos/FreeRTOS.h"
@@ -57,11 +54,6 @@ extern const uint8_t tools_js_end[]       asm("_binary_tools_js_end");
 #define style_css_len   (size_t)(style_css_end - style_css_start - 1)
 #define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start - 1)
 #define tools_js_len    (size_t)(tools_js_end - tools_js_start - 1)
-
-/* Event loops (exccept for the default loop, used by Wifi) */
-static esp_event_loop_handle_t web_event_loop_handle = NULL;
-static esp_event_loop_handle_t ota_event_loop_handle = NULL;
-static esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
 
 /* Server configuration. */
 static httpd_config_t httpd_config = HTTPD_DEFAULT_CONFIG();
@@ -439,18 +431,24 @@ static esp_err_t post_wifi_html_handler(httpd_req_t *req)
 
 static esp_err_t post_web_html_handler(httpd_req_t *req)
 {
+    esp_event_loop_handle_t web_event_loop_handle = (esp_event_loop_handle_t)req->user_ctx;
+
     ESP_LOGV(TAG, "POST web.html");
     return post_html_handler(req, CS_CFG_NMSP_WEB, cs_cfg_web_definitions, web_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
 }
 
 static esp_err_t post_ota_html_handler(httpd_req_t *req)
 {
+    esp_event_loop_handle_t ota_event_loop_handle = (esp_event_loop_handle_t)req->user_ctx;
+
     ESP_LOGV(TAG, "POST ota.html");
     return post_html_handler(req, CS_CFG_NMSP_OTA, cs_cfg_ota_definitions, ota_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
 }
 
 static esp_err_t post_mqtt_html_handler(httpd_req_t *req)
 {
+    esp_event_loop_handle_t mqtt_event_loop_handle = (esp_event_loop_handle_t)req->user_ctx;
+
     ESP_LOGV(TAG, "POST mqtt.html");
     return post_html_handler(req, CS_CFG_NMSP_MQTT, cs_cfg_mqtt_definitions, mqtt_event_loop_handle, CS_CONFIG_CHANGE, CS_CONFIG_CHANGE);
 }
@@ -556,29 +554,33 @@ static httpd_uri_t uri_post_wifi_html = {
     .user_ctx = NULL
 };
 
-static httpd_uri_t uri_post_web_html = {
+
+void web_start(cs_web_create_parms_t *cs_web_create_parms)
+{
+    /**
+     * Web page URL definitions, all of which are store in 'data' and not on the
+     * stack because they are 'static'.
+    */
+    static httpd_uri_t uri_post_web_html = {
     .uri      = "/web.html",
     .method   = HTTP_POST,
     .handler  = post_web_html_handler,
-    .user_ctx = NULL
-};
+    };
 
-static httpd_uri_t uri_post_ota_html = {
-    .uri      = "/ota.html",
-    .method   = HTTP_POST,
-    .handler  = post_ota_html_handler,
-    .user_ctx = NULL
-};
+    static httpd_uri_t uri_post_ota_html = {
+        .uri      = "/ota.html",
+        .method   = HTTP_POST,
+        .handler  = post_ota_html_handler,
+        .user_ctx = NULL
+    };
 
-static httpd_uri_t uri_post_mqtt_html = {
-    .uri      = "/mqtt.html",
-    .method   = HTTP_POST,
-    .handler  = post_mqtt_html_handler,
-    .user_ctx = NULL
-};
+    static httpd_uri_t uri_post_mqtt_html = {
+        .uri      = "/mqtt.html",
+        .method   = HTTP_POST,
+        .handler  = post_mqtt_html_handler,
+        .user_ctx = NULL
+    };
 
-void web_start()
-{
     /**
      * Read the listen port.
     */
@@ -617,20 +619,27 @@ void web_start()
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_ota_json));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_get_mqtt_json));
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_wifi_html));
+    uri_post_web_html.user_ctx = cs_web_create_parms->web_event_loop_handle;
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_web_html));
+    uri_post_ota_html.user_ctx = cs_web_create_parms->ota_event_loop_handle;
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_ota_html));
+    uri_post_mqtt_html.user_ctx = cs_web_create_parms->mqtt_event_loop_handle;
     ESP_ERROR_CHECK(httpd_register_uri_handler(httpd_server, &uri_post_mqtt_html));
 }
 
 static void default_event_handler(void *arg, esp_event_base_t event_base,
                                   int32_t event_id, void *event_data)
 {
+    esp_event_loop_handle_t web_event_loop_handle = (esp_event_loop_handle_t)arg;
+
     esp_event_post_to(web_event_loop_handle, event_base, event_id, NULL, 0, 0);
 }
 
 static void event_handler(void *arg, esp_event_base_t event_base,
                           int32_t event_id, void *event_data)
 {
+    cs_web_create_parms_t *cs_web_create_parms = (cs_web_create_parms_t *)arg;
+
     /* STA has gotten an IP address so make sure we are listening on it. */
     ESP_LOGI(TAG, "Restarting HTTP server.");
     if (event_base == CS_CONFIG_EVENT)
@@ -639,7 +648,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
          * A config change means we need to restart the server and listen on
          * a new port.
          */
-        web_start();
+        web_start(cs_web_create_parms);
     }
     else if (event_base == WIFI_EVENT)
     {
@@ -649,7 +658,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
                 /**
                  * Signals at least SoftAP up so (re)start the web server.
                 */
-                web_start();
+                web_start(cs_web_create_parms);
                 break;
 
 
@@ -686,6 +695,8 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 */
 void cs_web_task(cs_web_create_parms_t *create_parms)
 {
+    static cs_web_create_parms_t cs_web_create_parms;
+
     // TODO: Remove this.
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
@@ -697,9 +708,9 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
 
     ESP_LOGI(TAG, "init. Web task");
     /* Save the event handles that we need to send notifications to. */
-    web_event_loop_handle = create_parms->web_event_loop_handle;
-    ota_event_loop_handle = create_parms->ota_event_loop_handle;
-    mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
+    cs_web_create_parms.web_event_loop_handle = create_parms->web_event_loop_handle;
+    cs_web_create_parms.ota_event_loop_handle = create_parms->ota_event_loop_handle;
+    cs_web_create_parms.mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
 
     /**
      * TODO: Is this really true?  Remove this if not.
@@ -713,37 +724,37 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
                 IP_EVENT,
                 IP_EVENT_STA_GOT_IP,
                 default_event_handler,
-                NULL,
+                cs_web_create_parms.web_event_loop_handle,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
                 WIFI_EVENT,
                 WIFI_EVENT_AP_START,
                 default_event_handler,
-                NULL,
+                cs_web_create_parms.web_event_loop_handle,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
-                web_event_loop_handle,
+                cs_web_create_parms.web_event_loop_handle,
                 IP_EVENT,
                 IP_EVENT_STA_GOT_IP,
                 event_handler,
-                NULL,
+                &cs_web_create_parms,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
-                web_event_loop_handle,
+                cs_web_create_parms.web_event_loop_handle,
                 WIFI_EVENT,
                 WIFI_EVENT_AP_START,
                 event_handler,
-                NULL,
+                &cs_web_create_parms,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
-                web_event_loop_handle,
+                cs_web_create_parms.web_event_loop_handle,
                 CS_CONFIG_EVENT,
                 CS_CONFIG_CHANGE,
                 event_handler,
-                NULL,
+                &cs_web_create_parms,
                 NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
-                web_event_loop_handle,
+                cs_web_create_parms.web_event_loop_handle,
                 IP_EVENT,
                 ESP_NETIF_IP_EVENT_GOT_IP,
                 event_handler,

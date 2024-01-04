@@ -1,8 +1,6 @@
 /*
  * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
- *
- * MQTT communication with the Azure IotHub.
  */
 #include "freertos/FreeRTOS.h"
 #include "freertos/FreeRTOSConfig.h"
@@ -60,14 +58,10 @@ ESP_EVENT_DEFINE_BASE(CS_ZIGBEE_EVENT);
 #define RX_MINIMUM_FRAME_SIZE 10
 #define RX_PAYLOAD_LENGTH_MAX 256
 
-static esp_event_loop_handle_t zigbee_event_loop_handle;
-static esp_event_loop_handle_t mqtt_event_loop_handle;
-static esp_event_loop_handle_t flash_event_loop_handle;
-
-static esp_timer_handle_t request_time_timer_handle = NULL;
-static esp_timer_handle_t connection_timer_handle = NULL;
-
-static bool receiving_events = false;
+typedef struct {
+    esp_event_loop_handle_t flash_event_loop_handle;
+    bool receiving_events;
+} event_handler_arg_t;
 
 /**
  * Commands that we might send.
@@ -77,7 +71,7 @@ static bool receiving_events = false;
 static cs_string query_time = {NULL, 0};
 static cs_string factory_reset = {NULL, 0};
 
-static void connect_timer_check(void);
+static void connect_timer_check(esp_event_loop_handle_t flash_event_loop_handle, bool *receiving_events);
 
 /**
  * Calculate the CRC for the received frame.
@@ -103,7 +97,10 @@ static uint8_t crc8_calculate(uint16_t data_type, uint16_t length, uint8_t *data
 // TODO: Validate length and ensure not stupid.
 // TODO: Set sensible length for
 
-static void zbhci_forward_attributes(uint16_t payload_length, uint8_t *frame)
+static void zbhci_forward_attributes(
+    esp_event_loop_handle_t mqtt_event_loop_handle,
+    uint16_t payload_length,
+    uint8_t *frame)
 {
     ESP_LOGV(TAG, "Fwd attrs to MQTT: %u", payload_length);
     esp_event_post_to(mqtt_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_ATTRS, frame, payload_length, 10);
@@ -125,7 +122,11 @@ typedef struct{
  * Most attribute information we just pass straight through to Azure over
  * MQTT but we use the time attribute here to set local time.
 */
-static void zbhci_read_attr_rsp(uint16_t command_id, uint16_t payload_length, uint8_t *frame)
+static void zbhci_read_attr_rsp(
+    esp_event_loop_handle_t mqtt_event_loop_handle,
+    uint16_t command_id,
+    uint16_t payload_length,
+    uint8_t *frame)
 {
     static bool time_is_set = false;
     uint16_t attr_id;
@@ -147,7 +148,7 @@ static void zbhci_read_attr_rsp(uint16_t command_id, uint16_t payload_length, ui
     if ((attr->num != 1) || (attr_id != ZCL_ATTRID_STANDARD_TIME))
     {
         /* Definitely not time so pass to Azure. */
-        zbhci_forward_attributes(payload_length, frame);
+        zbhci_forward_attributes(mqtt_event_loop_handle, payload_length, frame);
         return;
     }
 
@@ -199,13 +200,18 @@ static void zbhci_read_attr_rsp(uint16_t command_id, uint16_t payload_length, ui
  * Before reaching here, the ZCL frame has passed all length and CRC checks so
  * should be valid.  What we do now depends on the command_id.
 */
-static void zbhci_message(uint16_t command_id, uint16_t payload_length, uint8_t *frame)
+static void zbhci_message(
+    esp_event_loop_handle_t mqtt_event_loop_handle,
+    uint16_t command_id,
+    uint16_t payload_length,
+    uint8_t *frame,
+    bool *receiving_events)
 {
     /**
      * We have a valid message; might need to tell the LED flasher and certianly
      * need to indicate we are connected.
     */
-    receiving_events = true;
+    (*receiving_events) = true;
 
     switch (command_id)
     {
@@ -219,7 +225,7 @@ static void zbhci_message(uint16_t command_id, uint16_t payload_length, uint8_t 
 
         case ZBHCI_CMD_ZCL_ATTR_READ_RSP:
             /* Read-attribute response; the data we really want! */
-            zbhci_read_attr_rsp(command_id, payload_length, frame);
+            zbhci_read_attr_rsp(mqtt_event_loop_handle, command_id, payload_length, frame);
             break;
 
         default:
@@ -242,7 +248,11 @@ static void zbhci_message(uint16_t command_id, uint16_t payload_length, uint8_t 
  *
  * Returns "true" if the frame was processed or "false" if an error was detected.
 */
-static void zbhci_frame(uint16_t payload_length, uint8_t *frame)
+static void zbhci_frame(
+    esp_event_loop_handle_t mqtt_event_loop_handle,
+    uint16_t payload_length,
+    uint8_t *frame,
+    bool *receiving_events)
 {
     uint16_t command_id;
     uint8_t crc;
@@ -262,7 +272,7 @@ static void zbhci_frame(uint16_t payload_length, uint8_t *frame)
     }
 
     /* Process the ZCL message. */
-    zbhci_message(command_id, payload_length, frame);
+    zbhci_message(mqtt_event_loop_handle, command_id, payload_length, frame, receiving_events);
     return;
 }
 
@@ -276,7 +286,11 @@ static void zbhci_frame(uint16_t payload_length, uint8_t *frame)
 */
 #define ZBHCI_FRAMING_BYTES     7
 
-static uint32_t zbhci_maybe_frame(uint32_t data_length, uint8_t *buffer)
+static uint32_t zbhci_maybe_frame(
+    esp_event_loop_handle_t mqtt_event_loop_handle,
+    uint32_t data_length,
+    uint8_t *buffer,
+    bool *receiving_events)
 {
     bool processing = true;
     uint32_t data_remains = data_length;
@@ -323,7 +337,7 @@ static uint32_t zbhci_maybe_frame(uint32_t data_length, uint8_t *buffer)
             if (data_remains >= (payload_length + ZBHCI_FRAMING_BYTES))
             {
                 /* We have a complete frame; try and process it. */
-                zbhci_frame(payload_length, buffer);
+                zbhci_frame(mqtt_event_loop_handle, payload_length, buffer, receiving_events);
 
                 data_accepted = data_length - data_remains + payload_length + ZBHCI_FRAMING_BYTES;
                 return data_accepted;
@@ -356,6 +370,8 @@ void zbhci_request_time(void)
 static void event_handler(void *arg, esp_event_base_t event_base,
                               int32_t event_id, void *event_data)
 {
+    event_handler_arg_t *event_handler_arg = (event_handler_arg_t *)arg;
+
     if (event_base == CS_ZIGBEE_EVENT)
     {
         switch (event_id)
@@ -367,7 +383,9 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 
             case CS_ZIGBEE_EVENT_CONNECT_TIMER:
                 /* Check if we are still connected. */
-                connect_timer_check();
+                connect_timer_check(
+                    event_handler_arg->flash_event_loop_handle,
+                    &event_handler_arg->receiving_events);
                 break;
 
             case CS_ZIGBEE_EVENT_FACTORY_RESET:
@@ -391,6 +409,8 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 */
 static void request_time_timer_cb(void *arg)
 {
+    esp_event_loop_handle_t zigbee_event_loop_handle = (esp_event_loop_handle_t)arg;
+
     esp_event_post_to(zigbee_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_TIME, NULL, 0, 10);
 }
 
@@ -400,23 +420,25 @@ static void request_time_timer_cb(void *arg)
 */
 static void connected_timer_cb(void *arg)
 {
+    esp_event_loop_handle_t zigbee_event_loop_handle = (esp_event_loop_handle_t)arg;
+
     esp_event_post_to(zigbee_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_CONNECT_TIMER, NULL, 0, 10);
 }
 
-static void connect_timer_check(void)
+static void connect_timer_check(esp_event_loop_handle_t flash_event_loop_handle, bool *receiving_events)
 {
     static bool previous_receiving_events = false;
 
-    if (!receiving_events && previous_receiving_events)
+    if (!(*receiving_events) && previous_receiving_events)
     {
         esp_event_post_to(flash_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_CONNECT_TIMER, NULL, 0, 10);
     }
-    else if (receiving_events && !previous_receiving_events)
+    else if ((*receiving_events) && !previous_receiving_events)
     {
         ESP_ERROR_CHECK(esp_event_post_to(flash_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_CONNECTED, NULL, 0, 10));
     }
-    previous_receiving_events = receiving_events;
-    receiving_events = false;
+    previous_receiving_events = (*receiving_events);
+    (*receiving_events) = false;
 }
 
 static void build_commands(void)
@@ -443,14 +465,18 @@ static void uart_rx_task(void *arg)
     uint32_t bytes_read;
     uint8_t  *buffer;
     uint8_t  *bPtr;
+    event_handler_arg_t event_handler_arg;
 
     // TODO: Remove this or perhaps replace with config?
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
     ESP_LOGI(TAG, "Init. ZigBee task");
-    zigbee_event_loop_handle = create_parms->zigbee_event_loop_handle;
-    mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
-    flash_event_loop_handle = create_parms->flash_event_loop_handle;
+    esp_event_loop_handle_t zigbee_event_loop_handle = create_parms->zigbee_event_loop_handle;
+    esp_event_loop_handle_t mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
+    event_handler_arg.flash_event_loop_handle = create_parms->flash_event_loop_handle;
+    esp_timer_handle_t request_time_timer_handle = NULL;
+    esp_timer_handle_t connection_timer_handle = NULL;
+    event_handler_arg.receiving_events = false;
 
     /* Allocate a buffer for receipt. */
     buffer = (uint8_t *)malloc(RX_BUFFER_SIZE);
@@ -467,7 +493,7 @@ static void uart_rx_task(void *arg)
                     CS_ZIGBEE_EVENT,
                     ESP_EVENT_ANY_ID,
                     event_handler,
-                    NULL,
+                    &event_handler_arg,
                     NULL));
 
     ESP_LOGI(TAG, "Configure UART");
@@ -521,6 +547,7 @@ QueueHandle_t uart_queue_handle;
     esp_timer_create_args_t esp_timer_create_args = {
         .callback = request_time_timer_cb,
         .name = "ZB-time",
+        .arg = zigbee_event_loop_handle
     };
     ESP_ERROR_CHECK(esp_timer_create(&esp_timer_create_args, &request_time_timer_handle));
 
@@ -575,7 +602,7 @@ QueueHandle_t uart_queue_handle;
              * that were accepted, which might be zero if there is insufficient
              * bytes for the complete frame.
             */
-            bytes_read = zbhci_maybe_frame(bytes_present, buffer);
+            bytes_read = zbhci_maybe_frame(mqtt_event_loop_handle, bytes_present, buffer, &event_handler_arg.receiving_events);
             bytes_present -= bytes_read;
 
             if (bytes_present)

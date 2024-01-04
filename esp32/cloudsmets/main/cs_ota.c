@@ -1,10 +1,7 @@
 /*
  * Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
  * License: Free to copy providing the author is acknowledged.
- *
- * Configuration store using ESP-IDF no-volatile storage.
- * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html?highlight=non%20volatile
- */
+*/
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -33,7 +30,7 @@
 #define TAG cs_ota_task_name
 
 /**
- * Define the ZIGBEE events base.
+ * Define the OTA events base.
 */
 ESP_EVENT_DEFINE_BASE(CS_OTA_EVENT);
 
@@ -42,15 +39,12 @@ ESP_EVENT_DEFINE_BASE(CS_OTA_EVENT);
 #define SEMVER_FORMAT_NO_DEV  "%hu.%hu.%hu"
 
 // Task config.
+// TODO: Use this everywhere!
 #define CS_TASK_TICKS_TO_WAIT CONFIG_CS_TASK_TICKS_TO_WAIT
-
-static esp_event_loop_handle_t ota_event_loop_handle;
-
-esp_timer_handle_t ota_retry_timer_handle;
-esp_timer_handle_t ota_acceptance_timer_handle;
 
 static void ota_acceptance(void);
 
+// TODO: move this out into a header file?
 typedef struct
 {
     uint16_t    major;
@@ -58,13 +52,6 @@ typedef struct
     uint16_t    revision;
     uint16_t    dev;
 } ota_version_t;
-
-typedef struct
-{
-    int tag;
-    bool allow_dev;
-    ota_version_t *version;
-} xml_user_data_t;
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 {
@@ -368,7 +355,7 @@ bool do_we_upgrade(ota_version_t *version, bool *upgrade)
  * TODO: What is ower outage trashes the image?  Will it get downloaded again
  *       and retried?
  */
-static void start_ota()
+static void start_ota(esp_timer_handle_t ota_retry_timer_handle)
 {
     bool success = true;
     bool do_upgrade;
@@ -422,12 +409,17 @@ static void start_ota()
 static void default_event_handler(void *arg, esp_event_base_t event_base,
                                   int32_t event_id, void *event_data)
 {
+    esp_event_loop_handle_t ota_event_loop_handle = (esp_event_loop_handle_t)arg;
+
     esp_event_post_to(ota_event_loop_handle, event_base, event_id, NULL, 0, 0);
 }
 
 static void event_handler(void *arg, esp_event_base_t event_base,
                               int32_t event_id, void *event_data)
 {
+    esp_timer_handle_t ota_retry_timer_handle = (esp_timer_handle_t)arg;
+
+
     if (event_base == CS_OTA_EVENT)
     {
         switch (event_id)
@@ -437,7 +429,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
                 break;
 
             case CS_OTA_EVENT_START_OTA_TIMER:
-                start_ota();
+                start_ota(ota_retry_timer_handle);
                 break;
 
             default:
@@ -453,7 +445,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
             /**
              * We are connected so check for OTA update.
              */
-            start_ota();
+            start_ota(ota_retry_timer_handle);
             break;
 
         case WIFI_EVENT_STA_DISCONNECTED:
@@ -487,6 +479,8 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 // TODO: Use local function prototypes so can order code nicely.
 void ota_retry_timer_cb(void *arg)
 {
+    esp_event_loop_handle_t ota_event_loop_handle = (esp_event_loop_handle_t)arg;
+
     // (Re)Start the OTA process.
     esp_event_post_to(ota_event_loop_handle, CS_OTA_EVENT, CS_OTA_EVENT_START_OTA_TIMER, NULL, 0, 10);
 }
@@ -504,21 +498,17 @@ static void ota_acceptance(void)
 
 static void ota_acceptance_timer_cb(void *arg)
 {
+    esp_event_loop_handle_t ota_event_loop_handle = (esp_event_loop_handle_t)arg;
+
     esp_event_post_to(ota_event_loop_handle, CS_OTA_EVENT, CS_OTA_EVENT_ACCEPTANCE_TIMER, NULL, 0, 10);
 }
 
-static esp_timer_create_args_t esp_ota_timer_create_args = {
-    .callback = ota_retry_timer_cb,
-    .name = "OTA timer"
-};
-
-static esp_timer_create_args_t esp_acceptance_timer_create_args = {
-    .callback = ota_acceptance_timer_cb,
-    .name = "OTA acceptance"
-};
-
 void cs_ota_task(cs_ota_create_parms_t *create_parms)
 {
+    esp_event_loop_handle_t ota_event_loop_handle = NULL;
+    esp_timer_handle_t ota_retry_timer_handle;
+    esp_timer_handle_t ota_acceptance_timer_handle;
+
     // TODO: Remove this.
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
@@ -537,29 +527,41 @@ void cs_ota_task(cs_ota_create_parms_t *create_parms)
         WIFI_EVENT,
         ESP_EVENT_ANY_ID,
         default_event_handler,
-        NULL,
+        ota_event_loop_handle,
         NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
         ota_event_loop_handle,
         WIFI_EVENT,
         ESP_EVENT_ANY_ID,
         event_handler,
-        NULL,
+        ota_retry_timer_handle,
         NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
         ota_event_loop_handle,
         CS_CONFIG_EVENT,
         CS_CONFIG_CHANGE,
         event_handler,
-        NULL,
+        ota_retry_timer_handle,
         NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
         ota_event_loop_handle,
         CS_OTA_EVENT,
         ESP_EVENT_ANY_ID,
         event_handler,
-        NULL,
+        ota_retry_timer_handle,
         NULL));
+
+    esp_timer_create_args_t esp_ota_timer_create_args = {
+        .callback = ota_retry_timer_cb,
+        .name = "OTA timer",
+        .arg = ota_event_loop_handle
+    };
+
+    esp_timer_create_args_t esp_acceptance_timer_create_args = {
+        .callback = ota_acceptance_timer_cb,
+        .name = "OTA acceptance",
+        .arg = ota_event_loop_handle
+    };
 
     // Create the acceptance timer and callback.
     ESP_ERROR_CHECK(esp_timer_create(&esp_acceptance_timer_create_args, &ota_acceptance_timer_handle));
