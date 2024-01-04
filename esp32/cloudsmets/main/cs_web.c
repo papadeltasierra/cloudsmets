@@ -55,16 +55,13 @@ extern const uint8_t tools_js_end[]       asm("_binary_tools_js_end");
 #define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start - 1)
 #define tools_js_len    (size_t)(tools_js_end - tools_js_start - 1)
 
-/* Server configuration. */
-static httpd_config_t httpd_config = HTTPD_DEFAULT_CONFIG();
-
 /* Handle to the web server. */
 static httpd_handle_t httpd_server = NULL;
 
 /**
  * The value is always NULL terminated.
 */
-char hex2char(char hex)
+static char hex2char(char hex)
 {
     char value;
     if (hex >= 'a')
@@ -82,7 +79,7 @@ char hex2char(char hex)
     return value;
 }
 
-void url_unescape(char *escaped)
+static void url_unescape(char *escaped)
 {
     char *sptr = escaped;
     char *dptr = escaped;
@@ -557,6 +554,12 @@ static httpd_uri_t uri_post_wifi_html = {
 
 void web_start(cs_web_create_parms_t *cs_web_create_parms)
 {
+    /* Server configuration. */
+    static httpd_config_t httpd_config = HTTPD_DEFAULT_CONFIG();
+
+   /* Increase the number of supported URI handlers. */
+   httpd_config.max_uri_handlers = 20;
+
     /**
      * Web page URL definitions, all of which are store in 'data' and not on the
      * stack because they are 'static'.
@@ -699,12 +702,6 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
 
     // TODO: Remove this.
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
-
-    /**
-     * Increase the number of supported URI handlers.
-    */
-   // TODO: Do we want to do this?
-   httpd_config.max_uri_handlers = 20;
 
     ESP_LOGI(TAG, "init. Web task");
     /* Save the event handles that we need to send notifications to. */
