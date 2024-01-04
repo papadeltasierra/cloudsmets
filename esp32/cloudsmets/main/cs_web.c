@@ -55,9 +55,6 @@ extern const uint8_t tools_js_end[]       asm("_binary_tools_js_end");
 #define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start - 1)
 #define tools_js_len    (size_t)(tools_js_end - tools_js_start - 1)
 
-/* Handle to the web server. */
-static httpd_handle_t httpd_server = NULL;
-
 /**
  * The value is always NULL terminated.
 */
@@ -556,6 +553,9 @@ void web_start(cs_web_create_parms_t *cs_web_create_parms)
 {
     /* Server configuration. */
     static httpd_config_t httpd_config = HTTPD_DEFAULT_CONFIG();
+
+    /* Handle to the web server. */
+    static httpd_handle_t httpd_server = NULL;
 
    /* Increase the number of supported URI handlers. */
    httpd_config.max_uri_handlers = 20;
