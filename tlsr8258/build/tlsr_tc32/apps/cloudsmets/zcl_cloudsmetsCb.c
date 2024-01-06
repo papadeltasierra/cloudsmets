@@ -639,7 +639,7 @@ status_t cloudsmets_identifyCb(zclIncomingAddrInfo_t *pAddrInfo, u8 cmdId, void 
 static void cloudsmets_zclPublishPriceCmdHandler(zclIncomingAddrInfo_t *pAddrInfo, zcl_price_publishPriceCmd_t *pPublishPriceCmd)
 {
 #if ZBHCI_EN
-	u8 payload[56] = {0};
+	u8 payload[59] = {0};
 	u8 *pBuf = payload;
 
 	// Note that zbhci interrace is BIG endian.

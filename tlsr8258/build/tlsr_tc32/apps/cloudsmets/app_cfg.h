@@ -52,8 +52,8 @@ extern "C" {
  * BAUDRATE sets the BAUD rate that will be used if you use the printf()
  * debugging statements but HCI_BAUDRATE sets the BAUD rate for the HCI interface.
  */
-#define BAUDRATE						115200
-#define HCI_BAUDRATE					115200
+#define BAUDRATE						1000000
+#define HCI_BAUDRATE					1000000
 
 /* PM */
 #define PM_ENABLE						0

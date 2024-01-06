@@ -69,10 +69,12 @@ extern "C" {
 
 // UART
 #if ZBHCI_UART
-//#define UART_TX_PIN         	UART_TX_PB1
-//#define UART_RX_PIN         	UART_RX_PB7
-#define UART_TX_PIN         	UART_TX_PC2
-#define UART_RX_PIN         	UART_RX_PC3
+#define UART_TX_PIN         	UART_TX_PB1
+#define UART_RX_PIN         	UART_RX_PB7
+
+// These used when not relaying via ESP32c3.
+///#define UART_TX_PIN         	UART_TX_PC2
+///#define UART_RX_PIN         	UART_RX_PC3
 
 #define UART_PIN_CFG()			uart_gpio_set(UART_TX_PIN, UART_RX_PIN);// uart tx/rx pin set
 #endif
