@@ -45,6 +45,10 @@ flowchart LR;
 ## T-ZigBee Configuration
 After loading the [ESP32-C3] and [TLSR8258] images, the [T-ZigBee] DIP switches should all be set to _off_ i.e. _down_ towards the side of the board that has the USB port on it.
 
+> It would appear that the [T-ZigBee] DIP switches are wrongly marked.  Although the switches are all _off_, the UARTs are connected through the IDP switches!
+>
+> Also not that on the [T-Zigbee] schematics, RDX and TXD are shown (bottom left) but note that R13 and R15 are marked _NC_ i.e. there is **No** connection!
+
 ## Function
 The UART relay does the following:
 - Enables the [ESP32-C3]'s GPIO0 (XTAL_OUT) as an output and sets it high; this is the line that the [T-ZigBee] board uses to enable power to the [TLSR8258.]
