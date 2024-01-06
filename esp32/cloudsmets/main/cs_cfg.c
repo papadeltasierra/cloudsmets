@@ -8,14 +8,10 @@
  * Note that this API operates on the default NVRAM partition.
  */
 
-/**
- * Allow logging in this file; disabled unless explcitly set.
-*/
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-#include "esp_log.h"
 #include "esp_event.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+#include "cs_log.h"
 #include "cs_cfg.h"
 
 const char* TAG = "Cfg";

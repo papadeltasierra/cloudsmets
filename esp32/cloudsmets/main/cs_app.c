@@ -14,11 +14,6 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 
-/**
- * Allow logging in this file; disabled unless explcitly set.
-*/
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-#include "esp_log.h"
 #include "esp_event.h"
 #include "esp_timer.h"
 #include "driver/gpio.h"
@@ -27,6 +22,7 @@
 #include "pd_err.h"
 
 /* CloudSMETS tasks. */
+#include "cs_log.h"
 #include "cs_gpio.h"
 #include "cs_cfg.h"
 #include "cs_wifi.h"
@@ -236,7 +232,6 @@ void app_main(void)
     esp_event_loop_handle_t web_event_loop_handle = NULL;
     esp_event_loop_handle_t ota_event_loop_handle = NULL;
     esp_event_loop_handle_t mqtt_event_loop_handle = NULL;
-    esp_timer_handle_t dbg_timer_handle = NULL;
     esp_event_loop_handle_t zigbee_event_loop_handle = NULL;
 
 
@@ -321,6 +316,7 @@ void app_main(void)
     /* Create the ZigBee task. */
     create_parms.zigbee.zigbee_event_loop_handle = zigbee_event_loop_handle;
     create_parms.zigbee.mqtt_event_loop_handle = mqtt_event_loop_handle;
+    create_parms.zigbee.web_event_loop_handle = web_event_loop_handle;
     create_parms.zigbee.flash_event_loop_handle = flash_event_loop_handle;
     cs_zigbee_task(&create_parms.zigbee);
 

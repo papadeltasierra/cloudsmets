@@ -8,14 +8,14 @@
 /**
  * Allow logging in this file; disabled unless explcitly set.
 */
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-#include "esp_log.h"
 #include "esp_wifi.h"
 #include "esp_http_server.h"
 #include "esp_netif.h"
 #include "esp_netif_types.h"
 #include "http_parser.h"
+#include "cs_log.h"
 #include "cs_web.h"
+#include "cs_zigbee.h"
 #include "cs_cfg.h"
 
 #define TAG cs_web_task_name
@@ -54,6 +54,12 @@ extern const uint8_t tools_js_end[]       asm("_binary_tools_js_end");
 #define style_css_len   (size_t)(style_css_end - style_css_start - 1)
 #define getdata_js_len  (size_t)(getdata_js_end - getdata_js_start - 1)
 #define tools_js_len    (size_t)(tools_js_end - tools_js_start - 1)
+
+/**
+ * The following information is held by the Web task ready to be provided
+ * on a status page request.
+*/
+static cs_zigbee_event_link_keys_t zigbee_link_keys;
 
 /**
  * The value is always NULL terminated.
@@ -679,7 +685,20 @@ static void event_handler(void *arg, esp_event_base_t event_base,
                  * Ignore for now and hope that the web server listens on the
                  * new socket once we connect to the AP (router).
                 */
-               break;
+                break;
+
+            default:
+                ESP_LOGE(TAG, "unexpected event: %d", event_id);
+                break;
+        }
+    }
+    else if (event_base == CS_ZIGBEE_EVENT)
+    {
+        switch (event_id)
+        {
+            case CS_ZIGBEE_EVENT_LINK_KEYS:
+                memcpy(&zigbee_link_keys, event_data, sizeof(cs_zigbee_event_link_keys_t));
+                break;
 
             default:
                 ESP_LOGE(TAG, "unexpected event: %d", event_id);
@@ -754,6 +773,13 @@ void cs_web_task(cs_web_create_parms_t *create_parms)
                 cs_web_create_parms.web_event_loop_handle,
                 IP_EVENT,
                 ESP_NETIF_IP_EVENT_GOT_IP,
+                event_handler,
+                NULL,
+                NULL));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(
+                cs_web_create_parms.web_event_loop_handle,
+                CS_ZIGBEE_EVENT,
+                CS_ZIGBEE_EVENT_LINK_KEYS,
                 event_handler,
                 NULL,
                 NULL));

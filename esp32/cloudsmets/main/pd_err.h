@@ -13,7 +13,7 @@
 #elif defined(CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_SILENT)
 #define PD_ERROR_CHECK(x) do {                                          \
         BaseType_t pd_rc = (x);                                         \
-        if (unlikely(pd_rc != pdTrue)) {                                \
+        if (unlikely(pd_rc != pdTRUE)) {                                \
             abort();                                                    \
         }                                                               \
     } while(0)

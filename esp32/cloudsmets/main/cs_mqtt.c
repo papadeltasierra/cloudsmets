@@ -8,11 +8,6 @@
 #include "freertos/task.h"
 #include <time.h>
 
-/**
- * Allow logging in this file; disabled unless explcitly set.
-*/
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-#include "esp_log.h"
 #include "esp_wifi.h"
 #include "esp_netif.h"
 #include "esp_timer.h"
@@ -21,6 +16,7 @@
 #include "mbedtls/md.h"
 #include "mbedtls/base64.h"
 
+#include "cs_log.h"
 #include "cs_cfg.h"
 #include "cs_time.h"
 #include "cs_string.h"

@@ -70,6 +70,7 @@ typedef struct {
 // TODO: Do received messages contain this too?  Assume not?
 static cs_string query_time = {NULL, 0};
 static cs_string factory_reset = {NULL, 0};
+static cs_string query_link_key = { (uint8_t *)"\x55\x40\x01\x00\x00\x41\xAA", 7 };
 
 static void connect_timer_check(esp_event_loop_handle_t flash_event_loop_handle, bool *receiving_events);
 
@@ -197,11 +198,49 @@ static void zbhci_read_attr_rsp(
 }
 
 /**
+ * ZigBee link keys; we want to extract these and send them to the web component,
+ * which will store them ready for use in the status page if requested.
+*/
+static void zbhci_get_link_key_rsp(
+    esp_event_loop_handle_t web_event_loop_handle,
+    uint16_t command_id,
+    uint16_t payload_length,
+    uint8_t *frame)
+{
+    cs_zigbee_event_link_keys_t link_keys;
+    char *key;
+    int index;
+    int byte;
+
+    // TODO: common somewhere?
+    static char hex[] = "0123456789ABCDEF";
+
+    /***
+     * Decode out the two keys as colon-separated hex.
+    */
+    for (index = 0; index < 2; index++)
+    {
+        /* Ignore key type and key sequence number. */
+        frame += 2;
+        key = &link_keys.keys[index][0];
+        for (byte = 0; byte < 16; byte++)
+        {
+            (*key++) = hex[(*frame) >> 4];
+            (*key++) = hex[(*frame) & 0x0F];
+            (*key++) = ':';
+        }
+        key[-1] = 0;
+    }
+    esp_event_post_to(web_event_loop_handle, CS_ZIGBEE_EVENT, CS_ZIGBEE_EVENT_LINK_KEYS, &link_keys, sizeof(cs_zigbee_event_link_keys_t), 10);
+}
+
+/**
  * Before reaching here, the ZCL frame has passed all length and CRC checks so
  * should be valid.  What we do now depends on the command_id.
 */
 static void zbhci_message(
     esp_event_loop_handle_t mqtt_event_loop_handle,
+    esp_event_loop_handle_t web_event_loop_handle,
     uint16_t command_id,
     uint16_t payload_length,
     uint8_t *frame,
@@ -216,7 +255,7 @@ static void zbhci_message(
     switch (command_id)
     {
         case ZBHCI_CMD_BDB_GET_LINK_KEY_RSP:
-            /* ZigBee link encryption keys. */
+            zbhci_get_link_key_rsp(web_event_loop_handle, command_id, payload_length, frame);
             break;
 
         case ZBHCI_CMD_DISCOVERY_IEEE_ADDR_RSP:
@@ -250,6 +289,7 @@ static void zbhci_message(
 */
 static void zbhci_frame(
     esp_event_loop_handle_t mqtt_event_loop_handle,
+    esp_event_loop_handle_t web_event_loop_handle,
     uint16_t payload_length,
     uint8_t *frame,
     bool *receiving_events)
@@ -272,7 +312,7 @@ static void zbhci_frame(
     }
 
     /* Process the ZCL message. */
-    zbhci_message(mqtt_event_loop_handle, command_id, payload_length, frame, receiving_events);
+    zbhci_message(mqtt_event_loop_handle, web_event_loop_handle, command_id, payload_length, frame, receiving_events);
     return;
 }
 
@@ -288,6 +328,7 @@ static void zbhci_frame(
 
 static uint32_t zbhci_maybe_frame(
     esp_event_loop_handle_t mqtt_event_loop_handle,
+    esp_event_loop_handle_t web_event_loop_handle,
     uint32_t data_length,
     uint8_t *buffer,
     bool *receiving_events)
@@ -337,7 +378,7 @@ static uint32_t zbhci_maybe_frame(
             if (data_remains >= (payload_length + ZBHCI_FRAMING_BYTES))
             {
                 /* We have a complete frame; try and process it. */
-                zbhci_frame(mqtt_event_loop_handle, payload_length, buffer, receiving_events);
+                zbhci_frame(mqtt_event_loop_handle, web_event_loop_handle, payload_length, buffer, receiving_events);
 
                 data_accepted = data_length - data_remains + payload_length + ZBHCI_FRAMING_BYTES;
                 return data_accepted;
@@ -360,6 +401,11 @@ void zbhci_request_time(void)
     {
         uart_write_bytes(UART_TO_TLSR8258, query_time.value, query_time.length);
     }
+}
+
+void zbhci_get_link_key(void)
+{
+    uart_write_bytes(UART_TO_TLSR8258, query_link_key.value, query_link_key.length);
 }
 
 /**
@@ -473,6 +519,7 @@ static void uart_rx_task(void *arg)
     ESP_LOGI(TAG, "Init. ZigBee task");
     esp_event_loop_handle_t zigbee_event_loop_handle = create_parms->zigbee_event_loop_handle;
     esp_event_loop_handle_t mqtt_event_loop_handle = create_parms->mqtt_event_loop_handle;
+    esp_event_loop_handle_t web_event_loop_handle = create_parms->web_event_loop_handle;
     event_handler_arg.flash_event_loop_handle = create_parms->flash_event_loop_handle;
     esp_timer_handle_t request_time_timer_handle = NULL;
     esp_timer_handle_t connection_timer_handle = NULL;
@@ -602,7 +649,7 @@ QueueHandle_t uart_queue_handle;
              * that were accepted, which might be zero if there is insufficient
              * bytes for the complete frame.
             */
-            bytes_read = zbhci_maybe_frame(mqtt_event_loop_handle, bytes_present, buffer, &event_handler_arg.receiving_events);
+            bytes_read = zbhci_maybe_frame(mqtt_event_loop_handle, web_event_loop_handle, bytes_present, buffer, &event_handler_arg.receiving_events);
             bytes_present -= bytes_read;
 
             if (bytes_present)
