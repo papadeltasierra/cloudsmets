@@ -19,58 +19,58 @@ namespace CloudSMETS.zbhci
         readonly ushort clusterId;
         readonly byte numberOfAttributes;
 
-        ZbhciPayloadHeader(ILogger log, IList<byte> payload, int *offset)
+        ZbhciPayloadHeader(byte[] payload, ref int offset)
         {
-            int readOffset = (*offset);
+            int readOffset = offset;
 
-            ushort commandId = BitConverter.ToUInt16(payload, readOffset + ZbhciPayloadConstant.OFFSET_COMMAND_ID);
+            ushort commandId = BitConverter.ToUInt16(payload, readOffset + ZbhciFrameConstant.OFFSET_COMMMAND_ID);
             commandId = (ushort)IPAddress.NetworkToHostOrder((short)commandId);
             if (commandId != ZbhciCommandId.ATTR_READ_RSP)
             {
-                throw new ZbhciNotAttributesException($"Frame is not a read-atrtibutes response: {commandId:4.4X}.");
+                throw new ZbhciNotAttributesException($"Frame is not a read-attributes response: {commandId:4.4X}.");
             }
 
             // Is the payload length correct?
-            ushort payloadLength = BitConverter.ToUInt16(payload, readOffset + ZbhciMessageConstant.OFFSET_PAYLOAD_LENGTH);
+            ushort payloadLength = BitConverter.ToUInt16(payload, readOffset + ZbhciFrameConstant.OFFSET_PAYLOAD_LENGTH);
             payloadLength = (ushort)IPAddress.NetworkToHostOrder((short)payloadLength);
-            if (payloadLength < ZbhciMessageConstant.PAYLOAD_MIN_LENGTH)
+            if (payloadLength < ZbhciPayloadConstant.MIN_LENGTH)
             {
                 throw new ZbhciShortPayloadException($"Payload is too short: {payloadLength}.");
             }
 
-            if ((payloadLength + readOffset + ZbhciFrameConstant.MIN_FRAME_LENGTH) != payload.Count)
+            if ((payloadLength + readOffset + ZbhciFrameConstant.MIN_FRAME_LENGTH) != payload.GetLength(0))
             {
-                throw new ZbhciPayloadFrameLengthsException($"Payload/frame lengths do not match: {payloadLength}, {frameCount}.");
+                throw new ZbhciPayloadFrameLengthsException($"Payload/frame lengths do not match: {payloadLength}, {payload.GetLength(0)}.");
             }
 
             // Is the CRC correct?
-            byte crc = crc8Calculate(commandId, payload);
-            if (crc != payload[readOffset + ZbhciMessageConstant.OFFSET_CRC])
+            byte crc = Crc8Calculate(commandId, payload);
+            if (crc != payload[readOffset + ZbhciFrameConstant.OFFSET_CRC])
             {
                 throw new ZbhciCRCExcException($"CRC is incorrect: expected: {crc:2.2X}, received: {payload[readOffset + ZbhciMessageConstant.OFFSET_CRC]:2.2X}.");
             }
 
             // Safe to access and store payload fields.
-            this.sourceAddress = payload[readOffset + ZbhciPayloadConstants.OFFSET_SRC_ADDR];
-            this.sourceEndpoint = payload[readOffset + ZbhciPayloadConstants.OFFSET_SRC_ENDPT];
-            this.destinationEndpoint = payload[readOffset + ZbhciPayloadConstants.OFFSET_DEST_ENDPT];
-            this.sequenceNumber = payload[readOffset + ZbhciPayloadConstants.OFFSET_SEQ_NUM];
-            this.numberOfAttributes = payload[readOffset + ZbhciPayloadConstants.OFFSET_NUM_ATTRS];
-            this.clusterId = BitConverter.ToUInt16(payload, readOffset + ZbhciPayloadConstants.POFFSET_CLUSTER_ID);
+            this.sourceAddress = payload[readOffset + ZbhciPayloadConstant.OFFSET_SRC_ADDR];
+            this.sourceEndpoint = payload[readOffset + ZbhciPayloadConstant.OFFSET_SRC_ENDPT];
+            this.destinationEndpoint = payload[readOffset + ZbhciPayloadConstant.OFFSET_DEST_ENDPT];
+            this.sequenceNumber = payload[readOffset + ZbhciPayloadConstant.OFFSET_SEQ_NUM];
+            this.numberOfAttributes = payload[readOffset + ZbhciPayloadConstant.OFFSET_NUM_ATTRS];
+            this.clusterId = BitConverter.ToUInt16(payload, readOffset + ZbhciPayloadConstant.OFFSET_CLUSTER_ID);
             this.clusterId = (ushort)IPAddress.NetworkToHostOrder((short)this.clusterId);
 
             // TODO: Is this the best we can do?
-            (*offset) = readOffset;
+            offset = readOffset;
         }
 
-        private byte Crc8Calculate(ushort commandId, ushort payloadLength, byte *payload)
+        private static byte Crc8Calculate(ushort commandId, ushort payloadLength, byte[] payload)
         {
             byte crc8;
 
-            crc8 = (commandId >> 0) & 0xff;
-            crc8 ^= (commandId >> 8) & 0xff;
-            crc8 ^= (payloadLength >> 0) & 0xff;
-            crc8 ^= (payloadLength >> 8) & 0xff;
+            crc8 = (byte)((commandId >> 0) & 0xff);
+            crc8 ^= (byte)((commandId >> 8) & 0xff);
+            crc8 ^= (byte)((payloadLength >> 0) & 0xff);
+            crc8 ^= (byte)((payloadLength >> 8) & 0xff);
 
             for (ushort n = 0; n < payloadLength; n++)
             {
@@ -105,34 +105,31 @@ namespace CloudSMETS.zbhci
 
     class ZbhciAttribute
     {
-        public ushort identifier;
-        public byte status;
-        public byte dataType;
-        public ushort length;
         public ZbhciAttributeValue value;
-        ZbhciAttribute(ILogger log, ushort identifier, byte status, byte dataType, IList<byte> attribute, int *offset)
+        ZbhciAttribute(ILogger log, ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset)
         {
-            throw TypeInitializationException("Use factory method, GetAttribute().");
+            throw new TypeInitializationException("Use factory method, GetAttribute().");
         }
 
-        public ZbhciAttribute GetAttribute(ILogger log, IList<byte> attribute, int *offset)
+        public static ZbhciAttribute GetAttribute(ILogger log, byte[] attribute, ref int offset)
         {
             ZbhciAttribute attribute;
-            int readOffset = (*offset);
+            ushort identifier;
+            byte status;
+            byte dataType;
+            ushort length;
 
-            (*bytesRead) = 0;
-
-            ushort identier = BitConverter.ToUInt16(attribute, readOffset + ZbhciAttributeConstant.OFFSET_IDENTIFIER);
+            ushort identier = BitConverter.ToUInt16(attribute, offset + ZbhciAttributeConstant.OFFSET_IDENTIFIER);
             identifier = (ushort)IPAddress.NetworkToHostOrder((short)this.identifier);
-            byte status = attribute[readOffset + ZbhciAttributeConstant.OFFSET_STATUS];
+            byte status = attribute[offset + ZbhciAttributeConstant.OFFSET_STATUS];
             if (status != ZCL_STA_SUCCESS)
             {
                 throw new ZbhciAttributeStateInvalid($"Attribute status {this.status:2.2X} for attribute {this.identifier:4.4X} is invalid.");
             }
-            byte dataType = attribute[readOffset + ZbhciAttributeConstant.OFFSET_DATA_TYPE];
-            readOffset += ZbhciAttributeConstant.OFFSET_LENGTH;
+            byte dataType = attribute[offset + ZbhciAttributeConstant.OFFSET_DATA_TYPE];
+            offset += ZbhciAttributeConstant.OFFSET_LENGTH;
 
-            readOffset += ZbhciAttributeConstant.OFFSET_SIMPLE_VALUE;
+            offset += ZbhciAttributeConstant.OFFSET_SIMPLE_VALUE;
 
             switch (dataType)
             {
@@ -142,14 +139,14 @@ namespace CloudSMETS.zbhci
                     length = BitConverter.ToUInt16(attribute, readOffset);
                     length = (ushort)IPAddress.NetworkToHostOrder((short)length);
                     valueOffset += ZbhciAttributeConstant.LONG_STR_LENGTH_LENGTH;
-                    attribute = ZbhciAttributeLongStr(log, identifier, status, dataType, attribute, length, valueOffset);
+                    attribute = new ZbhciAttributeLongStr(log, identifier, status, dataType, attribute, length, offset);
                     break;
 
                 case ZbhciDataType.CHAR_STR:
                 case ZbhciDataType.OCTET_STR:
                     length = attribute[readOffset];
                     readOffset += ZbhciAttributeConstant.SHORT_STR_LENGTH_LENGTH;
-                    attribute = ZbhciAttributeShortStr(log, identifier, status, dataType, attribute, length, valueOffset);
+                    attribute = new ZbhciAttributeShortStr(log, identifier, status, dataType, attribute, length, offset);
                     break;
 
                 // No support for these as not required.
@@ -182,7 +179,7 @@ namespace CloudSMETS.zbhci
                 case ZbhciDataType.CLUSTER_ID:
                 case ZbhciDataType.ATTR_ID:
                     length = 2;
-                    attribute = ZbhciAttributeUint16(log, identifier, status, dataType, attribute, valueOffset);
+                    attribute = new ZbhciAttributeUint16(log, identifier, status, dataType, attribute, offset);
                     break;
 
                 // case ZbhciDataType.DATA24:
@@ -201,7 +198,7 @@ namespace CloudSMETS.zbhci
                 case ZbhciDataType.UTC:
                 case ZbhciDataType.BAC_OID:
                     length = 4;
-                    attribute = ZbhciAttributeUint32(log, identifier, status, dataType, attribute, valueOffset);
+                    attribute = new ZbhciAttributeUint32(log, identifier, status, dataType, attribute, offset);
                     break;
 
                 // case ZbhciDataType.DATA40:
@@ -232,7 +229,7 @@ namespace CloudSMETS.zbhci
                 case ZbhciDataType.DOUBLE_PREC:
                 case ZbhciDataType.IEEE_ADDR:
                     length = 8;
-                    attribute = ZbhciAttributeUint64(log, identifier, status, dataType, attribute, valueOffset);
+                    attribute = new ZbhciAttributeUint64(log, identifier, status, dataType, attribute, offset);
                     break;
 
                 // case ZbhciDataType.BIT_128_SEC_K:
@@ -247,12 +244,11 @@ namespace CloudSMETS.zbhci
                     throw new ZbhciUnsupportedValueTypeException($"Unsupported attribute type: {dataType:2.2X}.");
             }
 
-            readOffset += length;
-            (*offset) = readOffset;
+            offset += length;
             return attribute;
         }
 
-        protected virtual void ParseValue(ILogger log, int frameLength, byte *frame)
+        protected virtual void ParseValue(ILogger log, int frameLength, byte[] frame)
         {
             throw new NotImplementedException($"ParseValue must be overriden by subclass.");
         }
@@ -260,21 +256,22 @@ namespace CloudSMETS.zbhci
 
     class ZbhciAttributeUint16 : ZbhciAttribute
     {
-        ZbhciAttributeUint16(ILogger log,  ushort identifier, byte status, byte dataType, IList<byte> attribute, int *offset)
+        public ZbhciAttributeUint16(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset)
         {
             this.identifier = identifier;
             this.status = status;
             this.dataType = dataType;
 
             ushort value;
-            value = BitConverter.ToUInt16(attribute, (*offset));
+
+            value = BitConverter.ToUInt16(attribute, offset);
             this.value.valueUint16 = (ushort)IPAddress.NetworkToHostOrder((short)value);
         }
     }
 
     class ZbhciAttributeUint48 : ZbhciAttribute
     {
-        ZbhciAttributeUint48(ILogger log,  ushort identifier, byte status, byte dataType, IList<byte> attribute, int *offset)
+        public ZbhciAttributeUint48(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset)
         {
             this.identifier = identifier;
             this.status = status;
@@ -282,10 +279,10 @@ namespace CloudSMETS.zbhci
 
             ushort value16;
             ulong value32;
-            uint value;
-            value32 = BitConverter.ToUInt32(attribute, (*offset));
-            value32 = (uint)IPAddress.NetworkToHostOrder((int)value);
-            value16 = BitConverter.ToUInt32(frame, (*offset) + 2);
+
+            value32 = BitConverter.ToUInt32(attribute, offset);
+            value32 = (uint)IPAddress.NetworkToHostOrder((int)value32);
+            value16 = (ushort)BitConverter.ToUInt32(attribute, offset + 2);
             value16 = (ushort)IPAddress.NetworkToHostOrder((short)value16);
             this.value.valueUint64 = ((ulong)value32 << 16) + value16;
         }
@@ -293,82 +290,82 @@ namespace CloudSMETS.zbhci
 
     class ZbhciAttributeUint32 : ZbhciAttribute
     {
-        ZbhciAttributeUint32(ILogger log,  ushort identifier, byte status, byte dataType, IList<byte> attribute, int *offset)
+        public ZbhciAttributeUint32(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset)
         {
             this.identifier = identifier;
             this.status = status;
             this.dataType = dataType;
 
             uint value;
-            value = BitConverter.ToUInt32(attribute, (*offset));
+            value = BitConverter.ToUInt32(attribute, offset);
             this.value.valueUint32 = (uint)IPAddress.NetworkToHostOrder((int)value);
         }
     }
 
     class ZbhciAttributeUint64 : ZbhciAttribute
     {
-        ZbhciAttributeUint64(ILogger log,  ushort identifier, byte status, byte dataType, IList<byte> attribute, int *offset)
+        public ZbhciAttributeUint64(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset)
         {
             this.identifier = identifier;
             this.status = status;
             this.dataType = dataType;
 
             ulong value;
-            value = BitConverter.ToUInt64(attribute, *offset);
+            value = BitConverter.ToUInt64(attribute, offset);
             this.value.valueUint64 = (ulong)IPAddress.NetworkToHostOrder((long)value);
         }
     }
 
     class ZbhciAttributeShortStr : ZbhciAttribute
     {
-        ZbhciAttributeShortStr(ILogger log,  ushort identifier, byte status, byte dataType, int length, IList<byte> attribute, int *offset)
+        public ZbhciAttributeShortStr(ushort identifier, byte status, byte dataType, int length, byte[] attribute, ref int offset)
         {
             this.identifier = identifier;
             this.status = status;
             this.dataType = dataType;
 
-            this.value.valueStr = new string(attribute, (*offset), length);
+            this.value.valueStr = System.Text.Encoding.UTF8.GetString(attribute, offset, length);
         }
     }
 
     class ZbhciAttributeLongStr : ZbhciAttribute
     {
-        ZbhciAttributeLongStr(ILogger log,  ushort identifier, byte status, byte dataType, IList<byte> attribute, int *offset)
+        publicZbhciAttributeLongStr(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset)
         {
             this.identifier = identifier;
             this.status = status;
             this.dataType = dataType;
 
-            this.value.valueStr = new string(attribute, (*offset), length);
+            this.value.valueStr = System.Text.Encoding.UTF8.GetString(attribute, offset, length);
         }
     }
 
     public static class ZbhciFrame
     {
 
-        List<ZbhciAttribute> ZbhciMessage(ILogger log, IList<byte> frame)
+        static List<ZbhciAttribute> ZbhciMessage(ILogger log, byte[] frame)
         {
             ZbhciPayloadHeader payloadHeader;
-            List<ZbhciAttribute> attributes = new List<ZbhciAttribute>();
+            List<ZbhciAttribute> attributes = new();
             int offset = 0;
 
              // Are the framing bytes present?
-            if ((frame[0] != ZbhciFrameConstant.FRAME_START) || (frame[frame.Count - 1] != ZbhciFrameConstant.FRAME_END))
+            if ((frame[0] != ZbhciFrameConstant.FRAME_START) || (frame[frame.GetLength(0) - 1] != ZbhciFrameConstant.FRAME_END))
             {
-                throw new ZbhciFramingException($"Frame start/end invalid: {frame[0]:2.2X}, {frame[payload.Count - 1]:2.2X}.");
+                throw new ZbhciFramingException($"Frame start/end invalid: {frame[0]:2.2X}, {frame[frame.GetLength(0) - 1]:2.2X}.");
             }
 
            // Read the payload header, which starts after the frame start byte.
             offset = 1;
-            payloadHeader = new ZbhciPayloadHeader(log, frame, &offset);
+            payloadHeader = new ZbhciPayloadHeader(log, frame, offset);
 
             // Parse out the attributes.
             for (byte n = 0; n < payloadHeader.numberOfAttributes; n++)
             {
-                attributes.Add(ZbhciAttribute.GetAttribute(log, frame, &offset));
+                attributes.Add(ZbhciAttribute.GetAttribute(log, frame, ref offset));
             }
 
             return attributes;
         }
-    }   
+    }
 }

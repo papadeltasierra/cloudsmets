@@ -48,14 +48,14 @@ namespace CloudSMETS.zbhci
 
     public static class ZbhciCommandId
     {
-        public const ushortint ATTR_READ_RSP = 0x8100;
+        public const ushort ATTR_READ_RSP = 0x8100;
     }
 
 
     public static class ZbhciPayloadConstant
     {
-        // With no attributes, payload must be at least 7 bytes.
         public const int MIN_LENGTH = 7;
+        // With no attributes, payload must be at least 7 bytes.
         public const int OFFSET_SRC_ADDR = 0;
         public const int OFFSET_SRC_ENDPT = 1;
         public const int OFFSET_DEST_ENDPT = 2;
