@@ -5,7 +5,7 @@ using System;
 namespace CloudSMETS.zbhci
 {
     // Exceptions that may be throw whilst parsing the data.
-    class ZbhciShortFrameException : Exception
+    public class ZbhciShortFrameException : Exception
     {
         public ZbhciShortFrameException()
         {
@@ -22,7 +22,7 @@ namespace CloudSMETS.zbhci
         }
     };
 
-    class ZbhciFramingException : Exception
+    public class ZbhciFramingException : Exception
     {
         public ZbhciFramingException()
         {
@@ -39,7 +39,7 @@ namespace CloudSMETS.zbhci
         }
     };
 
-    class ZbhciCRCExcException : Exception
+    public class ZbhciCRCExcException : Exception
     {
         public ZbhciCRCExcException()
         {
@@ -56,7 +56,7 @@ namespace CloudSMETS.zbhci
         }
     };
 
-    class ZbhciFrameException : Exception {};
+    public class ZbhciFrameException : Exception
     {
         public ZbhciFrameException()
         {
@@ -73,7 +73,7 @@ namespace CloudSMETS.zbhci
         }
     };
 
-    class ZbhciAttributeStateInvalid : Exception
+    public class ZbhciAttributeStateInvalid : Exception
     {
         public ZbhciAttributeStateInvalid()
         {
@@ -90,7 +90,7 @@ namespace CloudSMETS.zbhci
         }
     };
 
-    class ZbhciNotAttributesException : Exception
+    public class ZbhciNotAttributesException : Exception
     {
         public ZbhciNotAttributesException()
         {
@@ -107,7 +107,7 @@ namespace CloudSMETS.zbhci
         }
     };
 
-    class ZbhciShortPayloadException : Exception
+    public class ZbhciShortPayloadException : Exception
     {
         public ZbhciShortPayloadException()
         {
@@ -124,7 +124,7 @@ namespace CloudSMETS.zbhci
         }
     };
 
-    class ZbhciPayloadFrameLengthsException : Exception
+    public class ZbhciPayloadFrameLengthsException : Exception
     {
         public ZbhciPayloadFrameLengthsException()
         {
@@ -141,7 +141,7 @@ namespace CloudSMETS.zbhci
         }
     };
 
-    class ZbhciShortattributeHeader : Exception
+    public class ZbhciShortattributeHeader : Exception
     {
         public ZbhciShortattributeHeader()
         {
@@ -158,20 +158,21 @@ namespace CloudSMETS.zbhci
         }
     };
 
-    class ZbhciUnsupportedValueType : Exception
+    public class ZbhciUnsupportedValueTypeException : Exception
     {
-        public ZbhciUnsupportedValueType()
+        public ZbhciUnsupportedValueTypeException()
         {
         }
 
-        public ZbhciUnsupportedValueType(string message)
+        public ZbhciUnsupportedValueTypeException(string message)
             : base(message)
         {
         }
 
-        public ZbhciUnsupportedValueType(string message, Exception inner)
+        public ZbhciUnsupportedValueTypeException(string message, Exception inner)
             : base(message, inner)
         {
         }
-    };
+    }
+}
 
