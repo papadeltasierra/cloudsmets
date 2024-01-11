@@ -1,7 +1,0 @@
-{
-    "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=cloudsmets;AccountKey=h7tKxS9FSrcd146f8qvrgajLiDeArwjCZeC+OcVx1JjUOVvmZPiD0rFB+fewEMhdZJ/zjYy2r010+ASt6xUZuw==;EndpointSuffix=core.windows.net",
-    "EventHubConnection": "Endpoint=sb://cloudsmets.servicebus.windows.net/;SharedAccessKeyName=listener;SharedAccessKey=JbL1Zqwz7kQ3RP5ljGOJADSIWYXQJCGvu+AEhGBLvq4=;EntityPath=cloudsmets"
-  }
-}

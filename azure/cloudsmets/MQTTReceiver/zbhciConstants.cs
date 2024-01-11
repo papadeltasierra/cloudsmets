@@ -1,8 +1,76 @@
 // Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
 // License: Free to copy providing the author is acknowledged.namespace CloudSMETS.zbhci
+using System;
+using System.Collections.Generic;
 
 namespace CloudSMETS.zbhci
 {
+    enum AmbientConsumptionIndicator
+    {
+        LowEnergyUsage = 0x00,
+        MediumEnergyUsage = 0x01,
+        HighEnergyUsage = 0x02
+    }
+
+    public static class ZbhciSmartEnergyEnums
+    {
+        public static string GetEnum8(ushort attributeId, byte value)
+        {
+            switch (attributeId)
+            {
+                case 0x0207:
+                    return Enum.GetName(typeof(AmbientConsumptionIndicator), value);
+
+                default:
+                    throw new System.Exception($"Unknown attribute enumeration: {attributeId:X4}.");
+            }
+        }
+    };
+
+
+    public class ZbhciAttributeNames
+    {
+        public Dictionary<ushort, string> Attributes;
+
+        public ZbhciAttributeNames() { }
+    }
+
+    public class ZbhciSmartEnergyAttributes : ZbhciAttributeNames
+    {
+        public Dictionary<ushort, string> Attributes;
+
+        public ZbhciSmartEnergyAttributes()
+        {
+            this.Attributes = new ()
+            {
+                { 0x0000, "CurrentSummationDelivered" },               // Uint48
+                { 0x0207, "AmbientConsumptionIndicator" },             // Enum8
+                { 0x0206, "CurrentMeterID" },                          // Octet string
+            };
+        }
+    }
+
+    public enum ZbhhiClusterId
+    {
+        SMART_ENERY_STANDARD = 0x0109,
+    }
+
+    public static class ZbhciClusterAttributes
+    {
+        public static Dictionary<ushort, ZbhciAttributeNames> ClusterAttributes = new()
+        {
+            { ZbhciClusterId.SMART_ENERY_STANDARD, new ZbhciSmartEnergyAttributes() },
+        };
+    }
+
+    public static class ZbhciEnumMaps
+    {
+        public static Dictionary<ushort, Dictionary<ushort, string>> EnumMaps = new()
+        {
+            { ZbhcuClisterId.SMART_ENERY_STANDARD, ZbhciSmartEnergyEnums }
+        };
+    }
+
     public static class ZbhciCommandId
     {
         public const ushort ATTR_READ_RSP = 0x8100;
@@ -13,7 +81,7 @@ namespace CloudSMETS.zbhci
         public const byte SUCCESS = 0x00;
     }
 
-    static class ZbhciDataType
+    public static class ZbhciDataType
     {
         public const byte NO_DATA = 0x00;
         public const byte DATA8 = 0x08;

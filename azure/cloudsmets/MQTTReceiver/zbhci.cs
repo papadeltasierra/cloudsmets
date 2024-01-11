@@ -59,7 +59,16 @@ namespace CloudSMETS.zbhci
         public ushort payloadLength;
         public byte crc8;
 
-       public ZbhciFrameHeader(byte[] frame, ref int offset)
+        // This constructor exists purely to allow a subclass to add
+        // additional constructors.
+        protected ZbhciFrameHeader(ushort commandId, ushort payloadLength, byte crc8)
+        {
+            this.commandId = commandId;
+            this.payloadLength = payloadLength;
+            this.crc8 = crc8;
+        }
+
+        public ZbhciFrameHeader(byte[] frame, ref int offset)
         {
              // Are the framing bytes present?
             if ((frame[0] != FRAME_START) || (frame[frame.GetLength(0) - 1] != FRAME_END))
@@ -69,17 +78,15 @@ namespace CloudSMETS.zbhci
             // Step past the frame-start.
             offset++;
 
-            ushort commandId = BitConverter.ToUInt16(frame, offset);
+            this.commandId = BitConverter.ToUInt16(frame, offset);
             offset += 2;
-            commandId = (ushort)IPAddress.NetworkToHostOrder((short)commandId);
-
-            // Is the command length correct?
-            ushort payloadLength = BitConverter.ToUInt16(frame, offset);
-            offset += 2;
+            this.commandId = (ushort)IPAddress.NetworkToHostOrder((short)this.commandId);
 
             // We do not validate payload length because C# will throw an Exception
             // if we try to read beyond the end of the message.
-            payloadLength = (ushort)IPAddress.NetworkToHostOrder((short)payloadLength);
+            this.payloadLength = BitConverter.ToUInt16(frame, offset);
+            this.payloadLength = (ushort)IPAddress.NetworkToHostOrder((short)this.payloadLength);
+            offset += 2;
 
             // Is the CRC correct?
             this.crc8 = Crc8Calculate(commandId, payloadLength, frame, offset);
@@ -90,22 +97,22 @@ namespace CloudSMETS.zbhci
             offset++;
         }
 
+
         private static byte Crc8Calculate(ushort commandId, ushort payloadLength, byte[] payload, int offset)
         {
-            byte crc8;
+            int crc8;
 
-            crc8 = (byte)((commandId >> 0) & 0xff);
-            int icrc8 = crc8 ^ ((commandId >> 8) & 0xff);
-            crc8 = (byte)(crc8 ^ (byte)((commandId >> 8) & 0xff));
-            crc8 = (byte)(crc8 ^ (byte)((payloadLength >> 0) & 0xff));
-            crc8 = (byte)(crc8 ^ (byte)((payloadLength >> 8) & 0xff));
+            crc8 = commandId;
+            crc8 ^= commandId >> 8;
+            crc8 ^= payloadLength;
+            crc8 ^= payloadLength >> 8;
 
             for (ushort n = 1; n <= payloadLength; n++)
             {
-                crc8 = (byte)(crc8 ^ payload[offset + n]);
+                crc8 ^= payload[offset + n];
             }
 
-            return crc8;
+            return (byte)(crc8 & 0xff);
         }
     }
 
@@ -116,6 +123,23 @@ namespace CloudSMETS.zbhci
         public readonly byte destinationEndpoint;
         public readonly byte sequenceNumber;
         public readonly ushort clusterId;
+
+        // This consrtructor exists purely to allow a subclass to add
+        // additional constructors.
+        protected ZbhciCommandHeader(
+            ushort sourceAddress,
+            byte sourceEndpoint,
+            byte destinationEndpoint,
+            byte sequenceNumber,
+            ushort clusterId)
+        {
+            this.sourceAddress = sourceAddress;
+            this.sourceEndpoint = sourceEndpoint;
+            this.destinationEndpoint = destinationEndpoint;
+            this.sequenceNumber = sequenceNumber;
+            this.clusterId = clusterId;
+        }
+
 
         public ZbhciCommandHeader(byte[] command, ref int offset)
         {
@@ -135,17 +159,33 @@ namespace CloudSMETS.zbhci
         }
     }
 
-    public class ZbhciAttribute
+    public class ZbhciAttribute : IComparable<ZbhciAttribute>
     {
         public ushort identifier;
         public byte status;
         public byte dataType;
+
+        protected ZbhciAttribute()
+        {
+        }
 
         public ZbhciAttribute(ushort identifier, byte status, byte dataType)
         {
             this.identifier = identifier;
             this.status = status;
             this.dataType = dataType;
+        }
+
+        // Method to get the string representation of the attribute Id.
+        public string AttributeId(ZbhciCommandHeader cmdHeader)
+        {
+            return ZbhciClusterAttributes.ClusterAttributes[cmdHeader.clusterId].Attributes[this.identifier];
+        }
+
+        // Method to get the string representation of the attribute value.
+        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        {
+            throw new NotImplementedException("Implement AttributeValue() in your subclass.");
         }
 
         public static ZbhciAttribute GetAttribute(byte[] attribute, ref int offset)
@@ -174,13 +214,13 @@ namespace CloudSMETS.zbhci
                     length = BitConverter.ToUInt16(attribute, offset);
                     offset += 2;
                     length = (ushort)IPAddress.NetworkToHostOrder((short)length);
-                    zbhciAttribute = new ZbhciAttributeLongStr(identifier, status, dataType, length, attribute, ref offset);
+                    zbhciAttribute = new ZbhciAttributeStr(identifier, status, dataType, length, attribute, ref offset);
                     break;
 
                 case ZbhciDataType.CHAR_STR:
                 case ZbhciDataType.OCTET_STR:
                     length = attribute[offset++];
-                    zbhciAttribute = new ZbhciAttributeShortStr(identifier, status, dataType, length, attribute, ref offset);
+                    zbhciAttribute = new ZbhciAttributeStr(identifier, status, dataType, length, attribute, ref offset);
                     break;
 
                 // No support for these as not required.
@@ -199,10 +239,13 @@ namespace CloudSMETS.zbhci
                 // case ZbhciDataType.BOOLEAN:
                 // case ZbhciDataType.BITMAP8:
                 // case ZbhciDataType.INT8:
-                // case ZbhciDataType.ENUM8:
                 // case ZbhciDataType.UINT8:
                 //     length = 1;
                 //     break;
+
+                case ZbhciDataType.ENUM8:
+                    zbhciAttribute = new ZbhciAttributeEnum8(identifier, status, dataType, attribute, ref offset);
+                    break;
 
                 case ZbhciDataType.DATA16:
                 case ZbhciDataType.BITMAP16:
@@ -233,12 +276,12 @@ namespace CloudSMETS.zbhci
                     zbhciAttribute = new ZbhciAttributeUint32(identifier, status, dataType, attribute, ref offset);
                     break;
 
-                    // case ZbhciDataType.DATA40:
-                    // case ZbhciDataType.BITMAP40:
-                    // case ZbhciDataType.UINT40:
-                    // case ZbhciDataType.INT40:
-                    //     length = 5;
-                    //     break;
+                // case ZbhciDataType.DATA40:
+                // case ZbhciDataType.BITMAP40:
+                // case ZbhciDataType.UINT40:
+                // case ZbhciDataType.INT40:
+                //     length = 5;
+                //     break;
 
                 case ZbhciDataType.DATA48:
                 case ZbhciDataType.BITMAP48:
@@ -276,6 +319,18 @@ namespace CloudSMETS.zbhci
             }
             return zbhciAttribute;
         }
+
+        // Default comparer for ZbhciAttribute.
+        public int CompareTo(ZbhciAttribute compareAttribute)
+        {
+            // A null value means that this object is greater.
+            if (this.identifier > compareAttribute.identifier)
+                return 1;
+            else if (this.identifier < compareAttribute.identifier)
+                return -1;
+            else
+                return 0;
+        }
     }
 
     class ZbhciAttributeUint16 : ZbhciAttribute
@@ -290,9 +345,17 @@ namespace CloudSMETS.zbhci
         }
     }
 
-    class ZbhciAttributeUint48 : ZbhciAttribute
+    public class ZbhciAttributeUint48 : ZbhciAttribute
     {
         public ulong value;
+
+        protected ZbhciAttributeUint48(ushort identifier, byte status, byte dataType, uint value)
+        {
+            this.identifier = identifier;
+            this.status = status;
+            this.dataType = dataType;
+            this.value = value;
+        }
 
         public ZbhciAttributeUint48(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(identifier, status, dataType)
         {
@@ -307,11 +370,25 @@ namespace CloudSMETS.zbhci
             value16 = (ushort)IPAddress.NetworkToHostOrder((short)value16);
             this.value = ((ulong)value32 << 16) + value16;
         }
+
+        // Method to get the string representation of the attribute value.
+        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        {
+            return this.value.ToString();
+        }
     }
 
-    class ZbhciAttributeUint32 : ZbhciAttribute
+    public class ZbhciAttributeUint32 : ZbhciAttribute
     {
         public uint value;
+
+        protected ZbhciAttributeUint32(ushort identifier, byte status, byte dataType, uint value)
+        {
+            this.identifier = identifier;
+            this.status = status;
+            this.dataType = dataType;
+            this.value = value;
+        }
 
         public ZbhciAttributeUint32(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(identifier, status, dataType)
         {
@@ -319,11 +396,41 @@ namespace CloudSMETS.zbhci
             offset += 4;
             this.value = (uint)IPAddress.NetworkToHostOrder((int)this.value);
         }
+
+        // Method to get the string representation of the attribute value.
+        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        {
+            return this.value.ToString();
+        }
+    }
+
+    public class ZbhciAttributeEnum8 : ZbhciAttribute
+    {
+        private byte value;
+
+        protected ZbhciAttributeEnum8(ushort identifier, byte status, byte dataType, byte value)
+        {
+            this.identifier = identifier;
+            this.status = status;
+            this.dataType = dataType;
+            this.value = value;
+        }
+
+        public ZbhciAttributeEnum8(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(identifier, status, dataType)
+        {
+            this.value = attribute[offset++];
+        }
+
+        // Method to get the string representation of the attribute value.
+        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        {
+            return Enum.GetName(typeof(ZbhciEnumMaps[commandHeader]), this.value);
+        }
     }
 
     class ZbhciAttributeUint64 : ZbhciAttribute
     {
-        public ulong value;
+        private ulong value;
 
         public ZbhciAttributeUint64(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(identifier, status, dataType)
         {
@@ -332,23 +439,28 @@ namespace CloudSMETS.zbhci
         }
     }
 
-    class ZbhciAttributeShortStr : ZbhciAttribute
+    public class ZbhciAttributeStr : ZbhciAttribute
     {
-        public string value;
+        private string value;
 
-        public ZbhciAttributeShortStr(ushort identifier, byte status, byte dataType, int length, byte[] attribute, ref int offset) : base(identifier, status, dataType)
+        protected ZbhciAttributeStr(ushort identifier, byte status, byte dataType, string value)
         {
-            this.value = System.Text.Encoding.UTF8.GetString(attribute, offset, length);
+            this.identifier = identifier;
+            this.status = status;
+            this.dataType = dataType;
+            this.value = value;
         }
-    }
 
-    public class ZbhciAttributeLongStr : ZbhciAttribute
-    {
-        public string value;
-
-        public ZbhciAttributeLongStr(ushort identifier, byte status, byte dataType, ushort length, byte[] attribute, ref int offset) : base(identifier, status, dataType)
+        public ZbhciAttributeStr(ushort identifier, byte status, byte dataType, int length, byte[] attribute, ref int offset) : base(identifier, status, dataType)
         {
             this.value = System.Text.Encoding.UTF8.GetString(attribute, offset, length);
+            offset += length;
+        }
+
+        // Method to get the string representation of the attribute value.
+        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        {
+            return this.value;
         }
     }
 
@@ -382,6 +494,9 @@ namespace CloudSMETS.zbhci
             {
                 this.attributeList.Add(ZbhciAttribute.GetAttribute(frame, ref offset));
             }
+
+            // Sort the attributes based on attribute identifier.
+            attributeList.Sort();
         }
     }
 }
