@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 
 // The zbhci frame format is as follows.
@@ -124,7 +125,7 @@ namespace CloudSMETS.zbhci
         public readonly byte sequenceNumber;
         public readonly ushort clusterId;
 
-        // This consrtructor exists purely to allow a subclass to add
+        // This constructor exists purely to allow a subclass to add
         // additional constructors.
         protected ZbhciCommandHeader(
             ushort sourceAddress,
@@ -164,31 +165,49 @@ namespace CloudSMETS.zbhci
         public ushort identifier;
         public byte status;
         public byte dataType;
+        protected ZbhciCommandHeader zbhciCommandHeader;
+        protected ZbhciEnumMaps zbhciEnumMaps;
+        protected ZbhciClusterAttributes zbhciClusterAttributes;
 
         protected ZbhciAttribute()
         {
+            zbhciEnumMaps = ZbhciEnumMaps.Singleton();
+            zbhciClusterAttributes = ZbhciClusterAttributes.Singleton();
         }
 
-        public ZbhciAttribute(ushort identifier, byte status, byte dataType)
+        public ZbhciAttribute(ZbhciCommandHeader commandHeader, ushort identifier, byte status, byte dataType) : this()
         {
+            this.zbhciCommandHeader = commandHeader;
             this.identifier = identifier;
             this.status = status;
             this.dataType = dataType;
         }
 
         // Method to get the string representation of the attribute Id.
-        public string AttributeId(ZbhciCommandHeader cmdHeader)
+        public string AttributeId()
         {
-            return ZbhciClusterAttributes.ClusterAttributes[cmdHeader.clusterId].Attributes[this.identifier];
+            return this.zbhciClusterAttributes.ClusterAttributes[(ZbhciClusterId)this.zbhciCommandHeader.clusterId].Attributes[this.identifier];
         }
 
         // Method to get the string representation of the attribute value.
-        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        public virtual string AttributeValue()
         {
             throw new NotImplementedException("Implement AttributeValue() in your subclass.");
         }
 
-        public static ZbhciAttribute GetAttribute(byte[] attribute, ref int offset)
+        protected string GetEnum<T>(T value)
+        {
+            System.Type type = this.zbhciEnumMaps.EnumMaps[(ZbhciClusterId)this.zbhciCommandHeader.clusterId];
+            System.Reflection.MethodInfo method = type.GetMethod("GetEnum");
+            Object[] parameters = new Object[]
+            {
+                this.identifier,
+                value
+            };
+            return (string)method.Invoke(null, parameters);
+        }
+
+        public static ZbhciAttribute GetAttribute(ZbhciCommandHeader commandHeader, byte[] attribute, ref int offset)
         {
             ZbhciAttribute zbhciAttribute;
             ushort identifier;
@@ -214,13 +233,13 @@ namespace CloudSMETS.zbhci
                     length = BitConverter.ToUInt16(attribute, offset);
                     offset += 2;
                     length = (ushort)IPAddress.NetworkToHostOrder((short)length);
-                    zbhciAttribute = new ZbhciAttributeStr(identifier, status, dataType, length, attribute, ref offset);
+                    zbhciAttribute = new ZbhciAttributeStr(commandHeader, identifier, status, dataType, length, attribute, ref offset);
                     break;
 
                 case ZbhciDataType.CHAR_STR:
                 case ZbhciDataType.OCTET_STR:
                     length = attribute[offset++];
-                    zbhciAttribute = new ZbhciAttributeStr(identifier, status, dataType, length, attribute, ref offset);
+                    zbhciAttribute = new ZbhciAttributeStr(commandHeader, identifier, status, dataType, length, attribute, ref offset);
                     break;
 
                 // No support for these as not required.
@@ -244,7 +263,7 @@ namespace CloudSMETS.zbhci
                 //     break;
 
                 case ZbhciDataType.ENUM8:
-                    zbhciAttribute = new ZbhciAttributeEnum8(identifier, status, dataType, attribute, ref offset);
+                    zbhciAttribute = new ZbhciAttributeEnum8(commandHeader, identifier, status, dataType, attribute, ref offset);
                     break;
 
                 case ZbhciDataType.DATA16:
@@ -255,7 +274,7 @@ namespace CloudSMETS.zbhci
                 case ZbhciDataType.SEMI_PREC:
                 case ZbhciDataType.CLUSTER_ID:
                 case ZbhciDataType.ATTR_ID:
-                    zbhciAttribute = new ZbhciAttributeUint16(identifier, status, dataType, attribute, ref offset);
+                    zbhciAttribute = new ZbhciAttributeUint16(commandHeader, identifier, status, dataType, attribute, ref offset);
                     break;
 
                 // case ZbhciDataType.DATA24:
@@ -273,7 +292,7 @@ namespace CloudSMETS.zbhci
                 case ZbhciDataType.DATE:
                 case ZbhciDataType.UTC:
                 case ZbhciDataType.BAC_OID:
-                    zbhciAttribute = new ZbhciAttributeUint32(identifier, status, dataType, attribute, ref offset);
+                    zbhciAttribute = new ZbhciAttributeUint32(commandHeader, identifier, status, dataType, attribute, ref offset);
                     break;
 
                 // case ZbhciDataType.DATA40:
@@ -287,7 +306,7 @@ namespace CloudSMETS.zbhci
                 case ZbhciDataType.BITMAP48:
                 case ZbhciDataType.UINT48:
                 case ZbhciDataType.INT48:
-                    zbhciAttribute = new ZbhciAttributeUint48(identifier, status, dataType, attribute, ref offset);
+                    zbhciAttribute = new ZbhciAttributeUint48(commandHeader, identifier, status, dataType, attribute, ref offset);
                     break;
 
                 // case ZbhciDataType.DATA56:
@@ -303,7 +322,7 @@ namespace CloudSMETS.zbhci
                 case ZbhciDataType.INT64:
                 case ZbhciDataType.DOUBLE_PREC:
                 case ZbhciDataType.IEEE_ADDR:
-                    zbhciAttribute = new ZbhciAttributeUint64(identifier, status, dataType, attribute, ref offset);
+                    zbhciAttribute = new ZbhciAttributeUint64(commandHeader, identifier, status, dataType, attribute, ref offset);
                     break;
 
                 // case ZbhciDataType.BIT_128_SEC_K:
@@ -337,7 +356,7 @@ namespace CloudSMETS.zbhci
     {
         public ushort value;
 
-        public ZbhciAttributeUint16(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(identifier, status, dataType)
+        public ZbhciAttributeUint16(ZbhciCommandHeader commandHeader, ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(commandHeader, identifier, status, dataType)
         {
             this.value = BitConverter.ToUInt16(attribute, offset);
             offset += 2;
@@ -349,7 +368,7 @@ namespace CloudSMETS.zbhci
     {
         public ulong value;
 
-        protected ZbhciAttributeUint48(ushort identifier, byte status, byte dataType, uint value)
+        protected ZbhciAttributeUint48(ushort identifier, byte status, byte dataType, ulong value)
         {
             this.identifier = identifier;
             this.status = status;
@@ -357,7 +376,7 @@ namespace CloudSMETS.zbhci
             this.value = value;
         }
 
-        public ZbhciAttributeUint48(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(identifier, status, dataType)
+        public ZbhciAttributeUint48(ZbhciCommandHeader commandHeader, ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(commandHeader, identifier, status, dataType)
         {
             ushort value16;
             ulong value32;
@@ -372,7 +391,7 @@ namespace CloudSMETS.zbhci
         }
 
         // Method to get the string representation of the attribute value.
-        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        public override string AttributeValue()
         {
             return this.value.ToString();
         }
@@ -390,7 +409,7 @@ namespace CloudSMETS.zbhci
             this.value = value;
         }
 
-        public ZbhciAttributeUint32(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(identifier, status, dataType)
+        public ZbhciAttributeUint32(ZbhciCommandHeader commandHeader, ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(commandHeader, identifier, status, dataType)
         {
             this.value = BitConverter.ToUInt32(attribute, offset);
             offset += 4;
@@ -398,7 +417,7 @@ namespace CloudSMETS.zbhci
         }
 
         // Method to get the string representation of the attribute value.
-        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        public override string AttributeValue()
         {
             return this.value.ToString();
         }
@@ -406,7 +425,7 @@ namespace CloudSMETS.zbhci
 
     public class ZbhciAttributeEnum8 : ZbhciAttribute
     {
-        private byte value;
+        private readonly byte value;
 
         protected ZbhciAttributeEnum8(ushort identifier, byte status, byte dataType, byte value)
         {
@@ -416,23 +435,23 @@ namespace CloudSMETS.zbhci
             this.value = value;
         }
 
-        public ZbhciAttributeEnum8(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(identifier, status, dataType)
+        public ZbhciAttributeEnum8(ZbhciCommandHeader commandHeader, ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(commandHeader, identifier, status, dataType)
         {
             this.value = attribute[offset++];
         }
 
         // Method to get the string representation of the attribute value.
-        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        public override string AttributeValue()
         {
-            return Enum.GetName(typeof(ZbhciEnumMaps[commandHeader]), this.value);
+            return this.GetEnum<byte>(this.value);
         }
     }
 
     class ZbhciAttributeUint64 : ZbhciAttribute
     {
-        private ulong value;
+        private readonly ulong value;
 
-        public ZbhciAttributeUint64(ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(identifier, status, dataType)
+        public ZbhciAttributeUint64(ZbhciCommandHeader commandHeader, ushort identifier, byte status, byte dataType, byte[] attribute, ref int offset) : base(commandHeader, identifier, status, dataType)
         {
             this.value = BitConverter.ToUInt64(attribute, offset);
             this.value = (ulong)IPAddress.NetworkToHostOrder((long)this.value);
@@ -441,7 +460,7 @@ namespace CloudSMETS.zbhci
 
     public class ZbhciAttributeStr : ZbhciAttribute
     {
-        private string value;
+        private readonly string value;
 
         protected ZbhciAttributeStr(ushort identifier, byte status, byte dataType, string value)
         {
@@ -451,14 +470,14 @@ namespace CloudSMETS.zbhci
             this.value = value;
         }
 
-        public ZbhciAttributeStr(ushort identifier, byte status, byte dataType, int length, byte[] attribute, ref int offset) : base(identifier, status, dataType)
+        public ZbhciAttributeStr(ZbhciCommandHeader commandHeader, ushort identifier, byte status, byte dataType, int length, byte[] attribute, ref int offset) : base(commandHeader, identifier, status, dataType)
         {
             this.value = System.Text.Encoding.UTF8.GetString(attribute, offset, length);
             offset += length;
         }
 
         // Method to get the string representation of the attribute value.
-        public string AttributeValue(ZbhciCommandHeader commandHeader)
+        public override string AttributeValue()
         {
             return this.value;
         }
@@ -492,7 +511,7 @@ namespace CloudSMETS.zbhci
 
             for (int n = 0; n < numberOfAttributes; n++)
             {
-                this.attributeList.Add(ZbhciAttribute.GetAttribute(frame, ref offset));
+                this.attributeList.Add(ZbhciAttribute.GetAttribute(this.commandHeader, frame, ref offset));
             }
 
             // Sort the attributes based on attribute identifier.

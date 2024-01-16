@@ -1,11 +1,12 @@
 // Copyright (c) 2023 Paul D.Smith (paul@pauldsmith.org.uk).
 // License: Free to copy providing the author is acknowledged.namespace CloudSMETS.zbhci
+using CloudSMETS.zbhci;
 using System;
 using System.Collections.Generic;
 
 namespace CloudSMETS.zbhci
 {
-    enum AmbientConsumptionIndicator
+    public enum ZbhciAmbientConsumptionIndicator
     {
         LowEnergyUsage = 0x00,
         MediumEnergyUsage = 0x01,
@@ -14,12 +15,12 @@ namespace CloudSMETS.zbhci
 
     public static class ZbhciSmartEnergyEnums
     {
-        public static string GetEnum8(ushort attributeId, byte value)
+        public static string GetEnum(ushort attributeId, byte value)
         {
             switch (attributeId)
             {
                 case 0x0207:
-                    return Enum.GetName(typeof(AmbientConsumptionIndicator), value);
+                    return Enum.GetName(typeof(ZbhciAmbientConsumptionIndicator), value);
 
                 default:
                     throw new System.Exception($"Unknown attribute enumeration: {attributeId:X4}.");
@@ -37,8 +38,6 @@ namespace CloudSMETS.zbhci
 
     public class ZbhciSmartEnergyAttributes : ZbhciAttributeNames
     {
-        public Dictionary<ushort, string> Attributes;
-
         public ZbhciSmartEnergyAttributes()
         {
             this.Attributes = new ()
@@ -50,25 +49,49 @@ namespace CloudSMETS.zbhci
         }
     }
 
-    public enum ZbhhiClusterId
+    public enum ZbhciClusterId
     {
-        SMART_ENERY_STANDARD = 0x0109,
+        SMART_ENERGY_STANDARD = 0x0109,
     }
 
-    public static class ZbhciClusterAttributes
+    public class ZbhciClusterAttributes
     {
-        public static Dictionary<ushort, ZbhciAttributeNames> ClusterAttributes = new()
+        public Dictionary<ZbhciClusterId, ZbhciAttributeNames> ClusterAttributes;
+        private static ZbhciClusterAttributes singleton;
+        public ZbhciClusterAttributes()
         {
-            { ZbhciClusterId.SMART_ENERY_STANDARD, new ZbhciSmartEnergyAttributes() },
-        };
+            ClusterAttributes = new()
+            {
+                { ZbhciClusterId.SMART_ENERGY_STANDARD, new ZbhciSmartEnergyAttributes() },
+            };
+        }
+
+        public static ZbhciClusterAttributes Singleton()
+        {
+            ZbhciClusterAttributes.singleton ??= new ZbhciClusterAttributes();
+            return ZbhciClusterAttributes.singleton;
+        }
     }
 
-    public static class ZbhciEnumMaps
+    public class ZbhciEnumMaps
     {
-        public static Dictionary<ushort, Dictionary<ushort, string>> EnumMaps = new()
+        public Dictionary<ZbhciClusterId, System.Type> EnumMaps;
+
+        static ZbhciEnumMaps singleton = null;
+
+        public ZbhciEnumMaps()
         {
-            { ZbhcuClisterId.SMART_ENERY_STANDARD, ZbhciSmartEnergyEnums }
-        };
+            EnumMaps = new()
+            {
+                { ZbhciClusterId.SMART_ENERGY_STANDARD, typeof(ZbhciSmartEnergyEnums) }
+            };
+        }
+
+        public static ZbhciEnumMaps Singleton()
+        {
+            ZbhciEnumMaps.singleton ??= new ZbhciEnumMaps();
+            return ZbhciEnumMaps.singleton;
+        }
     }
 
     public static class ZbhciCommandId

@@ -22,7 +22,11 @@ namespace CloudSMETS.Tests
     {
     }
 
-    public class TestZbhciAttributeUint48(ushort identifier, byte status, byte dataType, ulong value) : ZbhciAttributeUint48(identifier, status, dataType, ValueTask)
+    public class TestZbhciAttributeUint48(ushort identifier, byte status, byte dataType, ulong value) : ZbhciAttributeUint48(identifier, status, dataType, value)
+    {
+    }
+
+    public class TestZbhciAttributeEnum8(ushort identifier, byte status, byte dataType, byte value) : ZbhciAttributeEnum8(identifier, status, dataType, value)
     {
     }
 
@@ -106,7 +110,7 @@ namespace CloudSMETS.Tests
                     attrRdRspHi, attrRdRspLo,
                                             // Command Id
                     0x00, 0x22,                 // Payload length
-                    0x27,                       // CRC
+                    0xAD,                       // CRC
                         0x00, 0x01,                 // Source address
                         0x05,                       // Source endpoint
                         0x01,                       // Destination endpoint
@@ -120,11 +124,11 @@ namespace CloudSMETS.Tests
 
                             0x00, 0x00,                     // Attribute Id
                             ZbhciStatus.SUCCESS,            // Status
-                            ZbhciDataType.INT48,            // Data type
-                            0x05, 0x67, 0x89,
+                            ZbhciDataType.UINT48,           // Data type
+                            0x45, 0x67, 0x89,
                             0xAB, 0xCD, 0xEF,               // Value
 
-                            0x02, 06,                       // Attribute Id
+                            0x02, 0x06,                     // Attribute Id
                             ZbhciStatus.SUCCESS,            // Status
                             ZbhciDataType.CHAR_STR,         // Data type (short string)
                             0x05,                           // Length
@@ -133,8 +137,8 @@ namespace CloudSMETS.Tests
 
             ZbhciMessage message = new (frame);
 
-            TestZbhciFrameHeader testFrameHeader = new(0x8100, 0x0022, 0x27);
-            TestZbhciCommandHeader testCommandHeader = new(0x0001, 0x05, 0x01, 0x98, 0x0801);
+            TestZbhciFrameHeader testFrameHeader = new(0x8100, 0x0022, 0xAD);
+            TestZbhciCommandHeader testCommandHeader = new(0x0001, 0x05, 0x01, 0x98, (ushort)ZbhciClusterId.SMART_ENERGY_STANDARD);
 
             message.frameHeader.Should().BeEquivalentTo(testFrameHeader);
             message.commandHeader.Should().BeEquivalentTo(testCommandHeader);
@@ -142,13 +146,19 @@ namespace CloudSMETS.Tests
             // Note that the attribute gets sorted based on attribute identifier.
 
 
-            // TODO: Add more checking here.
+            // TODO: Add more checking here.  not testing values!
             List<ZbhciAttribute> attributeList = [
-                new TestZbhciAttributeStr(0x0001, ZbhciStatus.SUCCESS, ZbhciDataType.CHAR_STR, new string("Hello")),
-                new TestZbhciAttributeStr(0x0003, ZbhciStatus.SUCCESS, ZbhciDataType.LONG_CHAR_STR, new string("Xorldx")),
-                new TestZbhciAttributeUint32(0x0005, ZbhciStatus.SUCCESS, ZbhciDataType.INT32, 0x056789AB)
+                new TestZbhciAttributeUint48(0x0000, ZbhciStatus.SUCCESS, ZbhciDataType.UINT48, 0x00456789ABCDEF),
+                new TestZbhciAttributeStr(0x0206, ZbhciStatus.SUCCESS, ZbhciDataType.CHAR_STR, "Hello"),
+                new TestZbhciAttributeEnum8(0x0207, ZbhciStatus.SUCCESS, ZbhciDataType.ENUM8, (byte)ZbhciAmbientConsumptionIndicator.LowEnergyUsage)
             ];
-            message.attributeList.Should().BeEquivalentTo(attributeList);
+            attributeList.Should().BeEquivalentTo(message.attributeList, options => options.RespectingRuntimeTypes().WithAutoConversion().IncludingInternalFields());
+            message.attributeList[0].AttributeId().Should().Be("CurrentSummationDelivered");
+            message.attributeList[1].AttributeId().Should().Be("CurrentMeterID");
+            message.attributeList[2].AttributeId().Should().Be("AmbientConsumptionIndicator");
+            message.attributeList[0].AttributeValue().Should().Be("76310993685999");
+            message.attributeList[1].AttributeValue().Should().Be("Hello");
+            message.attributeList[2].AttributeValue().Should().Be("MediumEnergyUsage");
         }
     }
 }
