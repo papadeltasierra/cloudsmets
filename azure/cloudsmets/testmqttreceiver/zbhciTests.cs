@@ -150,9 +150,11 @@ namespace CloudSMETS.Tests
             List<ZbhciAttribute> attributeList = [
                 new TestZbhciAttributeUint48(0x0000, ZbhciStatus.SUCCESS, ZbhciDataType.UINT48, 0x00456789ABCDEF),
                 new TestZbhciAttributeStr(0x0206, ZbhciStatus.SUCCESS, ZbhciDataType.CHAR_STR, "Hello"),
-                new TestZbhciAttributeEnum8(0x0207, ZbhciStatus.SUCCESS, ZbhciDataType.ENUM8, (byte)ZbhciAmbientConsumptionIndicator.LowEnergyUsage)
+                new TestZbhciAttributeEnum8(0x0207, ZbhciStatus.SUCCESS, ZbhciDataType.ENUM8, (byte)ZbhciAmbientConsumptionIndicator.MediumEnergyUsage)
             ];
             attributeList.Should().BeEquivalentTo(message.attributeList, options => options.RespectingRuntimeTypes().WithAutoConversion().IncludingInternalFields());
+
+            // Now validate the "to string" type methods.
             message.attributeList[0].AttributeId().Should().Be("CurrentSummationDelivered");
             message.attributeList[1].AttributeId().Should().Be("CurrentMeterID");
             message.attributeList[2].AttributeId().Should().Be("AmbientConsumptionIndicator");

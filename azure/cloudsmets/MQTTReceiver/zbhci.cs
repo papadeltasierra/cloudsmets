@@ -425,7 +425,7 @@ namespace CloudSMETS.zbhci
 
     public class ZbhciAttributeEnum8 : ZbhciAttribute
     {
-        private readonly byte value;
+        public readonly byte value;
 
         protected ZbhciAttributeEnum8(ushort identifier, byte status, byte dataType, byte value)
         {
@@ -460,7 +460,7 @@ namespace CloudSMETS.zbhci
 
     public class ZbhciAttributeStr : ZbhciAttribute
     {
-        private readonly string value;
+        public readonly string value;
 
         protected ZbhciAttributeStr(ushort identifier, byte status, byte dataType, string value)
         {
